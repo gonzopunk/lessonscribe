@@ -226,6 +226,18 @@ export const usePlanBook = create<Store>()(
         })),
       removeTemplate: (id) =>
         set((s) => ({ templates: s.templates.filter((t) => t.id !== id) })),
+      archiveTemplate: (id) =>
+        set((s) => ({
+          templates: s.templates.map((t) =>
+            t.id === id ? { ...t, archived: true } : t,
+          ),
+        })),
+      restoreTemplate: (id) =>
+        set((s) => ({
+          templates: s.templates.map((t) =>
+            t.id === id ? { ...t, archived: false } : t,
+          ),
+        })),
 
       addInstanceFromTemplate: (templateId, dKey) => {
         const tpl = get().templates.find((t) => t.id === templateId);
@@ -252,6 +264,27 @@ export const usePlanBook = create<Store>()(
 
       addInstanceToMany: (templateId, dayKeys) => {
         dayKeys.forEach((k) => get().addInstanceFromTemplate(templateId, k));
+      },
+
+      addAdHocInstance: (courseId, dKey, data) => {
+        const existing = get().instances.filter(
+          (i) => i.courseId === courseId && i.dayKey === dKey,
+        );
+        const inst: ElementInstance = {
+          id: nanoid(10),
+          templateId: "",
+          courseId,
+          dayKey: dKey,
+          order: existing.length,
+          title: data.title || "Untitled",
+          tagIds: [...data.tagIds],
+          color: data.color,
+          defaultMinutes: data.defaultMinutes,
+          content: data.content ?? "",
+          durationOverride: null,
+          instanceNotes: data.instanceNotes ?? "",
+        };
+        set((s) => ({ instances: [...s.instances, inst] }));
       },
 
       updateInstance: (id, patch) =>
