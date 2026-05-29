@@ -4,9 +4,7 @@ import { useApplyTheme } from "@/lib/planbook/useApplyTheme";
 import { usePlanBook } from "@/lib/planbook/store";
 import {
   APP_NAME,
-  COURSE_COLORS,
   FONT_OPTIONS,
-  colorToken,
 } from "@/lib/planbook/constants";
 import { ColorPicker } from "@/components/planbook/ColorPicker";
 import { Button } from "@/components/ui/button";
