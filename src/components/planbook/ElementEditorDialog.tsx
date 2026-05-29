@@ -190,20 +190,53 @@ export function ElementEditorDialog({ open, onOpenChange, templateId }: Props) {
         </div>
 
         <DialogFooter className="justify-between sm:justify-between">
-          <div>
+          <div className="flex gap-1">
             {template && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  removeTemplate(template.id);
-                  onOpenChange(false);
-                }}
-                className="text-destructive hover:text-destructive"
-              >
-                <Trash2 className="mr-1 size-4" />
-                Delete
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        `Permanently delete "${template.title}"? Past instances on days are kept.`,
+                      )
+                    ) {
+                      removeTemplate(template.id);
+                      onOpenChange(false);
+                    }
+                  }}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="mr-1 size-4" />
+                  Delete
+                </Button>
+                {template.archived ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      restoreTemplate(template.id);
+                      onOpenChange(false);
+                    }}
+                  >
+                    <ArchiveRestore className="mr-1 size-4" />
+                    Restore
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      archiveTemplate(template.id);
+                      onOpenChange(false);
+                    }}
+                  >
+                    <Archive className="mr-1 size-4" />
+                    Archive
+                  </Button>
+                )}
+              </>
             )}
           </div>
           <div className="flex gap-2">
