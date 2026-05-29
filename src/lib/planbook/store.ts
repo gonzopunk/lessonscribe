@@ -78,6 +78,18 @@ interface Actions {
   // instances
   addInstanceFromTemplate: (templateId: string, dKey: string) => void;
   addInstanceToMany: (templateId: string, dayKeys: string[]) => void;
+  addAdHocInstance: (
+    courseId: string,
+    dKey: string,
+    data: {
+      title: string;
+      defaultMinutes: number;
+      color: string;
+      tagIds: string[];
+      content?: string;
+      instanceNotes?: string;
+    },
+  ) => void;
   updateInstance: (id: string, patch: Partial<ElementInstance>) => void;
   removeInstance: (id: string) => void;
   moveInstance: (id: string, dKey: string, newOrder: number) => void;
