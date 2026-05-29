@@ -19,16 +19,26 @@ export function ElementBank({ collapsed, onToggle }: Props) {
   const allTemplates = usePlanBook((s) => s.templates);
   const allTags = usePlanBook((s) => s.tags);
   const [search, setSearch] = useState("");
+  const [showArchived, setShowArchived] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const templates = useMemo(
+  const courseTemplates = useMemo(
     () => allTemplates.filter((t) => t.courseId === activeCourseId),
     [allTemplates, activeCourseId],
   );
   const tags = useMemo(
     () => allTags.filter((t) => t.courseId === activeCourseId),
     [allTags, activeCourseId],
+  );
+
+  const activeTemplates = useMemo(
+    () => courseTemplates.filter((t) => !t.archived),
+    [courseTemplates],
+  );
+  const archivedTemplates = useMemo(
+    () => courseTemplates.filter((t) => t.archived),
+    [courseTemplates],
   );
 
   if (collapsed) {
@@ -46,9 +56,11 @@ export function ElementBank({ collapsed, onToggle }: Props) {
     );
   }
 
-  const filtered = templates.filter((t) =>
-    search.trim() ? t.title.toLowerCase().includes(search.toLowerCase()) : true,
-  );
+  const matchesSearch = (title: string) =>
+    search.trim() ? title.toLowerCase().includes(search.toLowerCase()) : true;
+
+  const filtered = activeTemplates.filter((t) => matchesSearch(t.title));
+  const filteredArchived = archivedTemplates.filter((t) => matchesSearch(t.title));
 
   const grouped = new Map<string | null, typeof filtered>();
   filtered.forEach((t) => {
@@ -56,6 +68,11 @@ export function ElementBank({ collapsed, onToggle }: Props) {
     if (!grouped.has(key)) grouped.set(key, []);
     grouped.get(key)!.push(t);
   });
+
+  const openEditor = (id: string | null) => {
+    setEditingId(id);
+    setEditorOpen(true);
+  };
 
   return (
     <aside className="flex h-full w-80 shrink-0 flex-col border-l border-border bg-surface">
