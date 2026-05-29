@@ -328,20 +328,12 @@ function SettingsPage() {
                         onChange={(e) => updateTag(t.id, { name: e.target.value })}
                         className="max-w-xs"
                       />
-                      <div className="flex flex-wrap gap-1">
-                        {COURSE_COLORS.map((cc) => (
-                          <button
-                            key={cc.id}
-                            onClick={() => updateTag(t.id, { color: cc.id })}
-                            aria-label={cc.label}
-                            className={cn(
-                              "size-5 rounded-full ring-offset-2 ring-offset-card transition-all",
-                              t.color === cc.id && "ring-2 ring-ring",
-                            )}
-                            style={{ backgroundColor: colorToken(cc.id) }}
-                          />
-                        ))}
-                      </div>
+                      <ColorPicker
+                        value={t.color}
+                        onChange={(next) => updateTag(t.id, { color: next })}
+                        size="sm"
+                        ringOffsetClass="ring-offset-card"
+                      />
                       <Button
                         variant="ghost"
                         size="icon"
