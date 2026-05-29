@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { usePlanBook } from "@/lib/planbook/store";
 import { APP_NAME } from "@/lib/planbook/constants";
 import { ColorPicker } from "./ColorPicker";
-import { cn } from "@/lib/utils";
+
 
 export function OnboardingDialog({ open }: { open: boolean }) {
   const completeOnboarding = usePlanBook((s) => s.completeOnboarding);
