@@ -18,6 +18,7 @@ export function ElementBank({ collapsed, onToggle }: Props) {
   const activeCourseId = usePlanBook((s) => s.activeCourseId);
   const allTemplates = usePlanBook((s) => s.templates);
   const allTags = usePlanBook((s) => s.tags);
+  const selectedFilterTagIds = usePlanBook((s) => s.selectedFilterTagIds);
   const [search, setSearch] = useState("");
   const [showArchived, setShowArchived] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
