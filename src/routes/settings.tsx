@@ -221,20 +221,10 @@ function SettingsPage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label>Color</Label>
-                    <div className="flex flex-wrap gap-1.5">
-                      {COURSE_COLORS.map((cc) => (
-                        <button
-                          key={cc.id}
-                          onClick={() => updateCourse(c.id, { color: cc.id })}
-                          aria-label={cc.label}
-                          className={cn(
-                            "size-7 rounded-full ring-offset-2 ring-offset-background transition-all",
-                            c.color === cc.id && "ring-2 ring-ring",
-                          )}
-                          style={{ backgroundColor: colorToken(cc.id) }}
-                        />
-                      ))}
-                    </div>
+                    <ColorPicker
+                      value={c.color}
+                      onChange={(next) => updateCourse(c.id, { color: next })}
+                    />
                   </div>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
