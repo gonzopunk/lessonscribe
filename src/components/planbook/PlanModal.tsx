@@ -224,6 +224,37 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
             />
           </section>
 
+          {course.sections.length > 1 && (
+            <section className="space-y-2">
+              <Label>Section notes</Label>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {course.sections.map((sec) => (
+                  <div key={sec.id} className="space-y-1">
+                    <Label
+                      htmlFor={`secnote-${sec.id}`}
+                      className="text-xs font-normal text-muted-foreground"
+                    >
+                      {sec.name}
+                    </Label>
+                    <Textarea
+                      id={`secnote-${sec.id}`}
+                      rows={2}
+                      value={meta.sectionNotes?.[sec.id] ?? ""}
+                      onChange={(e) =>
+                        updateDayMeta(course.id, dayKey, {
+                          sectionNotes: {
+                            ...meta.sectionNotes,
+                            [sec.id]: e.target.value,
+                          },
+                        })
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {!isSub && (
             <section className="space-y-1.5">
               <Label htmlFor="refl">Reflection (after teaching)</Label>
