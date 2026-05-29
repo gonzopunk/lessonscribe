@@ -29,6 +29,8 @@ export function ElementEditorDialog({ open, onOpenChange, templateId }: Props) {
   const addTemplate = usePlanBook((s) => s.addTemplate);
   const updateTemplate = usePlanBook((s) => s.updateTemplate);
   const removeTemplate = usePlanBook((s) => s.removeTemplate);
+  const archiveTemplate = usePlanBook((s) => s.archiveTemplate);
+  const restoreTemplate = usePlanBook((s) => s.restoreTemplate);
   const tags = useMemo(
     () => allTags.filter((t) => t.courseId === courseId),
     [allTags, courseId],
