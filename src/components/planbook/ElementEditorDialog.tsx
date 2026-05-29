@@ -12,7 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { usePlanBook } from "@/lib/planbook/store";
-import { COURSE_COLORS, colorToken } from "@/lib/planbook/constants";
+import { colorToken } from "@/lib/planbook/constants";
+import { ColorPicker } from "./ColorPicker";
 import { cn } from "@/lib/utils";
 import { Trash2, Archive, ArchiveRestore } from "lucide-react";
 
