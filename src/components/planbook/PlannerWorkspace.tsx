@@ -18,6 +18,7 @@ import { PlanModal } from "./PlanModal";
 import { CalendarOverrideDialog } from "./CalendarOverrideDialog";
 import { DuplicateDayDialog } from "./DuplicateDayDialog";
 import { OnboardingDialog } from "./OnboardingDialog";
+import { QuickAddDialog } from "./QuickAddDialog";
 import { usePlanBook } from "@/lib/planbook/store";
 import {
   dayKey as toKey,
