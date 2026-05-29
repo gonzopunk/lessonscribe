@@ -3,7 +3,7 @@ import { Plus, ChevronRight, ChevronLeft, Search } from "lucide-react";
 import { usePlanBook } from "@/lib/planbook/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { BankCard } from "./BankCard";
 import { ElementEditorDialog } from "./ElementEditorDialog";
 import { cn } from "@/lib/utils";
