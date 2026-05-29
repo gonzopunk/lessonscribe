@@ -239,6 +239,7 @@ export function PlannerWorkspace() {
                               setOverrideDialog({ open: true, key: k })
                             }
                             onDuplicate={() => setDupDialog({ open: true, key: k })}
+                            onQuickAdd={() => setQuickAdd({ open: true, key: k })}
                           />
                         );
                       })}
