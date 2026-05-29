@@ -113,7 +113,7 @@ export function ElementBank({ collapsed, onToggle }: Props) {
             </p>
           )}
         </div>
-      </ScrollArea>
+      </div>
 
       <div className="border-t border-border bg-surface-2/50 p-3">
         <Button
