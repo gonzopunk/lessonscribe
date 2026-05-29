@@ -116,13 +116,10 @@ export function ElementBank({ collapsed, onToggle }: Props) {
                   {items.map((t) => (
                     <div
                       key={t.id}
-                      onDoubleClick={() => {
-                        setEditingId(t.id);
-                        setEditorOpen(true);
-                      }}
+                      onDoubleClick={() => openEditor(t.id)}
                       title="Drag onto a day, or double-click to edit"
                     >
-                      <BankCard template={t} />
+                      <BankCard template={t} onEdit={() => openEditor(t.id)} />
                     </div>
                   ))}
                 </div>
@@ -131,11 +128,45 @@ export function ElementBank({ collapsed, onToggle }: Props) {
           })}
           {filtered.length === 0 && (
             <p className="px-2 py-6 text-center text-xs text-muted-foreground">
-              No elements yet. Create one to start planning.
+              {search.trim()
+                ? "No matching elements."
+                : "No elements yet. Create one to start planning."}
             </p>
+          )}
+
+          {archivedTemplates.length > 0 && (
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setShowArchived((v) => !v)}
+                className="flex w-full items-center gap-1.5 border-t border-border pt-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground"
+              >
+                <Archive className="size-3" />
+                {showArchived ? "Hide" : "Show"} archived ({archivedTemplates.length})
+              </button>
+              {showArchived && (
+                <div className="mt-3 space-y-2">
+                  {filteredArchived.length === 0 && (
+                    <p className="px-2 py-3 text-center text-xs text-muted-foreground">
+                      No matching archived elements.
+                    </p>
+                  )}
+                  {filteredArchived.map((t) => (
+                    <div
+                      key={t.id}
+                      onDoubleClick={() => openEditor(t.id)}
+                      title="Archived — restore to use again"
+                    >
+                      <BankCard template={t} onEdit={() => openEditor(t.id)} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
+
 
       <div className="border-t border-border bg-surface-2/50 p-3">
         <Button
