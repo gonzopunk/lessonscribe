@@ -3,7 +3,7 @@ import { Plus, ChevronRight, ChevronLeft, Search } from "lucide-react";
 import { usePlanBook } from "@/lib/planbook/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { BankCard } from "./BankCard";
 import { ElementEditorDialog } from "./ElementEditorDialog";
 import { cn } from "@/lib/utils";
@@ -75,7 +75,7 @@ export function ElementBank({ collapsed, onToggle }: Props) {
         </div>
       </div>
 
-      <ScrollArea className="flex-1">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="space-y-5 p-3">
           {[...grouped.entries()].map(([tagId, items]) => {
             const tag = tags.find((t) => t.id === tagId);
@@ -113,7 +113,7 @@ export function ElementBank({ collapsed, onToggle }: Props) {
             </p>
           )}
         </div>
-      </ScrollArea>
+      </div>
 
       <div className="border-t border-border bg-surface-2/50 p-3">
         <Button
