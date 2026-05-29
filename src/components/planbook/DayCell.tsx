@@ -178,11 +178,10 @@ export function DayCell({
             strategy={verticalListSortingStrategy}
           >
             <div className="flex flex-1 flex-col gap-1.5">
-              {visibleInstances.map(({ inst, dimmed }) => (
+              {instances.map((inst) => (
                 <InstanceCard
                   key={inst.id}
                   instance={inst}
-                  dimmed={dimmed}
                   compact={!expanded}
                 />
               ))}
