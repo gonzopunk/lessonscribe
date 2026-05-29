@@ -75,7 +75,7 @@ export function ElementBank({ collapsed, onToggle }: Props) {
         </div>
       </div>
 
-      <ScrollArea className="flex-1">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="space-y-5 p-3">
           {[...grouped.entries()].map(([tagId, items]) => {
             const tag = tags.find((t) => t.id === tagId);
