@@ -33,6 +33,7 @@ export interface ElementTemplate {
   notes: string;
   links: string[];
   color: string; // ColorId
+  archived?: boolean;
 }
 
 export interface ElementInstance {
