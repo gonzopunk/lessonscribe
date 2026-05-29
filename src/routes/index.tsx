@@ -1,29 +1,33 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useApplyTheme } from "@/lib/planbook/useApplyTheme";
+import { PlannerWorkspace } from "@/components/planbook/PlannerWorkspace";
+import { APP_NAME } from "@/lib/planbook/constants";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Your App" },
-      { name: "description", content: "Replace this with a one-sentence description of your app." },
-      { property: "og:title", content: "Your App" },
-      { property: "og:description", content: "Replace this with a one-sentence description of your app." },
+      { title: `${APP_NAME} — Lesson Planner` },
+      {
+        name: "description",
+        content:
+          "A calm, color-coded daily lesson planner for high school teachers — drag elements onto days, track minutes, and print lesson or sub plans.",
+      },
+      { property: "og:title", content: `${APP_NAME} — Lesson Planner` },
+      {
+        property: "og:description",
+        content: "Calm, color-coded daily lesson planner for high school teachers.",
+      },
     ],
   }),
   component: Index,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
 function Index() {
+  useApplyTheme();
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <main>
+      <h1 className="sr-only">{APP_NAME} Planner</h1>
+      <PlannerWorkspace />
+    </main>
   );
 }
