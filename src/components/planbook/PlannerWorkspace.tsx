@@ -193,7 +193,7 @@ export function PlannerWorkspace() {
         onDragStart={onDragStart}
         onDragEnd={onDragEnd}
       >
-        <main className="flex flex-1 overflow-hidden">
+        <main className="flex min-h-0 flex-1 overflow-hidden">
           <div
             className="flex-1 overflow-auto p-5"
             style={{ gap: "var(--cell-gap)" }}
