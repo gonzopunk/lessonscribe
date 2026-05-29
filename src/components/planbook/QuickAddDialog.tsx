@@ -94,21 +94,7 @@ export function QuickAddDialog({ open, onOpenChange, courseId, dayKey }: Props) 
             </div>
             <div className="space-y-1.5">
               <Label>Color</Label>
-              <div className="flex flex-wrap gap-1.5">
-                {COURSE_COLORS.map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => setColor(c.id)}
-                    aria-label={c.label}
-                    className={cn(
-                      "size-6 rounded-full ring-offset-2 ring-offset-background transition-all",
-                      color === c.id ? "ring-2 ring-ring" : "",
-                    )}
-                    style={{ backgroundColor: colorToken(c.id) }}
-                  />
-                ))}
-              </div>
+              <ColorPicker value={color} onChange={setColor} size="sm" />
             </div>
           </div>
 
