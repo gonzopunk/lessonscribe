@@ -4,10 +4,9 @@ import { useApplyTheme } from "@/lib/planbook/useApplyTheme";
 import { usePlanBook } from "@/lib/planbook/store";
 import {
   APP_NAME,
-  COURSE_COLORS,
   FONT_OPTIONS,
-  colorToken,
 } from "@/lib/planbook/constants";
+import { ColorPicker } from "@/components/planbook/ColorPicker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -221,20 +220,10 @@ function SettingsPage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label>Color</Label>
-                    <div className="flex flex-wrap gap-1.5">
-                      {COURSE_COLORS.map((cc) => (
-                        <button
-                          key={cc.id}
-                          onClick={() => updateCourse(c.id, { color: cc.id })}
-                          aria-label={cc.label}
-                          className={cn(
-                            "size-7 rounded-full ring-offset-2 ring-offset-background transition-all",
-                            c.color === cc.id && "ring-2 ring-ring",
-                          )}
-                          style={{ backgroundColor: colorToken(cc.id) }}
-                        />
-                      ))}
-                    </div>
+                    <ColorPicker
+                      value={c.color}
+                      onChange={(next) => updateCourse(c.id, { color: next })}
+                    />
                   </div>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -337,20 +326,12 @@ function SettingsPage() {
                         onChange={(e) => updateTag(t.id, { name: e.target.value })}
                         className="max-w-xs"
                       />
-                      <div className="flex flex-wrap gap-1">
-                        {COURSE_COLORS.map((cc) => (
-                          <button
-                            key={cc.id}
-                            onClick={() => updateTag(t.id, { color: cc.id })}
-                            aria-label={cc.label}
-                            className={cn(
-                              "size-5 rounded-full ring-offset-2 ring-offset-card transition-all",
-                              t.color === cc.id && "ring-2 ring-ring",
-                            )}
-                            style={{ backgroundColor: colorToken(cc.id) }}
-                          />
-                        ))}
-                      </div>
+                      <ColorPicker
+                        value={t.color}
+                        onChange={(next) => updateTag(t.id, { color: next })}
+                        size="sm"
+                        ringOffsetClass="ring-offset-card"
+                      />
                       <Button
                         variant="ghost"
                         size="icon"
