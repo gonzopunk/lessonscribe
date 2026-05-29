@@ -59,9 +59,16 @@ export function ElementBank({ collapsed, onToggle }: Props) {
 
   const matchesSearch = (title: string) =>
     search.trim() ? title.toLowerCase().includes(search.toLowerCase()) : true;
+  const matchesFilter = (tagIds: string[]) =>
+    selectedFilterTagIds.length === 0 ||
+    tagIds.some((id) => selectedFilterTagIds.includes(id));
 
-  const filtered = activeTemplates.filter((t) => matchesSearch(t.title));
-  const filteredArchived = archivedTemplates.filter((t) => matchesSearch(t.title));
+  const filtered = activeTemplates.filter(
+    (t) => matchesSearch(t.title) && matchesFilter(t.tagIds),
+  );
+  const filteredArchived = archivedTemplates.filter(
+    (t) => matchesSearch(t.title) && matchesFilter(t.tagIds),
+  );
 
   const grouped = new Map<string | null, typeof filtered>();
   filtered.forEach((t) => {
