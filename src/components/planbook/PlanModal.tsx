@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -29,12 +29,16 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
   const meta = usePlanBook((s) =>
     courseId && dayKey ? getDayMeta(s, courseId, dayKey) : null,
   );
-  const instances = usePlanBook((s) =>
-    s.instances.filter((i) => i.courseId === courseId && i.dayKey === dayKey)
-      .sort((a, b) => a.order - b.order),
-  );
+  const allInstances = usePlanBook((s) => s.instances);
   const updateDayMeta = usePlanBook((s) => s.updateDayMeta);
   const [compact, setCompact] = useState(false);
+  const instances = useMemo(
+    () =>
+      allInstances
+        .filter((i) => i.courseId === courseId && i.dayKey === dayKey)
+        .sort((a, b) => a.order - b.order),
+    [allInstances, courseId, dayKey],
+  );
 
   if (!course || !dayKey || !meta) return null;
   const date = parseDayKey(dayKey);

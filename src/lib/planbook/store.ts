@@ -40,6 +40,8 @@ const blankDayMeta = (): DayMeta => ({
   reflection: "",
 });
 
+const EMPTY_DAY_META: DayMeta = blankDayMeta();
+
 interface Actions {
   // setup
   completeOnboarding: (data: {
@@ -355,4 +357,4 @@ export const usePlanBook = create<Store>()(
 
 // helper to get blank meta safely
 export const getDayMeta = (s: PlanBookState, courseId: string, dKey: string): DayMeta =>
-  s.dayMeta[metaKey(courseId, dKey)] ?? blankDayMeta();
+  s.dayMeta[metaKey(courseId, dKey)] ?? EMPTY_DAY_META;

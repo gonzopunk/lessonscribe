@@ -1,16 +1,20 @@
+import { useMemo } from "react";
 import { usePlanBook } from "@/lib/planbook/store";
 import { colorToken } from "@/lib/planbook/constants";
 import { cn } from "@/lib/utils";
 
 export function FilterBar() {
-  const tags = usePlanBook((s) =>
-    s.tags.filter((t) => t.courseId === s.activeCourseId),
-  );
+  const allTags = usePlanBook((s) => s.tags);
+  const activeCourseId = usePlanBook((s) => s.activeCourseId);
   const selected = usePlanBook((s) => s.selectedFilterTagIds);
   const toggle = usePlanBook((s) => s.toggleFilterTag);
   const setMany = usePlanBook((s) => s.setFilterTags);
   const filterMode = usePlanBook((s) => s.settings.filterMode);
   const updateSettings = usePlanBook((s) => s.updateSettings);
+  const tags = useMemo(
+    () => allTags.filter((t) => t.courseId === activeCourseId),
+    [allTags, activeCourseId],
+  );
 
   return (
     <div className="flex flex-wrap items-center gap-2 px-5 py-3 border-b border-border bg-surface/40">

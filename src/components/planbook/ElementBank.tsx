@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Plus, ChevronRight, ChevronLeft, Search } from "lucide-react";
 import { usePlanBook } from "@/lib/planbook/store";
 import { Button } from "@/components/ui/button";
@@ -16,15 +16,20 @@ interface Props {
 
 export function ElementBank({ collapsed, onToggle }: Props) {
   const activeCourseId = usePlanBook((s) => s.activeCourseId);
-  const templates = usePlanBook((s) =>
-    s.templates.filter((t) => t.courseId === s.activeCourseId),
-  );
-  const tags = usePlanBook((s) =>
-    s.tags.filter((t) => t.courseId === s.activeCourseId),
-  );
+  const allTemplates = usePlanBook((s) => s.templates);
+  const allTags = usePlanBook((s) => s.tags);
   const [search, setSearch] = useState("");
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  const templates = useMemo(
+    () => allTemplates.filter((t) => t.courseId === activeCourseId),
+    [allTemplates, activeCourseId],
+  );
+  const tags = useMemo(
+    () => allTags.filter((t) => t.courseId === activeCourseId),
+    [allTags, activeCourseId],
+  );
 
   if (collapsed) {
     return (

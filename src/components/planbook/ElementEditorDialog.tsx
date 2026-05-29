@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -25,10 +25,14 @@ interface Props {
 export function ElementEditorDialog({ open, onOpenChange, templateId }: Props) {
   const courseId = usePlanBook((s) => s.activeCourseId)!;
   const template = usePlanBook((s) => s.templates.find((t) => t.id === templateId));
-  const tags = usePlanBook((s) => s.tags.filter((t) => t.courseId === courseId));
+  const allTags = usePlanBook((s) => s.tags);
   const addTemplate = usePlanBook((s) => s.addTemplate);
   const updateTemplate = usePlanBook((s) => s.updateTemplate);
   const removeTemplate = usePlanBook((s) => s.removeTemplate);
+  const tags = useMemo(
+    () => allTags.filter((t) => t.courseId === courseId),
+    [allTags, courseId],
+  );
 
   const [title, setTitle] = useState("");
   const [duration, setDuration] = useState(15);
