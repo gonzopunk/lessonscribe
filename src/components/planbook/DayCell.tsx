@@ -61,6 +61,7 @@ export function DayCell({
   onOpenSubPlan,
   onOpenOverride,
   onDuplicate,
+  onQuickAdd,
 }: Props) {
   const dKey = toKey(date);
   const wed = isWednesday(date);
