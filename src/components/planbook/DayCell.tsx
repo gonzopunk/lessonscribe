@@ -9,6 +9,7 @@ import {
   UserRound,
   ChevronDown,
   ChevronUp,
+  Plus,
 } from "lucide-react";
 import {
   DropdownMenu,
