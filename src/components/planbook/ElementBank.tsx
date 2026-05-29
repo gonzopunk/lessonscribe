@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Plus, ChevronRight, ChevronLeft, Search } from "lucide-react";
+import { Plus, ChevronRight, ChevronLeft, Search, Archive } from "lucide-react";
 import { usePlanBook } from "@/lib/planbook/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
