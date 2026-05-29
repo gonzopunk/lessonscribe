@@ -1,26 +1,38 @@
-# Per-section day notes
+## Goal
+Let users pick from a much wider range of colors anywhere a color is chosen (courses, tags, elements, onboarding, quick-add), while keeping the existing 6 presets working for all stored data.
 
-The data model already supports this: `DayMeta.sectionNotes: Record<string, string>` exists on every day record, keyed by `sectionId`, and `updateDayMeta` persists patches to it. Nothing in the UI currently reads or writes it. This plan wires it in.
+## Approach
+Keep `color: string` on Course / CategoryTag / ElementTemplate / ElementInstance. A color value is now either:
+- a preset id (`"indigo"`, `"teal"`, …) — unchanged, back-compatible
+- a hex string (`"#a83279"`) — new, for custom picks
+
+`colorToken`, `colorTokenSoft`, `colorTokenBorder` detect a leading `#` and return the hex (or a `color-mix` of it) instead of the oklch hue lookup. Preset ids continue to resolve via the existing hue table.
 
 ## Changes
 
-**`src/components/planbook/PlanModal.tsx`**
-- Under the existing "Day notes" textarea, add a "Section notes" block that renders one labeled textarea per `course.sections` entry.
-- Each textarea is bound to `meta.sectionNotes[section.id] ?? ""` and on change calls:
-  ```ts
-  updateDayMeta(course.id, dayKey, {
-    sectionNotes: { ...meta.sectionNotes, [section.id]: value },
-  });
-  ```
-- If the course has 0 or 1 section, hide the section-notes block entirely (the existing "Day notes" field is sufficient).
-- Compact rows: 2-row textareas, matching the existing Day notes styling.
+**`src/lib/planbook/constants.ts`**
+- Expand `COURSE_COLORS` from 6 to ~18 curated swatches (add slate, sky, cyan, lime, green, yellow, orange, red, pink, fuchsia, purple, stone) with hues.
+- Add `EXTENDED_SWATCHES: string[]` — a palette of ~24 hand-picked hex values for the "more colors" grid (muted + vivid, light + dark) so users get good options without a raw picker on every click.
+- Update `colorToken`/`colorTokenSoft`/`colorTokenBorder` to branch on `id.startsWith("#")`:
+  - hex → return hex (soft = `color-mix(in oklch, <hex> 18%, transparent)`, border = hex)
+  - else → existing preset lookup
 
-**Print/PDF output (same file, `print()` builder around lines 65–95)**
-- After the Day Notes section, append a "Section Notes" block listing each section name with its note. Skip the block entirely when the course has ≤1 section or when every section note is empty.
-- Reuse the existing `escape()` helper.
+**New `src/components/planbook/ColorPicker.tsx`**
+- Reusable component: `<ColorPicker value={color} onChange={fn} />`
+- Renders the preset swatches inline (existing look), plus a trailing "+" button that opens a `Popover` containing:
+  - the `EXTENDED_SWATCHES` grid (click → `onChange(hex)`)
+  - a native `<input type="color">` for fully arbitrary picks
+  - a small hex `<Input>` for typed entry (validated `/^#[0-9a-f]{6}$/i`)
+- Selected ring works for both preset ids and hex values (compare against `value`).
+
+**Wire `ColorPicker` into existing call sites** (drop-in replacement for the current swatch grids):
+- `src/components/planbook/ElementEditorDialog.tsx` — element color
+- `src/components/planbook/QuickAddDialog.tsx` — element color
+- `src/components/planbook/OnboardingDialog.tsx` — first course color
+- `src/routes/settings.tsx` — course color (line ~225) and tag color (line ~341); also default new tag color stays `"indigo"`
+
+No store/type/migration changes — strings remain strings, old data keeps working.
 
 ## Out of scope
-
-- No type changes — `sectionNotes` already exists on `DayMeta`.
-- No store changes — `updateDayMeta` already merges patches.
-- No changes to `InstanceCard`, `DayCell`, or per-instance content (instance-level content/notes remain global to the day; only the day-level free-text notes get a per-section variant, which matches the user's request).
+- Theme/semantic tokens in `styles.css` (those are the app chrome, not user-pickable).
+- Per-color accessibility contrast warnings.
