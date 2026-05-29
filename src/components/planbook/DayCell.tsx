@@ -69,8 +69,6 @@ export function DayCell({
 
   const override = usePlanBook((s) => s.overrides[dKey]);
   const allInstances = usePlanBook((s) => s.instances);
-  const filter = usePlanBook((s) => s.selectedFilterTagIds);
-  const filterMode = usePlanBook((s) => s.settings.filterMode);
   const dayMeta = usePlanBook((s) => getDayMeta(s, course.id, dKey));
   const setStatus = usePlanBook((s) => s.setDayStatus);
 
@@ -83,16 +81,6 @@ export function DayCell({
         .sort((a, b) => a.order - b.order),
     [allInstances, course.id, dKey],
   );
-
-  const visibleInstances = useMemo(() => {
-    if (filter.length === 0) return instances.map((i) => ({ inst: i, dimmed: false }));
-    return instances
-      .map((i) => {
-        const match = i.tagIds.some((t) => filter.includes(t));
-        return { inst: i, dimmed: !match };
-      })
-      .filter((x) => filterMode === "dim" || !x.dimmed);
-  }, [instances, filter, filterMode]);
 
   const used = instances.reduce(
     (sum, i) => sum + (i.durationOverride ?? i.defaultMinutes),
