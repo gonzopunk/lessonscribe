@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { usePlanBook } from "@/lib/planbook/store";
 import { COURSE_COLORS, colorToken } from "@/lib/planbook/constants";
 import { cn } from "@/lib/utils";
-import { Trash2 } from "lucide-react";
+import { Trash2, Archive, ArchiveRestore } from "lucide-react";
 
 interface Props {
   open: boolean;
