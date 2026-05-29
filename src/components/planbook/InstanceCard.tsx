@@ -14,11 +14,10 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   instance: ElementInstance;
-  dimmed?: boolean;
   compact?: boolean;
 }
 
-export function InstanceCard({ instance, dimmed, compact }: Props) {
+export function InstanceCard({ instance, compact }: Props) {
   const updateInstance = usePlanBook((s) => s.updateInstance);
   const removeInstance = usePlanBook((s) => s.removeInstance);
   const [open, setOpen] = useState(false);
@@ -33,7 +32,7 @@ export function InstanceCard({ instance, dimmed, compact }: Props) {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.3 : dimmed ? 0.35 : 1,
+    opacity: isDragging ? 0.3 : 1,
     backgroundColor: colorTokenSoft(instance.color),
     borderLeftColor: colorToken(instance.color),
   };

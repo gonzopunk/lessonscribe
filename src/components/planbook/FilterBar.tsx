@@ -9,8 +9,6 @@ export function FilterBar() {
   const selected = usePlanBook((s) => s.selectedFilterTagIds);
   const toggle = usePlanBook((s) => s.toggleFilterTag);
   const setMany = usePlanBook((s) => s.setFilterTags);
-  const filterMode = usePlanBook((s) => s.settings.filterMode);
-  const updateSettings = usePlanBook((s) => s.updateSettings);
   const tags = useMemo(
     () => allTags.filter((t) => t.courseId === activeCourseId),
     [allTags, activeCourseId],
@@ -19,7 +17,7 @@ export function FilterBar() {
   return (
     <div className="flex flex-wrap items-center gap-2 px-5 py-3 border-b border-border bg-surface/40">
       <span className="mr-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-        Filter
+        Filter bank
       </span>
       <button
         onClick={() => setMany([])}
@@ -53,19 +51,7 @@ export function FilterBar() {
           </button>
         );
       })}
-      {selected.length > 0 && (
-        <div className="ml-auto flex items-center gap-1 text-[11px] text-muted-foreground">
-          <span>Non-matching:</span>
-          <button
-            onClick={() =>
-              updateSettings({ filterMode: filterMode === "dim" ? "hide" : "dim" })
-            }
-            className="rounded-md border border-border px-2 py-0.5 hover:bg-secondary"
-          >
-            {filterMode === "dim" ? "Dimmed" : "Hidden"}
-          </button>
-        </div>
-      )}
     </div>
   );
 }
+
