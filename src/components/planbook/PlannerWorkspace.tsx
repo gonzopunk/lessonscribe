@@ -62,6 +62,11 @@ export function PlannerWorkspace() {
     key: null,
   });
 
+  const [quickAdd, setQuickAdd] = useState<{ open: boolean; key: string | null }>({
+    open: false,
+    key: null,
+  });
+
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [draggingTemplateId, setDraggingTemplateId] = useState<string | null>(null);
 
