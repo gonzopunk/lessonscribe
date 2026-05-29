@@ -72,6 +72,8 @@ interface Actions {
   addTemplate: (t: Omit<ElementTemplate, "id">) => string;
   updateTemplate: (id: string, patch: Partial<ElementTemplate>) => void;
   removeTemplate: (id: string) => void;
+  archiveTemplate: (id: string) => void;
+  restoreTemplate: (id: string) => void;
 
   // instances
   addInstanceFromTemplate: (templateId: string, dKey: string) => void;
