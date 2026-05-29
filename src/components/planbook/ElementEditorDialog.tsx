@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { usePlanBook } from "@/lib/planbook/store";
 import { COURSE_COLORS, colorToken } from "@/lib/planbook/constants";
 import { cn } from "@/lib/utils";
-import { Trash2 } from "lucide-react";
+import { Trash2, Archive, ArchiveRestore } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -29,6 +29,8 @@ export function ElementEditorDialog({ open, onOpenChange, templateId }: Props) {
   const addTemplate = usePlanBook((s) => s.addTemplate);
   const updateTemplate = usePlanBook((s) => s.updateTemplate);
   const removeTemplate = usePlanBook((s) => s.removeTemplate);
+  const archiveTemplate = usePlanBook((s) => s.archiveTemplate);
+  const restoreTemplate = usePlanBook((s) => s.restoreTemplate);
   const tags = useMemo(
     () => allTags.filter((t) => t.courseId === courseId),
     [allTags, courseId],
@@ -188,20 +190,53 @@ export function ElementEditorDialog({ open, onOpenChange, templateId }: Props) {
         </div>
 
         <DialogFooter className="justify-between sm:justify-between">
-          <div>
+          <div className="flex gap-1">
             {template && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  removeTemplate(template.id);
-                  onOpenChange(false);
-                }}
-                className="text-destructive hover:text-destructive"
-              >
-                <Trash2 className="mr-1 size-4" />
-                Delete
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    if (
+                      window.confirm(
+                        `Permanently delete "${template.title}"? Past instances on days are kept.`,
+                      )
+                    ) {
+                      removeTemplate(template.id);
+                      onOpenChange(false);
+                    }
+                  }}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="mr-1 size-4" />
+                  Delete
+                </Button>
+                {template.archived ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      restoreTemplate(template.id);
+                      onOpenChange(false);
+                    }}
+                  >
+                    <ArchiveRestore className="mr-1 size-4" />
+                    Restore
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      archiveTemplate(template.id);
+                      onOpenChange(false);
+                    }}
+                  >
+                    <Archive className="mr-1 size-4" />
+                    Archive
+                  </Button>
+                )}
+              </>
             )}
           </div>
           <div className="flex gap-2">

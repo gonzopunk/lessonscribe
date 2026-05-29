@@ -9,6 +9,7 @@ import {
   UserRound,
   ChevronDown,
   ChevronUp,
+  Plus,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -36,6 +37,7 @@ interface Props {
   onOpenSubPlan: () => void;
   onOpenOverride: () => void;
   onDuplicate: () => void;
+  onQuickAdd: () => void;
 }
 
 const STATUS_NEXT: Record<DayStatus, DayStatus> = {
@@ -59,6 +61,7 @@ export function DayCell({
   onOpenSubPlan,
   onOpenOverride,
   onDuplicate,
+  onQuickAdd,
 }: Props) {
   const dKey = toKey(date);
   const wed = isWednesday(date);
@@ -154,6 +157,10 @@ export function DayCell({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuItem onClick={onQuickAdd}>
+                <Plus className="mr-2 size-3.5" />
+                Quick add element…
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={onDuplicate}>
                 <Copy className="mr-2 size-3.5" />
                 Duplicate to…
@@ -163,6 +170,7 @@ export function DayCell({
                 Mark as no school / event
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setExpanded((v) => !v)}>
+
                 {expanded ? (
                   <ChevronUp className="mr-2 size-3.5" />
                 ) : (
@@ -191,9 +199,17 @@ export function DayCell({
                 />
               ))}
               {instances.length === 0 && (
-                <div className="flex flex-1 items-center justify-center rounded-md border border-dashed border-border/60 py-3 text-[10px] uppercase tracking-wider text-muted-foreground/60">
-                  Drop element
-                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onQuickAdd();
+                  }}
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-md border border-dashed border-border/60 py-3 text-[10px] uppercase tracking-wider text-muted-foreground/60 transition-colors hover:border-primary/60 hover:text-foreground"
+                >
+                  <Plus className="size-3" />
+                  Drop or add element
+                </button>
               )}
             </div>
           </SortableContext>

@@ -1,21 +1,51 @@
-## Problem
+# Plan: Manage day elements + archive templates + one-off elements
 
-After completing onboarding, the app crashes with `Maximum update depth exceeded` originating from `@radix-ui/react-scroll-area`. The stack trace points at the `ScrollArea` inside `src/components/planbook/ElementBank.tsx` (line 78). This is a well-known Radix ScrollArea behavior: when placed inside a flex column with `flex-1` but no `min-h-0` constraint on ancestors, the viewport's `ResizeObserver` ping-pongs height measurements forever.
+Three related capabilities for the planner. All localStorage-only, no backend changes.
 
-## Fix
+## 1. Delete an element from a day
 
-Two surgical edits, frontend only:
+Today an instance can only be removed from inside the popover (the small X next to the title). It's discoverable only after a click. Make it one click from the day cell.
 
-1. **`src/components/planbook/ElementBank.tsx`** — add `min-h-0` to the `<ScrollArea>` and make its viewport explicitly sized:
-   - Change `<ScrollArea className="flex-1">` to `<ScrollArea className="min-h-0 flex-1">`.
-   - As a belt-and-braces measure, replace the `ScrollArea` with a plain `<div className="min-h-0 flex-1 overflow-y-auto">` if the loop persists (Radix ScrollArea isn't needed here — a native scroll container is sufficient and avoids the known bug entirely).
+- **InstanceCard**: add a hover-only `×` button in the top-right corner (mirrors the existing drag handle pattern — `opacity-0 group-hover:opacity-100`). Calls `removeInstance(id)` directly. Keep the popover X as well.
+- Add a confirm step only if the instance has content/notes — otherwise delete immediately (avoids friction for misplaced drops).
 
-2. **`src/components/planbook/PlannerWorkspace.tsx`** — ensure the parent flex chain doesn't force overflow. The `<main className="flex flex-1 overflow-hidden">` is fine, but the inner grid column wrapping the day cells should also include `min-h-0` so the ElementBank sibling can compute a stable height. Add `min-h-0` to `<main>`.
+## 2. Archive / recover elements (templates)
 
-## Verification
+The Element Bank should let teachers retire templates without losing history, then bring them back later.
 
-- Reload preview, complete onboarding, confirm planner renders without the error fallback.
-- Check console for the React maximum-update warning — should be gone.
-- Drag an element from the bank onto a day to confirm dnd-kit still works.
+- **Types** (`src/lib/planbook/types.ts`): add `archived?: boolean` to `ElementTemplate`. Existing instances are unaffected (they snapshot fields at creation).
+- **Store** (`src/lib/planbook/store.ts`): add `archiveTemplate(id)` and `restoreTemplate(id)` actions (thin wrappers over `updateTemplate`). `removeTemplate` stays as the hard-delete option.
+- **ElementBank**:
+  - Default view filters out archived templates.
+  - Add a small "Show archived" toggle in the bank header (chip/switch). When on, archived templates are shown in a separate "Archived" section at the bottom with muted styling.
+  - **BankCard**: add a kebab menu with `Edit`, `Archive` / `Restore` (depending on state), and `Delete permanently…` (existing destructive action).
+- **ElementEditorDialog**: add an "Archive" / "Restore" button in the footer alongside Delete.
+- Archived templates are not draggable and don't appear in tag groupings in the default view.
 
-No business-logic, store, or data-model changes.
+## 3. Add a one-off element directly to a day
+
+A lesson element that won't recur and shouldn't clutter the bank.
+
+- **Store**: add `addAdHocInstance(courseId, dayKey, data)` where `data = { title, defaultMinutes, color, tagIds, content?, instanceNotes? }`. Internally creates an `ElementInstance` with `templateId: ""` (sentinel for ad-hoc) and `order = existingCount`. No template is created.
+- **New component** `src/components/planbook/QuickAddDialog.tsx`: a small dialog (title, minutes, color, optional tags, optional today's content). Reuses the color picker and tag chips from `ElementEditorDialog`.
+- **DayCell**: add a `Quick add element…` item to the existing kebab dropdown (above "Duplicate to…"), and a subtle `+` affordance in the empty-state "Drop element" placeholder that opens the same dialog.
+- **InstanceCard**: works unchanged for ad-hoc instances — fields are already snapshotted on the instance.
+- **PlanModal / FilterBar**: no changes needed; they read from `instances` directly and filter by `tagIds` on the instance.
+
+## Technical notes
+
+- `templateId: ""` is the ad-hoc sentinel. Anywhere we look up a template from an instance (currently only the drag overlay, which uses the active template by id) we already tolerate "not found" — verify and add a guard if missing.
+- Zustand selectors stay stable: derive archived/active lists via `useMemo` on `allTemplates`, same pattern as the recent FilterBar/ElementBank fix.
+- No migration needed: `archived` is optional (`undefined` === active); existing persisted state in localStorage loads fine.
+
+## Files touched
+
+- `src/lib/planbook/types.ts` — add `archived?` to `ElementTemplate`
+- `src/lib/planbook/store.ts` — `archiveTemplate`, `restoreTemplate`, `addAdHocInstance`
+- `src/components/planbook/InstanceCard.tsx` — hover delete button
+- `src/components/planbook/BankCard.tsx` — kebab menu (edit/archive/delete)
+- `src/components/planbook/ElementBank.tsx` — archived filter toggle + section
+- `src/components/planbook/ElementEditorDialog.tsx` — archive/restore button
+- `src/components/planbook/DayCell.tsx` — "Quick add element…" menu item + empty-state `+`
+- `src/components/planbook/QuickAddDialog.tsx` — new dialog
+- `src/components/planbook/PlannerWorkspace.tsx` — wire QuickAddDialog state

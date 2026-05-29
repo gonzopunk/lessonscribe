@@ -18,6 +18,7 @@ import { PlanModal } from "./PlanModal";
 import { CalendarOverrideDialog } from "./CalendarOverrideDialog";
 import { DuplicateDayDialog } from "./DuplicateDayDialog";
 import { OnboardingDialog } from "./OnboardingDialog";
+import { QuickAddDialog } from "./QuickAddDialog";
 import { usePlanBook } from "@/lib/planbook/store";
 import {
   dayKey as toKey,
@@ -57,6 +58,11 @@ export function PlannerWorkspace() {
   });
 
   const [dupDialog, setDupDialog] = useState<{ open: boolean; key: string | null }>({
+    open: false,
+    key: null,
+  });
+
+  const [quickAdd, setQuickAdd] = useState<{ open: boolean; key: string | null }>({
     open: false,
     key: null,
   });
@@ -233,6 +239,7 @@ export function PlannerWorkspace() {
                               setOverrideDialog({ open: true, key: k })
                             }
                             onDuplicate={() => setDupDialog({ open: true, key: k })}
+                            onQuickAdd={() => setQuickAdd({ open: true, key: k })}
                           />
                         );
                       })}
@@ -290,6 +297,12 @@ export function PlannerWorkspace() {
           sourceDay={dupDialog.key}
         />
       )}
+      <QuickAddDialog
+        open={quickAdd.open}
+        onOpenChange={(v) => setQuickAdd((p) => ({ ...p, open: v }))}
+        courseId={course.id}
+        dayKey={quickAdd.key}
+      />
     </div>
   );
 }

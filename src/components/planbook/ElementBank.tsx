@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Plus, ChevronRight, ChevronLeft, Search } from "lucide-react";
+import { Plus, ChevronRight, ChevronLeft, Search, Archive } from "lucide-react";
 import { usePlanBook } from "@/lib/planbook/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,16 +19,26 @@ export function ElementBank({ collapsed, onToggle }: Props) {
   const allTemplates = usePlanBook((s) => s.templates);
   const allTags = usePlanBook((s) => s.tags);
   const [search, setSearch] = useState("");
+  const [showArchived, setShowArchived] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const templates = useMemo(
+  const courseTemplates = useMemo(
     () => allTemplates.filter((t) => t.courseId === activeCourseId),
     [allTemplates, activeCourseId],
   );
   const tags = useMemo(
     () => allTags.filter((t) => t.courseId === activeCourseId),
     [allTags, activeCourseId],
+  );
+
+  const activeTemplates = useMemo(
+    () => courseTemplates.filter((t) => !t.archived),
+    [courseTemplates],
+  );
+  const archivedTemplates = useMemo(
+    () => courseTemplates.filter((t) => t.archived),
+    [courseTemplates],
   );
 
   if (collapsed) {
@@ -46,9 +56,11 @@ export function ElementBank({ collapsed, onToggle }: Props) {
     );
   }
 
-  const filtered = templates.filter((t) =>
-    search.trim() ? t.title.toLowerCase().includes(search.toLowerCase()) : true,
-  );
+  const matchesSearch = (title: string) =>
+    search.trim() ? title.toLowerCase().includes(search.toLowerCase()) : true;
+
+  const filtered = activeTemplates.filter((t) => matchesSearch(t.title));
+  const filteredArchived = archivedTemplates.filter((t) => matchesSearch(t.title));
 
   const grouped = new Map<string | null, typeof filtered>();
   filtered.forEach((t) => {
@@ -56,6 +68,11 @@ export function ElementBank({ collapsed, onToggle }: Props) {
     if (!grouped.has(key)) grouped.set(key, []);
     grouped.get(key)!.push(t);
   });
+
+  const openEditor = (id: string | null) => {
+    setEditingId(id);
+    setEditorOpen(true);
+  };
 
   return (
     <aside className="flex h-full w-80 shrink-0 flex-col border-l border-border bg-surface">
@@ -99,13 +116,10 @@ export function ElementBank({ collapsed, onToggle }: Props) {
                   {items.map((t) => (
                     <div
                       key={t.id}
-                      onDoubleClick={() => {
-                        setEditingId(t.id);
-                        setEditorOpen(true);
-                      }}
+                      onDoubleClick={() => openEditor(t.id)}
                       title="Drag onto a day, or double-click to edit"
                     >
-                      <BankCard template={t} />
+                      <BankCard template={t} onEdit={() => openEditor(t.id)} />
                     </div>
                   ))}
                 </div>
@@ -114,11 +128,45 @@ export function ElementBank({ collapsed, onToggle }: Props) {
           })}
           {filtered.length === 0 && (
             <p className="px-2 py-6 text-center text-xs text-muted-foreground">
-              No elements yet. Create one to start planning.
+              {search.trim()
+                ? "No matching elements."
+                : "No elements yet. Create one to start planning."}
             </p>
+          )}
+
+          {archivedTemplates.length > 0 && (
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setShowArchived((v) => !v)}
+                className="flex w-full items-center gap-1.5 border-t border-border pt-3 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground"
+              >
+                <Archive className="size-3" />
+                {showArchived ? "Hide" : "Show"} archived ({archivedTemplates.length})
+              </button>
+              {showArchived && (
+                <div className="mt-3 space-y-2">
+                  {filteredArchived.length === 0 && (
+                    <p className="px-2 py-3 text-center text-xs text-muted-foreground">
+                      No matching archived elements.
+                    </p>
+                  )}
+                  {filteredArchived.map((t) => (
+                    <div
+                      key={t.id}
+                      onDoubleClick={() => openEditor(t.id)}
+                      title="Archived — restore to use again"
+                    >
+                      <BankCard template={t} onEdit={() => openEditor(t.id)} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
+
 
       <div className="border-t border-border bg-surface-2/50 p-3">
         <Button
