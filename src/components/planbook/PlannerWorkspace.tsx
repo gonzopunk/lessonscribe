@@ -297,6 +297,12 @@ export function PlannerWorkspace() {
           sourceDay={dupDialog.key}
         />
       )}
+      <QuickAddDialog
+        open={quickAdd.open}
+        onOpenChange={(v) => setQuickAdd((p) => ({ ...p, open: v }))}
+        courseId={course.id}
+        dayKey={quickAdd.key}
+      />
     </div>
   );
 }
