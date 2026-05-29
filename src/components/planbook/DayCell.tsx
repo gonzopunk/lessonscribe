@@ -157,6 +157,10 @@ export function DayCell({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuItem onClick={onQuickAdd}>
+                <Plus className="mr-2 size-3.5" />
+                Quick add element…
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={onDuplicate}>
                 <Copy className="mr-2 size-3.5" />
                 Duplicate to…
@@ -166,6 +170,7 @@ export function DayCell({
                 Mark as no school / event
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setExpanded((v) => !v)}>
+
                 {expanded ? (
                   <ChevronUp className="mr-2 size-3.5" />
                 ) : (
