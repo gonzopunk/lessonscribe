@@ -37,6 +37,7 @@ interface Props {
   onOpenSubPlan: () => void;
   onOpenOverride: () => void;
   onDuplicate: () => void;
+  onQuickAdd: () => void;
 }
 
 const STATUS_NEXT: Record<DayStatus, DayStatus> = {
