@@ -199,9 +199,17 @@ export function DayCell({
                 />
               ))}
               {instances.length === 0 && (
-                <div className="flex flex-1 items-center justify-center rounded-md border border-dashed border-border/60 py-3 text-[10px] uppercase tracking-wider text-muted-foreground/60">
-                  Drop element
-                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onQuickAdd();
+                  }}
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-md border border-dashed border-border/60 py-3 text-[10px] uppercase tracking-wider text-muted-foreground/60 transition-colors hover:border-primary/60 hover:text-foreground"
+                >
+                  <Plus className="size-3" />
+                  Drop or add element
+                </button>
               )}
             </div>
           </SortableContext>
