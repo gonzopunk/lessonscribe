@@ -46,6 +46,19 @@ export function InstanceCard({ instance, dimmed, compact }: Props) {
         "group relative rounded-md border border-border bg-surface text-foreground transition-opacity",
       )}
     >
+      <button
+        type="button"
+        aria-label="Remove element from day"
+        onClick={(e) => {
+          e.stopPropagation();
+          const hasData = instance.content?.trim() || instance.instanceNotes?.trim();
+          if (hasData && !window.confirm(`Remove "${instance.title}" from this day?`)) return;
+          removeInstance(instance.id);
+        }}
+        className="absolute right-0.5 top-0.5 z-10 flex size-4 items-center justify-center rounded-sm text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/15 hover:text-destructive group-hover:opacity-100"
+      >
+        <X className="size-3" />
+      </button>
       <div
         className="flex items-stretch border-l-[3px] rounded-md"
         style={{ borderLeftColor: colorToken(instance.color) }}
@@ -61,7 +74,7 @@ export function InstanceCard({ instance, dimmed, compact }: Props) {
 
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
-            <button className="min-w-0 flex-1 px-1.5 py-1.5 text-left">
+            <button className="min-w-0 flex-1 px-1.5 py-1.5 pr-5 text-left">
               <div className="flex items-center justify-between gap-2">
                 <span className="truncate text-xs font-semibold">{instance.title}</span>
                 <span className="shrink-0 text-[10px] font-bold text-muted-foreground">
