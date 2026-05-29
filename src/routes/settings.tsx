@@ -8,6 +8,7 @@ import {
   FONT_OPTIONS,
   colorToken,
 } from "@/lib/planbook/constants";
+import { ColorPicker } from "@/components/planbook/ColorPicker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
