@@ -73,6 +73,19 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
         ${i.content && !compact ? `<div class="content">${escape(i.content)}</div>` : ""}
         ${i.instanceNotes && !compact ? `<div class="notes">${escape(i.instanceNotes)}</div>` : ""}
       </div>`;
+    const hasSections = course.sections.length > 1;
+    const sectionNotesBlock = hasSections
+      ? (() => {
+          const rows = course.sections
+            .map((sec) => {
+              const note = meta.sectionNotes?.[sec.id] ?? "";
+              if (!note.trim()) return "";
+              return `<h2>${escape(sec.name)}</h2><div class="field">${escape(note)}</div>`;
+            })
+            .join("");
+          return rows ? `<h2>Section Notes</h2>${rows}` : "";
+        })()
+      : "";
     const body = isSub
       ? `
         <h1>Substitute Plan — ${escape(course.name)}</h1>
@@ -81,6 +94,7 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
         <div class="field">${escape(course.subDefaults || "—")}</div>
         <h2>Day Notes</h2>
         <div class="field">${escape(meta.notes || "—")}</div>
+        ${sectionNotesBlock}
         <h2>Lesson Sequence</h2>
         ${instances.map(renderEl).join("")}
       `
@@ -91,6 +105,7 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
         <h2>Standards</h2><div class="field">${escape(meta.standards || "—")}</div>
         <h2>Lesson Sequence</h2>${instances.map(renderEl).join("")}
         <h2>Day Notes</h2><div class="field">${escape(meta.notes || "—")}</div>
+        ${sectionNotesBlock}
         <h2>Reflection</h2><div class="field">${escape(meta.reflection || "—")}</div>
       `;
     w.document.write(`<!doctype html><html><head><title>${isSub ? "Sub" : "Lesson"} Plan</title><style>${styles}</style></head><body>${body}</body></html>`);
@@ -208,6 +223,37 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
               }
             />
           </section>
+
+          {course.sections.length > 1 && (
+            <section className="space-y-2">
+              <Label>Section notes</Label>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {course.sections.map((sec) => (
+                  <div key={sec.id} className="space-y-1">
+                    <Label
+                      htmlFor={`secnote-${sec.id}`}
+                      className="text-xs font-normal text-muted-foreground"
+                    >
+                      {sec.name}
+                    </Label>
+                    <Textarea
+                      id={`secnote-${sec.id}`}
+                      rows={2}
+                      value={meta.sectionNotes?.[sec.id] ?? ""}
+                      onChange={(e) =>
+                        updateDayMeta(course.id, dayKey, {
+                          sectionNotes: {
+                            ...meta.sectionNotes,
+                            [sec.id]: e.target.value,
+                          },
+                        })
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {!isSub && (
             <section className="space-y-1.5">
