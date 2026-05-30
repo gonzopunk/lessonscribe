@@ -34,11 +34,9 @@ import {
   MoreVertical,
   UserRound,
   ArrowLeft,
-  CalendarRange,
   Copy,
 } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
-import { CopyWeekDialog } from "./CopyWeekDialog";
 import { DuplicateDayDialog } from "./DuplicateDayDialog";
 
 interface Props {
