@@ -1,76 +1,57 @@
-## Phase 2 status
+## Goal
 
-Already shipped: `PlanModal` (lesson + sub, in-place editing, compact toggle, print/PDF via `window.print` with per-color styling), `DuplicateDayDialog`, per-course `subDefaults` in Settings, day-meta editing. Print path uses a styled new-window — equivalent UX to `@react-pdf/renderer` without adding a Worker-incompatible client dep, so we keep it.
+Show a live, paper-like print preview next to the Export dialog controls that updates instantly as the user toggles presets, sections, header info, font, orientation, and date/course scope.
 
-Small Phase 2 gap to close as part of this batch:
-- **Copy Week action** on the week header (next to the existing week range label) → opens a lightweight picker that calls `duplicateDay` for each weekday Mon→Fri into the matching weekday of one or more target weeks.
+## Approach
 
-## Phase 3 — Month calendar + iCal import
+The existing print pipeline (`renderCoverPage`, `renderPlanHTML`, `PLAN_PRINT_STYLES`) already produces a complete HTML document string. We can reuse it verbatim by piping its output into a sandboxed `<iframe srcDoc=…>` embedded in the dialog. No changes to the print logic itself — same code path drives the preview and the actual print window.
 
-### 1. Month view
+## Changes
 
-**Store + settings**
-- Add `viewMode: "weeks" | "month"` to `AppSettings` (default `"weeks"`). Hydrate default.
-- Add `monthCourseIds: string[]` to `AppSettings` for which courses appear as bands in month view (default = `[activeCourseId]` on first switch).
+### 1. Widen the Export dialog into a two-pane layout
+`src/components/planbook/ExportDialog.tsx`
+- Bump `DialogContent` max width from `max-w-2xl` to `max-w-6xl` (with `max-h-[92vh]`).
+- Replace the single-column body with a responsive grid:
+  - **Left pane** (`lg:col-span-5`): existing Tabs (Preset / Scope / Sections / Header / Layout), kept scrollable.
+  - **Right pane** (`lg:col-span-7`): new `PrintPreview` component, sticky, fills available height.
+- On screens narrower than `lg`, stack the preview below the controls and cap its height (e.g. `h-[420px]`).
 
-**Header (`Header.tsx`)**
-- Add a segmented control: `Weeks | Month`. In Weeks mode the existing 1/2/3/4 picker stays. In Month mode it's hidden; prev/next shift by one calendar month.
-- Title becomes `MMMM yyyy` in month mode.
+### 2. Extract the document-building logic so preview and print share it
+`src/components/planbook/ExportDialog.tsx`
+- Refactor the body of `exportNow` into a pure helper `buildExportDoc(profile, from, to, pickedCourses, state)` that returns `{ title, bodyHTML, primaryHex, runningHeaderText }`.
+- `exportNow` calls this helper and forwards to `openPrintWindow`.
+- The preview component calls the same helper, then assembles the full HTML doc (the same `<!doctype>…<style>…</style>…<body>…</body>` string currently built inside `openPrintWindow`).
 
-**New `MonthView.tsx`** (sibling of `PlannerWorkspace`'s weeks grid; rendered conditionally inside `PlannerWorkspace`)
-- 7-col grid Sun–Sat (or Mon–Sun, matching existing `mondayOf`), showing the full month plus leading/trailing days to fill weeks.
-- Each cell shows: date number, override label (if any, muted), and one **color band per selected course** with a tiny element-count number. Band uses `colorTokenSoft(course.color)` bg + `colorToken` left border, matching the rest of the color system.
-- Click a band → opens `PlanModal` for that course+day. Click empty area of cell → opens the override dialog (same as weeks view).
-- Multi-course chooser: small popover above the grid with checkboxes for each course, writes to `monthCourseIds`.
-- No drag-and-drop in month view (out of scope; weeks view stays the editing surface).
+### 3. Expose the doc-string builder from printPlan
+`src/lib/planbook/printPlan.ts`
+- Add a small `buildPrintDocument(opts: OpenPrintOptions): string` that returns the full HTML string currently inlined in `openPrintWindow`.
+- Refactor `openPrintWindow` to call `buildPrintDocument` and `w.document.write(...)` — no behavior change.
+- This way the preview iframe and the print window are guaranteed to render identically.
 
-### 2. Range-based PDF / print export
+### 4. New `PrintPreview` component
+`src/components/planbook/PrintPreview.tsx` (new)
+- Props: `{ docHTML: string; orientation: "portrait" | "landscape" }`.
+- Renders a "page" frame (drop shadow, off-white background to mimic paper on a desk) wrapping an `<iframe sandbox srcDoc={docHTML} title="Print preview">`.
+- Iframe size derived from orientation: portrait ~ 8.5×11 aspect, landscape ~ 11×8.5; scales to fit the right pane width using `transform: scale(...)` so the user sees a true-to-scale page.
+- Add page-count footer (e.g. "Page 1 of N", computed by counting `.page-break` occurrences + cover page) and an orientation badge.
+- Debounce updates (~150 ms) so rapid typing in header inputs doesn't thrash the iframe.
 
-- New "Export range" button in `Header`. Opens a dialog: date range (defaults to current month), course multi-select (defaults to `monthCourseIds`), mode toggle Lesson | Sub, compact toggle.
-- Reuses the existing `PlanModal.print` HTML pipeline: iterates `(course × day)` pairs in order, emits one styled section per day with a page-break between days. Skips days with no instances unless "include empty days" is checked.
-- Same `colorToHex`/`hexMix` helpers, same legend rules per day.
+### 5. Wire the preview in
+`ExportDialog.tsx`
+- `useMemo` over `(profile, from, to, pickedCourses, state.instances, state.tags, state.courses, state.overrides)` to recompute `docHTML` via `buildExportDoc` + `buildPrintDocument`.
+- Pass to `<PrintPreview docHTML={docHTML} orientation={profile.orientation} />`.
+- Guard against very long date ranges by capping the preview to the first ~10 day-pages with a "+N more pages will be printed" note; the actual print still includes everything.
 
-### 3. iCal import via server route
+## Technical notes
 
-**Server route** `src/routes/api/public/ical-proxy.ts`
-- `GET` with `?url=` query param. Validate with Zod (must be `https://` URL, max length 2048).
-- `fetch(url, { headers: { Accept: "text/calendar" } })`, 8s timeout via `AbortController`.
-- Return `text/calendar` body with `Cache-Control: public, max-age=300`. On failure return JSON `{ error }` with appropriate status.
-- Why `/api/public/`: needs to be reachable without app auth so the client can call it from any preview/published origin. No PII, no writes — read-only proxy.
+- **Sandboxing**: iframe uses `sandbox="allow-same-origin"` (no scripts needed — pure HTML/CSS render).
+- **Fonts**: the preview iframe contains the same Google Fonts `<link>` as the print window, so heading/body fonts match exactly.
+- **Performance**: building the HTML string is cheap (already done synchronously today). Debouncing only the iframe `srcDoc` update keeps typing smooth.
+- **Print pagination caveat**: `@page` CSS only affects actual printing; the preview won't paginate into separate sheets. That's acceptable — we still show a single continuous paper-styled scroll and indicate page breaks visually using horizontal rule + "Page N" markers inserted around `.page-break` divs in the preview only.
+- **No business-logic changes**: only presentation and a thin refactor of `openPrintWindow` to share the doc-string builder.
 
-**Client integration**
-- `bun add ical.js`.
-- New helper `src/lib/planbook/ical.ts`:
-  - `fetchAndParseIcal(url: string): Promise<{ dayKey: string; label: string; kind: OverrideKind }[]>`
-  - Calls `/api/public/ical-proxy?url=...`, parses with `ical.js`, filters all-day events, maps SUMMARY → kind (`no school` / `holiday` → `no_school`, `assembly` → `assembly`, `testing` / `test` → `testing`, else `custom`), expands multi-day events into individual day keys.
-- Store action `syncIcal()`:
-  - Reads `settings.icalUrl`, calls helper, writes results into `overrides` with `source: "ical"` **only when** no existing override has `source: "manual"` for that day (user overrides win).
-  - Tracks `lastIcalSyncAt: number | null` in `AppSettings` for the UI.
-- `settings.tsx`:
-  - Next to the iCal URL field add a "Sync now" button that calls `syncIcal()` and shows last-sync timestamp + toast on success/failure.
-  - Add "Clear iCal-sourced overrides" secondary button.
+## Files touched
 
-### Out of scope (defer)
-
-- True drag-and-drop in month view.
-- Auto background sync on app load.
-- Recurring rule (`RRULE`) expansion beyond what `ical.js` returns natively for the visible window.
-- Switching the print pipeline to `@react-pdf/renderer`.
-
-### Files touched
-
-**New**
-- `src/components/planbook/MonthView.tsx`
-- `src/components/planbook/CopyWeekDialog.tsx`
-- `src/components/planbook/RangeExportDialog.tsx`
-- `src/routes/api/public/ical-proxy.ts`
-- `src/lib/planbook/ical.ts`
-
-**Edited**
-- `src/lib/planbook/types.ts` — `viewMode`, `monthCourseIds`, `lastIcalSyncAt`.
-- `src/lib/planbook/store.ts` — defaults + hydrate, `syncIcal`, `clearIcalOverrides`.
-- `src/components/planbook/Header.tsx` — view toggle, month nav, Export range + Copy week buttons.
-- `src/components/planbook/PlannerWorkspace.tsx` — conditional render of `MonthView` vs weeks grid.
-- `src/components/planbook/PlanModal.tsx` — extract `renderPlanHTML(...)` so `RangeExportDialog` can reuse it.
-- `src/routes/settings.tsx` — Sync now / Clear iCal / last-sync display.
-- `package.json` — `ical.js`.
+- `src/components/planbook/ExportDialog.tsx` — two-pane layout, helper extraction, preview wiring
+- `src/components/planbook/PrintPreview.tsx` — new
+- `src/lib/planbook/printPlan.ts` — extract `buildPrintDocument`, no behavior change

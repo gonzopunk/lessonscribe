@@ -206,26 +206,28 @@ export interface OpenPrintOptions {
   runningHeaderText?: string;
 }
 
-export function openPrintWindow(opts: OpenPrintOptions) {
-  const w = window.open("", "_blank", "width=900,height=1000");
-  if (!w) return;
+export function buildPrintDocument(opts: OpenPrintOptions): string {
   const fontLinks = `
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Inter:wght@400;600;700&family=Lexend:wght@400;600&family=Lora:wght@400;600;700&family=Source+Serif+4:wght@400;600;700&display=swap" rel="stylesheet">
   `;
-  w.document.write(
-    `<!doctype html><html><head><title>${opts.title}</title>${fontLinks}<style>${PLAN_PRINT_STYLES(
-      opts.courseColorHex,
-      {
-        fontFamily: opts.fontFamily,
-        orientation: opts.orientation,
-        pageNumbers: opts.pageNumbers,
-        runningHeader: opts.runningHeader,
-        runningHeaderText: opts.runningHeaderText,
-      },
-    )}</style></head><body>${opts.bodyHTML}</body></html>`,
-  );
+  return `<!doctype html><html><head><meta charset="utf-8"><title>${opts.title}</title>${fontLinks}<style>${PLAN_PRINT_STYLES(
+    opts.courseColorHex,
+    {
+      fontFamily: opts.fontFamily,
+      orientation: opts.orientation,
+      pageNumbers: opts.pageNumbers,
+      runningHeader: opts.runningHeader,
+      runningHeaderText: opts.runningHeaderText,
+    },
+  )}</style></head><body>${opts.bodyHTML}</body></html>`;
+}
+
+export function openPrintWindow(opts: OpenPrintOptions) {
+  const w = window.open("", "_blank", "width=900,height=1000");
+  if (!w) return;
+  w.document.write(buildPrintDocument(opts));
   w.document.close();
   setTimeout(() => w.print(), 400);
 }
