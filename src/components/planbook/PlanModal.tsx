@@ -13,7 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { usePlanBook, getDayMeta } from "@/lib/planbook/store";
 import { formatDayLong, isWednesday, parseDayKey } from "@/lib/planbook/dates";
-import { colorToHex, hexMix } from "@/lib/planbook/constants";
+import { colorToHex } from "@/lib/planbook/constants";
+import { renderPlanHTML, openPrintWindow } from "@/lib/planbook/printPlan";
 import { Printer, X } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 
