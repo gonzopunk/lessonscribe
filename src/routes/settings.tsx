@@ -424,16 +424,11 @@ function FavoriteColorsCard() {
                 />
                 <ColorPicker
                   value={f.value}
-                  onChange={(next) => {
-                    // updating a favorite's color: remove + readd preserving name
-                    renameFavorite(f.id, f.name);
-                    // mutate via remove+add to keep store API minimal
-                    removeFavorite(f.id);
-                    addFavorite(next, f.name);
-                  }}
+                  onChange={(next) => setFavoriteValue(f.id, next)}
                   size="sm"
                   ringOffsetClass="ring-offset-surface"
                 />
+
                 <span className="ml-auto font-mono text-[10px] text-muted-foreground">
                   {f.value}
                 </span>
