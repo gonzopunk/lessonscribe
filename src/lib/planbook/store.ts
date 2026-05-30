@@ -22,6 +22,8 @@ const SCHEMA_VERSION = 1;
 const defaultSettings: AppSettings = {
   theme: "dark",
   fontId: "inter",
+  headingFontId: "inter",
+  bodyFontId: "inter",
   fontSize: "md",
   density: "comfortable",
   reduceMotion: false,
