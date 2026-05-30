@@ -5,6 +5,7 @@ import type {
   AppSettings,
   CalendarOverride,
   CategoryTag,
+  ColorFavorite,
   Course,
   DayMeta,
   DayStatus,
@@ -29,6 +30,7 @@ const defaultSettings: AppSettings = {
   icalUrl: "",
   weeksInView: 3,
   filterMode: "dim",
+  colorFavorites: [],
 };
 
 const blankDayMeta = (): DayMeta => ({
