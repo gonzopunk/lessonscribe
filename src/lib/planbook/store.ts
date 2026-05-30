@@ -452,9 +452,25 @@ export const usePlanBook = create<Store>()(
       version: SCHEMA_VERSION,
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<PlanBookState>;
-        const ps = (p.settings ?? {}) as Partial<AppSettings>;
-        // Migrate legacy single fontId → heading+body if not yet set.
-        const legacyFont = (ps as { fontId?: string }).fontId;
+        const ps = (p.settings ?? {}) as Partial<AppSettings> & {
+          fontId?: string;
+          icalUrl?: string;
+          lastIcalSyncAt?: number | null;
+        };
+        const legacyFont = ps.fontId;
+        // Migrate legacy single icalUrl → icalFeeds[]
+        const migratedFeeds =
+          ps.icalFeeds ??
+          (ps.icalUrl
+            ? [{
+                id: nanoid(8),
+                label: "District calendar",
+                url: ps.icalUrl,
+                color: "indigo",
+                enabled: true,
+                lastSyncAt: ps.lastIcalSyncAt ?? null,
+              }]
+            : []);
         return {
           ...current,
           ...p,
@@ -464,7 +480,7 @@ export const usePlanBook = create<Store>()(
             colorFavorites: ps.colorFavorites ?? [],
             viewMode: ps.viewMode ?? "weeks",
             monthCourseIds: ps.monthCourseIds ?? [],
-            lastIcalSyncAt: ps.lastIcalSyncAt ?? null,
+            icalFeeds: migratedFeeds,
             headingFontId:
               (ps as { headingFontId?: string }).headingFontId ?? legacyFont ?? "inter",
             bodyFontId:
