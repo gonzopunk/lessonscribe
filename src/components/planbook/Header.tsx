@@ -28,7 +28,6 @@ export function Header() {
   const shiftAnchor = usePlanBook((s) => s.shiftAnchor);
   const setAnchor = usePlanBook((s) => s.setAnchor);
 
-  const [copyOpen, setCopyOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
 
   const anchorDate = new Date(anchor);
