@@ -4,7 +4,8 @@ import { useApplyTheme } from "@/lib/planbook/useApplyTheme";
 import { usePlanBook } from "@/lib/planbook/store";
 import {
   APP_NAME,
-  FONT_OPTIONS,
+  HEADING_FONTS,
+  BODY_FONTS,
   colorToken,
   colorTokenSoft,
 } from "@/lib/planbook/constants";
