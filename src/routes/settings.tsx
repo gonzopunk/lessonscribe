@@ -258,40 +258,72 @@ function SettingsPage() {
                 onChange={(e) => updateSettings({ schoolYearEnd: e.target.value })}
               />
             </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="ical">District iCal URL</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="ical"
-                  value={settings.icalUrl}
-                  onChange={(e) => updateSettings({ icalUrl: e.target.value })}
-                  placeholder="https://…/calendar.ics"
-                />
-                <Button
-                  variant="outline"
-                  disabled={!settings.icalUrl || icalBusy}
-                  onClick={syncIcalNow}
-                >
-                  {icalBusy ? "Syncing…" : "Sync now"}
-                </Button>
-                <Button
-                  variant="ghost"
-                  disabled={icalBusy}
-                  onClick={() => {
-                    clearIcalOverrides();
-                    toast.success("Cleared iCal-sourced overrides");
-                  }}
-                >
-                  Clear iCal
+            <div className="space-y-3 sm:col-span-2">
+              <div className="flex items-center justify-between">
+                <Label>iCal feeds</Label>
+                <Button variant="outline" size="sm" onClick={addFeed}>
+                  <Plus className="mr-1 size-3.5" /> Add feed
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">
-                {settings.lastIcalSyncAt
-                  ? `Last synced ${new Date(settings.lastIcalSyncAt).toLocaleString()}.`
-                  : "Not yet synced."}{" "}
-                Imported all-day events become calendar overrides; your manual overrides
-                always win.
-              </p>
+              {feeds.length === 0 && (
+                <p className="text-xs italic text-muted-foreground">
+                  No feeds yet. Add one or more iCal URLs (e.g. district days off,
+                  district events). Imported all-day events become calendar overrides;
+                  your manual overrides always win.
+                </p>
+              )}
+              <div className="space-y-2">
+                {feeds.map((feed) => {
+                  const busy = icalBusyId === feed.id;
+                  return (
+                    <div
+                      key={feed.id}
+                      className="space-y-2 rounded-md border border-border bg-card p-3"
+                    >
+                      <div className="grid gap-2 sm:grid-cols-[1fr_2fr_auto]">
+                        <Input
+                          value={feed.label}
+                          onChange={(e) => updateFeed(feed.id, { label: e.target.value })}
+                          placeholder="Label"
+                        />
+                        <Input
+                          value={feed.url}
+                          onChange={(e) => updateFeed(feed.id, { url: e.target.value })}
+                          placeholder="https://…/calendar.ics"
+                        />
+                        <div className="flex items-center gap-1">
+                          <Switch
+                            checked={feed.enabled}
+                            onCheckedChange={(v) => updateFeed(feed.id, { enabled: v })}
+                            aria-label="Enabled"
+                          />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={!feed.url || !feed.enabled || busy}
+                            onClick={() => syncFeed(feed.id)}
+                          >
+                            {busy ? "Syncing…" : "Sync"}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Remove feed"
+                            onClick={() => removeFeed(feed.id)}
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">
+                        {feed.lastSyncAt
+                          ? `Last synced ${new Date(feed.lastSyncAt).toLocaleString()}.`
+                          : "Not yet synced."}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
           </div>
