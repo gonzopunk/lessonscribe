@@ -152,6 +152,16 @@ export const usePlanBook = create<Store>()(
           { id: nanoid(8), courseId, name: "Discussion", color: "teal" },
           { id: nanoid(8), courseId, name: "Assessment", color: "rose" },
         ];
+        const initialFeeds = icalUrl
+          ? [{
+              id: nanoid(8),
+              label: "District calendar",
+              url: icalUrl,
+              color: "indigo",
+              enabled: true,
+              lastSyncAt: null,
+            }]
+          : [];
         set({
           onboarded: true,
           courses: [newCourse],
@@ -161,7 +171,7 @@ export const usePlanBook = create<Store>()(
             ...get().settings,
             schoolYearStart,
             schoolYearEnd,
-            icalUrl,
+            icalFeeds: initialFeeds,
           },
         });
       },
