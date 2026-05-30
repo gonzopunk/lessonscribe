@@ -195,89 +195,100 @@ export function PlannerWorkspace() {
         </div>
       )}
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={onDragStart}
-        onDragEnd={onDragEnd}
-      >
-        <main className="flex min-h-0 flex-1 overflow-hidden">
-          <div
-            className="flex-1 overflow-auto p-5"
-            style={{ gap: "var(--cell-gap)" }}
-          >
+      {viewMode === "month" ? (
+        <MonthView
+          monthAnchor={new Date(anchor)}
+          onOpenPlan={(cid, dk) => {
+            if (cid !== activeCourseId) usePlanBook.getState().setActiveCourse(cid);
+            setPlanModal({ open: true, mode: "lesson", dayKey: dk });
+          }}
+          onOpenOverride={(dk) => setOverrideDialog({ open: true, key: dk })}
+        />
+      ) : (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+        >
+          <main className="flex min-h-0 flex-1 overflow-hidden">
             <div
-              className="grid h-full gap-5"
-              style={{
-                gridTemplateColumns: `repeat(${weeksInView}, minmax(220px, 1fr))`,
-              }}
+              className="flex-1 overflow-auto p-5"
+              style={{ gap: "var(--cell-gap)" }}
             >
-              {weeks.map((week, wi) => {
-                const wkMonday = week[0];
-                return (
-                  <div key={wi} className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between border-b border-border pb-2">
-                      <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                        Week of {formatWeekRange(wkMonday)}
-                      </h2>
+              <div
+                className="grid h-full gap-5"
+                style={{
+                  gridTemplateColumns: `repeat(${weeksInView}, minmax(220px, 1fr))`,
+                }}
+              >
+                {weeks.map((week, wi) => {
+                  const wkMonday = week[0];
+                  return (
+                    <div key={wi} className="flex flex-col gap-3">
+                      <div className="flex items-center justify-between border-b border-border pb-2">
+                        <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                          Week of {formatWeekRange(wkMonday)}
+                        </h2>
+                      </div>
+                      <div className="flex flex-1 flex-col gap-3">
+                        {week.map((d) => {
+                          const k = toKey(d);
+                          return (
+                            <DayCell
+                              key={k}
+                              date={d}
+                              course={course}
+                              selected={selectedDays.includes(k)}
+                              onSelectClick={(e) => onCellClick(k, e)}
+                              onOpenLessonPlan={() =>
+                                setPlanModal({ open: true, mode: "lesson", dayKey: k })
+                              }
+                              onOpenSubPlan={() =>
+                                setPlanModal({ open: true, mode: "sub", dayKey: k })
+                              }
+                              onOpenOverride={() =>
+                                setOverrideDialog({ open: true, key: k })
+                              }
+                              onDuplicate={() => setDupDialog({ open: true, key: k })}
+                              onQuickAdd={() => setQuickAdd({ open: true, key: k })}
+                            />
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div className="flex flex-1 flex-col gap-3">
-                      {week.map((d) => {
-                        const k = toKey(d);
-                        return (
-                          <DayCell
-                            key={k}
-                            date={d}
-                            course={course}
-                            selected={selectedDays.includes(k)}
-                            onSelectClick={(e) => onCellClick(k, e)}
-                            onOpenLessonPlan={() =>
-                              setPlanModal({ open: true, mode: "lesson", dayKey: k })
-                            }
-                            onOpenSubPlan={() =>
-                              setPlanModal({ open: true, mode: "sub", dayKey: k })
-                            }
-                            onOpenOverride={() =>
-                              setOverrideDialog({ open: true, key: k })
-                            }
-                            onDuplicate={() => setDupDialog({ open: true, key: k })}
-                            onQuickAdd={() => setQuickAdd({ open: true, key: k })}
-                          />
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
 
-          <ElementBank
-            collapsed={bankCollapsed}
-            onToggle={() => setBankCollapsed((v) => !v)}
-          />
-        </main>
+            <ElementBank
+              collapsed={bankCollapsed}
+              onToggle={() => setBankCollapsed((v) => !v)}
+            />
+          </main>
 
-        <DragOverlay>
-          {activeTemplate && (
-            <div
-              className="rounded-md border bg-card p-2 text-xs font-semibold shadow-lg"
-              style={{
-                borderLeftWidth: 3,
-                borderLeftColor: colorToken(activeTemplate.color),
-                backgroundColor: colorTokenSoft(activeTemplate.color),
-              }}
-            >
-              {activeTemplate.title}
-            </div>
-          )}
-          {activeDragId && !activeTemplate && (
-            <div className="rounded-md border border-border bg-card p-2 text-xs shadow-lg">
-              Moving…
-            </div>
-          )}
-        </DragOverlay>
-      </DndContext>
+          <DragOverlay>
+            {activeTemplate && (
+              <div
+                className="rounded-md border bg-card p-2 text-xs font-semibold shadow-lg"
+                style={{
+                  borderLeftWidth: 3,
+                  borderLeftColor: colorToken(activeTemplate.color),
+                  backgroundColor: colorTokenSoft(activeTemplate.color),
+                }}
+              >
+                {activeTemplate.title}
+              </div>
+            )}
+            {activeDragId && !activeTemplate && (
+              <div className="rounded-md border border-border bg-card p-2 text-xs shadow-lg">
+                Moving…
+              </div>
+            )}
+          </DragOverlay>
+        </DndContext>
+      )}
 
       <PlanModal
         open={planModal.open}
