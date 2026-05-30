@@ -242,6 +242,3 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
     </Dialog>
   );
 }
-
-const escape = (s: string) =>
-  s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
