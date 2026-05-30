@@ -428,6 +428,18 @@ export const usePlanBook = create<Store>()(
       name: STORAGE_KEY,
       storage: createJSONStorage(() => localStorage),
       version: SCHEMA_VERSION,
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<PlanBookState>;
+        return {
+          ...current,
+          ...p,
+          settings: {
+            ...current.settings,
+            ...(p.settings ?? {}),
+            colorFavorites: p.settings?.colorFavorites ?? [],
+          },
+        };
+      },
     },
   ),
 );
