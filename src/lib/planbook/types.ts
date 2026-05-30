@@ -80,9 +80,12 @@ export interface ColorFavorite {
 }
 
 export interface AppSettings {
-  theme: "dark" | "light";
+  theme: "dark" | "light" | "parchment";
+  /** @deprecated kept for back-compat; migrated into bodyFontId at load time */
   fontId: string;
-  fontSize: "sm" | "md" | "lg";
+  headingFontId: string;
+  bodyFontId: string;
+  fontSize: "sm" | "md" | "lg" | "xl";
   density: "comfortable" | "compact";
   reduceMotion: boolean;
   schoolYearStart: string | null; // YYYY-MM-DD

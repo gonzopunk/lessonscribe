@@ -136,9 +136,49 @@ export function hexMix(hex: string, withColor: string, amount: number): string {
   return `#${to(lerp(r1, r2))}${to(lerp(g1, g2))}${to(lerp(b1, b2))}`;
 }
 
-export const FONT_OPTIONS = [
-  { id: "inter", label: "Inter (default)", value: '"Inter", ui-sans-serif, system-ui, sans-serif' },
-  { id: "atkinson", label: "Atkinson Hyperlegible", value: '"Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif' },
-  { id: "lexend", label: "Lexend (dyslexia-friendly)", value: '"Lexend", ui-sans-serif, system-ui, sans-serif' },
-  { id: "opendyslexic", label: "OpenDyslexic", value: '"OpenDyslexic", ui-sans-serif, system-ui, sans-serif' },
+export type FontKind = "sans" | "serif" | "mono" | "display" | "accessible";
+
+export interface FontOption {
+  id: string;
+  label: string;
+  value: string; // CSS font-family stack
+  kind: FontKind;
+  /** Google Fonts URL (or other webfont stylesheet) */
+  href?: string;
+  /** true if suitable for body text */
+  body?: boolean;
+  /** true if suitable for headings */
+  heading?: boolean;
+  note?: string;
+}
+
+const GF = (family: string, weights = "400;500;600;700") =>
+  `https://fonts.googleapis.com/css2?family=${family.replace(/ /g, "+")}:wght@${weights}&display=swap`;
+
+export const FONT_OPTIONS: FontOption[] = [
+  // Sans
+  { id: "inter", label: "Inter", value: '"Inter", ui-sans-serif, system-ui, sans-serif', kind: "sans", href: GF("Inter"), body: true, heading: true, note: "Default — neutral sans" },
+  { id: "nunito", label: "Nunito", value: '"Nunito", ui-sans-serif, system-ui, sans-serif', kind: "sans", href: GF("Nunito"), body: true, heading: true, note: "Soft, friendly" },
+  { id: "source-sans", label: "Source Sans 3", value: '"Source Sans 3", ui-sans-serif, system-ui, sans-serif', kind: "sans", href: GF("Source Sans 3"), body: true, heading: true },
+  { id: "work-sans", label: "Work Sans", value: '"Work Sans", ui-sans-serif, system-ui, sans-serif', kind: "sans", href: GF("Work Sans"), body: true, heading: true },
+
+  // Accessible
+  { id: "atkinson", label: "Atkinson Hyperlegible", value: '"Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif', kind: "accessible", href: GF("Atkinson Hyperlegible", "400;700"), body: true, heading: true, note: "High legibility" },
+  { id: "lexend", label: "Lexend", value: '"Lexend", ui-sans-serif, system-ui, sans-serif', kind: "accessible", href: GF("Lexend"), body: true, heading: true, note: "Dyslexia-friendly" },
+  { id: "opendyslexic", label: "OpenDyslexic", value: '"OpenDyslexic", ui-sans-serif, system-ui, sans-serif', kind: "accessible", href: "https://fonts.cdnfonts.com/css/opendyslexic", body: true, heading: true },
+
+  // Serif
+  { id: "lora", label: "Lora", value: '"Lora", ui-serif, Georgia, serif', kind: "serif", href: GF("Lora"), body: true, heading: true, note: "Warm serif" },
+  { id: "source-serif", label: "Source Serif 4", value: '"Source Serif 4", ui-serif, Georgia, serif', kind: "serif", href: GF("Source Serif 4"), body: true, heading: true },
+  { id: "merriweather", label: "Merriweather", value: '"Merriweather", ui-serif, Georgia, serif', kind: "serif", href: GF("Merriweather"), body: true, heading: true, note: "Readable serif" },
+  { id: "crimson", label: "Crimson Pro", value: '"Crimson Pro", ui-serif, Georgia, serif', kind: "serif", href: GF("Crimson Pro"), body: true, heading: true },
+  { id: "eb-garamond", label: "EB Garamond", value: '"EB Garamond", ui-serif, Georgia, serif', kind: "serif", href: GF("EB Garamond"), body: true, heading: true, note: "Classical serif" },
+  { id: "playfair", label: "Playfair Display", value: '"Playfair Display", ui-serif, Georgia, serif', kind: "display", href: GF("Playfair Display"), heading: true, note: "Headings only" },
 ] as const;
+
+export const HEADING_FONTS = FONT_OPTIONS.filter((f) => f.heading);
+export const BODY_FONTS = FONT_OPTIONS.filter((f) => f.body);
+
+export function resolveFont(id: string): FontOption {
+  return FONT_OPTIONS.find((f) => f.id === id) ?? FONT_OPTIONS[0];
+}

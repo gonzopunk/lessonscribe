@@ -22,6 +22,8 @@ const SCHEMA_VERSION = 1;
 const defaultSettings: AppSettings = {
   theme: "dark",
   fontId: "inter",
+  headingFontId: "inter",
+  bodyFontId: "inter",
   fontSize: "md",
   density: "comfortable",
   reduceMotion: false,
@@ -452,16 +454,23 @@ export const usePlanBook = create<Store>()(
       version: SCHEMA_VERSION,
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<PlanBookState>;
+        const ps = (p.settings ?? {}) as Partial<AppSettings>;
+        // Migrate legacy single fontId → heading+body if not yet set.
+        const legacyFont = (ps as { fontId?: string }).fontId;
         return {
           ...current,
           ...p,
           settings: {
             ...current.settings,
-            ...(p.settings ?? {}),
-            colorFavorites: p.settings?.colorFavorites ?? [],
-            viewMode: p.settings?.viewMode ?? "weeks",
-            monthCourseIds: p.settings?.monthCourseIds ?? [],
-            lastIcalSyncAt: p.settings?.lastIcalSyncAt ?? null,
+            ...ps,
+            colorFavorites: ps.colorFavorites ?? [],
+            viewMode: ps.viewMode ?? "weeks",
+            monthCourseIds: ps.monthCourseIds ?? [],
+            lastIcalSyncAt: ps.lastIcalSyncAt ?? null,
+            headingFontId:
+              (ps as { headingFontId?: string }).headingFontId ?? legacyFont ?? "inter",
+            bodyFontId:
+              (ps as { bodyFontId?: string }).bodyFontId ?? legacyFont ?? "inter",
           },
         };
       },

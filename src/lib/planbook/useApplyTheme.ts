@@ -1,14 +1,18 @@
 import { useEffect } from "react";
 import { usePlanBook } from "@/lib/planbook/store";
-import { FONT_OPTIONS } from "@/lib/planbook/constants";
+import { resolveFont } from "@/lib/planbook/constants";
 
-const FONT_LINKS: Record<string, string> = {
-  inter: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
-  lexend: "https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&display=swap",
-  atkinson:
-    "https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap",
-  opendyslexic: "https://fonts.cdnfonts.com/css/opendyslexic",
-};
+function ensureFontLoaded(fontId: string) {
+  const f = resolveFont(fontId);
+  if (!f.href) return;
+  const elId = `pb-font-${f.id}`;
+  if (document.getElementById(elId)) return;
+  const link = document.createElement("link");
+  link.id = elId;
+  link.rel = "stylesheet";
+  link.href = f.href;
+  document.head.appendChild(link);
+}
 
 export function useApplyTheme() {
   const settings = usePlanBook((s) => s.settings);
@@ -17,24 +21,17 @@ export function useApplyTheme() {
     const root = document.documentElement;
     root.classList.toggle("light", settings.theme === "light");
     root.classList.toggle("dark", settings.theme === "dark");
+    root.classList.toggle("parchment", settings.theme === "parchment");
     root.dataset.fontsize = settings.fontSize;
     root.dataset.density = settings.density;
     root.dataset.reduceMotion = String(settings.reduceMotion);
 
-    const f = FONT_OPTIONS.find((x) => x.id === settings.fontId) ?? FONT_OPTIONS[0];
-    root.style.setProperty("--font-app", f.value);
+    const body = resolveFont(settings.bodyFontId || settings.fontId);
+    const heading = resolveFont(settings.headingFontId || settings.fontId);
+    root.style.setProperty("--font-app", body.value);
+    root.style.setProperty("--font-heading", heading.value);
 
-    // load webfont
-    const href = FONT_LINKS[settings.fontId];
-    if (href) {
-      const id = `pb-font-${settings.fontId}`;
-      if (!document.getElementById(id)) {
-        const link = document.createElement("link");
-        link.id = id;
-        link.rel = "stylesheet";
-        link.href = href;
-        document.head.appendChild(link);
-      }
-    }
+    ensureFontLoaded(body.id);
+    ensureFontLoaded(heading.id);
   }, [settings]);
 }
