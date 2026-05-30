@@ -1,57 +1,80 @@
-## Goal
+# Phase 9 — Accounts & Cloud Sync
 
-Show a live, paper-like print preview next to the Export dialog controls that updates instantly as the user toggles presets, sections, header info, font, orientation, and date/course scope.
+Add authentication so users can sign in on any device and pick up where they left off.
 
-## Approach
+## Decisions (from your answers)
 
-The existing print pipeline (`renderCoverPage`, `renderPlanHTML`, `PLAN_PRINT_STYLES`) already produces a complete HTML document string. We can reuse it verbatim by piping its output into a sandboxed `<iframe srcDoc=…>` embedded in the dialog. No changes to the print logic itself — same code path drives the preview and the actual print window.
+- **Sign-in:** Email + password, plus Google (via Lovable broker).
+- **No profile table.**
+- **Existing local data:** stays local. Cloud accounts start fresh.
+- **Sync model:** cloud-only when signed in. Requires connectivity to save — no offline editing in this phase.
+- Signed-out visitors keep the existing local-only experience unchanged.
 
-## Changes
+## What gets built
 
-### 1. Widen the Export dialog into a two-pane layout
-`src/components/planbook/ExportDialog.tsx`
-- Bump `DialogContent` max width from `max-w-2xl` to `max-w-6xl` (with `max-h-[92vh]`).
-- Replace the single-column body with a responsive grid:
-  - **Left pane** (`lg:col-span-5`): existing Tabs (Preset / Scope / Sections / Header / Layout), kept scrollable.
-  - **Right pane** (`lg:col-span-7`): new `PrintPreview` component, sticky, fills available height.
-- On screens narrower than `lg`, stack the preview below the controls and cap its height (e.g. `h-[420px]`).
+### 1. Enable Lovable Cloud
+Provisions auth + database, then enables Google as a social provider.
 
-### 2. Extract the document-building logic so preview and print share it
-`src/components/planbook/ExportDialog.tsx`
-- Refactor the body of `exportNow` into a pure helper `buildExportDoc(profile, from, to, pickedCourses, state)` that returns `{ title, bodyHTML, primaryHex, runningHeaderText }`.
-- `exportNow` calls this helper and forwards to `openPrintWindow`.
-- The preview component calls the same helper, then assembles the full HTML doc (the same `<!doctype>…<style>…</style>…<body>…</body>` string currently built inside `openPrintWindow`).
+### 2. Database — one table
+```text
+plan_snapshots
+  user_id    uuid PK  → auth.users.id ON DELETE CASCADE
+  data       jsonb    (serialized PlanBookState, minus volatile UI bits)
+  updated_at timestamptz
+```
+- RLS: each user can SELECT/INSERT/UPDATE/DELETE only `where user_id = auth.uid()`.
+- Grants: `authenticated` full CRUD, `service_role` all.
+- One row per user. The app already serializes its whole state — a single JSONB column matches that shape with no refactor.
 
-### 3. Expose the doc-string builder from printPlan
-`src/lib/planbook/printPlan.ts`
-- Add a small `buildPrintDocument(opts: OpenPrintOptions): string` that returns the full HTML string currently inlined in `openPrintWindow`.
-- Refactor `openPrintWindow` to call `buildPrintDocument` and `w.document.write(...)` — no behavior change.
-- This way the preview iframe and the print window are guaranteed to render identically.
+### 3. Auth UI
+- New `/login` route: email+password form + "Continue with Google" button.
+- Header gets an **AccountMenu**: signed-out → "Sign in"; signed-in → email + "Sign out".
+- Root `onAuthStateChange` listener invalidates router + query cache so the planner switches between local and cloud mode cleanly.
 
-### 4. New `PrintPreview` component
-`src/components/planbook/PrintPreview.tsx` (new)
-- Props: `{ docHTML: string; orientation: "portrait" | "landscape" }`.
-- Renders a "page" frame (drop shadow, off-white background to mimic paper on a desk) wrapping an `<iframe sandbox srcDoc={docHTML} title="Print preview">`.
-- Iframe size derived from orientation: portrait ~ 8.5×11 aspect, landscape ~ 11×8.5; scales to fit the right pane width using `transform: scale(...)` so the user sees a true-to-scale page.
-- Add page-count footer (e.g. "Page 1 of N", computed by counting `.page-break` occurrences + cover page) and an orientation badge.
-- Debounce updates (~150 ms) so rapid typing in header inputs doesn't thrash the iframe.
+### 4. Sync layer (`src/lib/planbook/sync.ts`)
+Two protected server functions:
+- `loadSnapshot()` → `{ data, updated_at } | null`
+- `saveSnapshot(state)` → upsert on `user_id`
 
-### 5. Wire the preview in
-`ExportDialog.tsx`
-- `useMemo` over `(profile, from, to, pickedCourses, state.instances, state.tags, state.courses, state.overrides)` to recompute `docHTML` via `buildExportDoc` + `buildPrintDocument`.
-- Pass to `<PrintPreview docHTML={docHTML} orientation={profile.orientation} />`.
-- Guard against very long date ranges by capping the preview to the first ~10 day-pages with a "+N more pages will be printed" note; the actual print still includes everything.
+Wire-up in `store.ts`:
+- Mode-aware persist storage:
+  - **Signed out:** today's `localStorage` behavior (unchanged).
+  - **Signed in:** in-memory store hydrated from `loadSnapshot()` on sign-in; writes debounced ~600ms and flushed via `saveSnapshot()`.
+- On sign-in: load cloud snapshot. If no row exists yet, seed it from a blank state (we do **not** push localStorage up).
+- On sign-out: clear the in-memory store and fall back to localStorage.
+- Last-write-wins by `updated_at`.
+
+### 5. Sync feedback
+- Tiny "Synced • Xs ago" indicator in the header when signed in.
+- Toast + retry on save failure; pending write kept in memory until success or sign-out.
+- Clear "You're offline — changes can't be saved" banner when `navigator.onLine` is false while signed in (since this phase requires connectivity).
+
+## Files
+
+**New**
+- `src/routes/login.tsx`
+- `src/lib/planbook/sync.ts` (server fns)
+- `src/components/planbook/AccountMenu.tsx`
+- Supabase migration: `plan_snapshots` + RLS + grants
+
+**Edited**
+- `src/routes/__root.tsx` — `onAuthStateChange` listener, auth context
+- `src/router.tsx` — auth context wiring
+- `src/start.ts` — append `attachSupabaseAuth` to `functionMiddleware`
+- `src/lib/planbook/store.ts` — pluggable storage, hydrate-on-login, debounced cloud writes, offline guard
+- `src/components/planbook/Header.tsx` — mount AccountMenu + sync indicator
 
 ## Technical notes
 
-- **Sandboxing**: iframe uses `sandbox="allow-same-origin"` (no scripts needed — pure HTML/CSS render).
-- **Fonts**: the preview iframe contains the same Google Fonts `<link>` as the print window, so heading/body fonts match exactly.
-- **Performance**: building the HTML string is cheap (already done synchronously today). Debouncing only the iframe `srcDoc` update keeps typing smooth.
-- **Print pagination caveat**: `@page` CSS only affects actual printing; the preview won't paginate into separate sheets. That's acceptable — we still show a single continuous paper-styled scroll and indicate page breaks visually using horizontal rule + "Page N" markers inserted around `.page-break` divs in the preview only.
-- **No business-logic changes**: only presentation and a thin refactor of `openPrintWindow` to share the doc-string builder.
+- **Planner stays at `/` (public).** Signed-out users continue using the local-only planner; the auth state inside the store decides whether writes go to localStorage or cloud. No hard route gate. (Say the word if you'd rather force sign-in to use the planner.)
+- **Volatile fields excluded from cloud:** `anchorDate`, `selectedFilterTagIds`, `settings.viewMode` remain device-local so each device keeps its own view position.
+- **No edge functions.** All server work via `createServerFn`.
+- **Google provider** enabled in the same turn via `supabase--configure_social_auth`.
+- **Offline behavior is intentionally limited** in this phase. If you later want true plane-mode editing, we'd revisit the schema (normalize per-row) and add an outbox queue — flagged below.
 
-## Files touched
-
-- `src/components/planbook/ExportDialog.tsx` — two-pane layout, helper extraction, preview wiring
-- `src/components/planbook/PrintPreview.tsx` — new
-- `src/lib/planbook/printPlan.ts` — extract `buildPrintDocument`, no behavior change
+## Out of scope (next phases if you want)
+- Offline editing with sync-on-reconnect (requires normalized schema)
+- Password reset flow (`/reset-password`)
+- Importing existing localStorage data into a new cloud account
+- Real-time multi-tab/multi-device sync
+- Profile data (display name, avatar)
