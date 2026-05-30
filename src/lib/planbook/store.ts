@@ -369,25 +369,6 @@ export const usePlanBook = create<Store>()(
         set((s) => ({ instances: [...s.instances, ...copies] }));
       },
 
-      duplicateWeek: (courseId, srcMondayKey, destMondayKey) => {
-        // copy 5 weekdays
-        const offsets = [0, 1, 2, 3, 4];
-        const srcStart = new Date(srcMondayKey);
-        const destStart = new Date(destMondayKey);
-        const copies: ElementInstance[] = [];
-        offsets.forEach((off) => {
-          const sk = dayKey(new Date(srcStart.getTime() + off * 86400000));
-          const dk = dayKey(new Date(destStart.getTime() + off * 86400000));
-          const src = get()
-            .instances.filter((i) => i.courseId === courseId && i.dayKey === sk)
-            .sort((a, b) => a.order - b.order);
-          src.forEach((i, idx) => {
-            copies.push({ ...i, id: nanoid(10), dayKey: dk, order: idx });
-          });
-        });
-        if (copies.length) set((s) => ({ instances: [...s.instances, ...copies] }));
-      },
-
       setDayStatus: (courseId, dKey, status) => {
         const k = metaKey(courseId, dKey);
         set((s) => ({
