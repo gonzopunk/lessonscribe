@@ -147,18 +147,6 @@ export function Header() {
             </div>
           )}
 
-          {viewMode === "weeks" && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setCopyOpen(true)}
-              aria-label="Copy week"
-            >
-              <Copy className="mr-1 size-4" />
-              Copy week
-            </Button>
-          )}
-
           <Button
             variant="ghost"
             size="sm"
@@ -187,14 +175,6 @@ export function Header() {
         </div>
       </div>
 
-      {activeCourseId && (
-        <CopyWeekDialog
-          open={copyOpen}
-          onOpenChange={setCopyOpen}
-          courseId={activeCourseId}
-          sourceMondayKey={toKey(mondayOf(anchorDate))}
-        />
-      )}
       <RangeExportDialog open={exportOpen} onOpenChange={setExportOpen} />
     </header>
   );
