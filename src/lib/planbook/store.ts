@@ -31,6 +31,9 @@ const defaultSettings: AppSettings = {
   weeksInView: 3,
   filterMode: "dim",
   colorFavorites: [],
+  viewMode: "weeks",
+  monthCourseIds: [],
+  lastIcalSyncAt: null,
 };
 
 const blankDayMeta = (): DayMeta => ({
@@ -111,6 +114,7 @@ interface Actions {
   setOverride: (dKey: string, ov: Omit<CalendarOverride, "dayKey">) => void;
   clearOverride: (dKey: string) => void;
   applyIcalOverrides: (entries: Array<{ dayKey: string; label: string; kind: OverrideKind }>) => void;
+  clearIcalOverrides: () => void;
 
   // navigation
   shiftAnchor: (weeks: number) => void;
@@ -426,6 +430,14 @@ export const usePlanBook = create<Store>()(
           });
           return { overrides: next };
         }),
+      clearIcalOverrides: () =>
+        set((s) => {
+          const next: typeof s.overrides = {};
+          Object.entries(s.overrides).forEach(([k, v]) => {
+            if (v.source !== "ical") next[k] = v;
+          });
+          return { overrides: next };
+        }),
 
       shiftAnchor: (weeks) => {
         const cur = new Date(get().anchorDate);
@@ -447,6 +459,9 @@ export const usePlanBook = create<Store>()(
             ...current.settings,
             ...(p.settings ?? {}),
             colorFavorites: p.settings?.colorFavorites ?? [],
+            viewMode: p.settings?.viewMode ?? "weeks",
+            monthCourseIds: p.settings?.monthCourseIds ?? [],
+            lastIcalSyncAt: p.settings?.lastIcalSyncAt ?? null,
           },
         };
       },

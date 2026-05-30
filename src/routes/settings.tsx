@@ -25,6 +25,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { nanoid } from "nanoid";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -48,6 +49,26 @@ function SettingsPage() {
   const addTag = usePlanBook((s) => s.addTag);
   const updateTag = usePlanBook((s) => s.updateTag);
   const removeTag = usePlanBook((s) => s.removeTag);
+  const applyIcalOverrides = usePlanBook((s) => s.applyIcalOverrides);
+  const clearIcalOverrides = usePlanBook((s) => s.clearIcalOverrides);
+
+  const [icalBusy, setIcalBusy] = useState(false);
+
+  const syncIcalNow = async () => {
+    setIcalBusy(true);
+    try {
+      const { fetchAndParseIcal } = await import("@/lib/planbook/ical");
+      const entries = await fetchAndParseIcal(settings.icalUrl);
+      applyIcalOverrides(entries);
+      updateSettings({ lastIcalSyncAt: Date.now() });
+      toast.success(`Synced ${entries.length} day${entries.length === 1 ? "" : "s"} from iCal`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "iCal sync failed");
+    } finally {
+      setIcalBusy(false);
+    }
+  };
+
 
   return (
     <main className="min-h-dvh bg-background">
@@ -171,17 +192,40 @@ function SettingsPage() {
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="ical">District iCal URL</Label>
-              <Input
-                id="ical"
-                value={settings.icalUrl}
-                onChange={(e) => updateSettings({ icalUrl: e.target.value })}
-                placeholder="https://…/calendar.ics"
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="ical"
+                  value={settings.icalUrl}
+                  onChange={(e) => updateSettings({ icalUrl: e.target.value })}
+                  placeholder="https://…/calendar.ics"
+                />
+                <Button
+                  variant="outline"
+                  disabled={!settings.icalUrl || icalBusy}
+                  onClick={syncIcalNow}
+                >
+                  {icalBusy ? "Syncing…" : "Sync now"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  disabled={icalBusy}
+                  onClick={() => {
+                    clearIcalOverrides();
+                    toast.success("Cleared iCal-sourced overrides");
+                  }}
+                >
+                  Clear iCal
+                </Button>
+              </div>
               <p className="text-xs text-muted-foreground">
-                iCal import will sync non-school days. (Network proxy + parsing comes in the
-                next release — for now use the per-day overrides on each cell.)
+                {settings.lastIcalSyncAt
+                  ? `Last synced ${new Date(settings.lastIcalSyncAt).toLocaleString()}.`
+                  : "Not yet synced."}{" "}
+                Imported all-day events become calendar overrides; your manual overrides
+                always win.
               </p>
             </div>
+
           </div>
         </section>
 

@@ -1,25 +1,46 @@
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Settings, Sun, Moon, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Settings,
+  Sun,
+  Moon,
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  Printer,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePlanBook } from "@/lib/planbook/store";
 import { APP_NAME, colorToken } from "@/lib/planbook/constants";
 import { cn } from "@/lib/utils";
-import { formatWeekRange } from "@/lib/planbook/dates";
+import { dayKey as toKey, formatWeekRange, mondayOf } from "@/lib/planbook/dates";
+import { addMonths, format } from "date-fns";
+import { CopyWeekDialog } from "./CopyWeekDialog";
+import { RangeExportDialog } from "./RangeExportDialog";
 
 export function Header() {
   const courses = usePlanBook((s) => s.courses);
   const activeCourseId = usePlanBook((s) => s.activeCourseId);
   const setActiveCourse = usePlanBook((s) => s.setActiveCourse);
   const weeksInView = usePlanBook((s) => s.settings.weeksInView);
+  const viewMode = usePlanBook((s) => s.settings.viewMode);
   const updateSettings = usePlanBook((s) => s.updateSettings);
   const theme = usePlanBook((s) => s.settings.theme);
   const anchor = usePlanBook((s) => s.anchorDate);
   const shiftAnchor = usePlanBook((s) => s.shiftAnchor);
   const setAnchor = usePlanBook((s) => s.setAnchor);
 
+  const [copyOpen, setCopyOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+
   const anchorDate = new Date(anchor);
   const lastWeekStart = new Date(anchorDate);
   lastWeekStart.setDate(anchorDate.getDate() + (weeksInView - 1) * 7);
+
+  const monthShift = (months: number) => {
+    const next = addMonths(anchorDate, months);
+    setAnchor(toKey(mondayOf(next)));
+  };
 
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/80">
@@ -58,8 +79,10 @@ export function Header() {
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Previous weeks"
-              onClick={() => shiftAnchor(-weeksInView)}
+              aria-label="Previous"
+              onClick={() =>
+                viewMode === "month" ? monthShift(-1) : shiftAnchor(-weeksInView)
+              }
             >
               <ChevronLeft className="size-4" />
             </Button>
@@ -67,34 +90,87 @@ export function Header() {
               onClick={() => setAnchor(new Date().toISOString().slice(0, 10))}
               className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-secondary"
             >
-              {formatWeekRange(anchorDate)} – {formatWeekRange(lastWeekStart).split(" – ")[1]}
+              {viewMode === "month"
+                ? format(anchorDate, "MMMM yyyy")
+                : `${formatWeekRange(anchorDate)} – ${formatWeekRange(lastWeekStart).split(" – ")[1]}`}
             </button>
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Next weeks"
-              onClick={() => shiftAnchor(weeksInView)}
+              aria-label="Next"
+              onClick={() =>
+                viewMode === "month" ? monthShift(1) : shiftAnchor(weeksInView)
+              }
             >
               <ChevronRight className="size-4" />
             </Button>
           </div>
 
           <div className="flex overflow-hidden rounded-md border border-border">
-            {[1, 2, 3, 4].map((n) => (
-              <button
-                key={n}
-                onClick={() => updateSettings({ weeksInView: n as 1 | 2 | 3 | 4 })}
-                className={cn(
-                  "px-3 py-1.5 text-xs font-semibold transition-colors",
-                  weeksInView === n
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-surface text-muted-foreground hover:bg-secondary",
-                )}
-              >
-                {n}W
-              </button>
-            ))}
+            <button
+              onClick={() => updateSettings({ viewMode: "weeks" })}
+              className={cn(
+                "px-2.5 py-1.5 text-xs font-semibold transition-colors",
+                viewMode === "weeks"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-surface text-muted-foreground hover:bg-secondary",
+              )}
+            >
+              Weeks
+            </button>
+            <button
+              onClick={() => updateSettings({ viewMode: "month" })}
+              className={cn(
+                "px-2.5 py-1.5 text-xs font-semibold transition-colors",
+                viewMode === "month"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-surface text-muted-foreground hover:bg-secondary",
+              )}
+            >
+              Month
+            </button>
           </div>
+
+          {viewMode === "weeks" && (
+            <div className="flex overflow-hidden rounded-md border border-border">
+              {[1, 2, 3, 4].map((n) => (
+                <button
+                  key={n}
+                  onClick={() => updateSettings({ weeksInView: n as 1 | 2 | 3 | 4 })}
+                  className={cn(
+                    "px-3 py-1.5 text-xs font-semibold transition-colors",
+                    weeksInView === n
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-surface text-muted-foreground hover:bg-secondary",
+                  )}
+                >
+                  {n}W
+                </button>
+              ))}
+            </div>
+          )}
+
+          {viewMode === "weeks" && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setCopyOpen(true)}
+              aria-label="Copy week"
+            >
+              <Copy className="mr-1 size-4" />
+              Copy week
+            </Button>
+          )}
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setExportOpen(true)}
+            aria-label="Export range"
+          >
+            <Printer className="mr-1 size-4" />
+            Export
+          </Button>
 
           <Button
             variant="ghost"
@@ -113,6 +189,16 @@ export function Header() {
           </Link>
         </div>
       </div>
+
+      {activeCourseId && (
+        <CopyWeekDialog
+          open={copyOpen}
+          onOpenChange={setCopyOpen}
+          courseId={activeCourseId}
+          sourceMondayKey={toKey(mondayOf(anchorDate))}
+        />
+      )}
+      <RangeExportDialog open={exportOpen} onOpenChange={setExportOpen} />
     </header>
   );
 }
