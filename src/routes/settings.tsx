@@ -211,7 +211,7 @@ function SettingsPage() {
                   disabled={icalBusy}
                   onClick={() => {
                     clearIcalOverrides();
-                    toast?.("Cleared iCal-sourced overrides");
+                    toast.success("Cleared iCal-sourced overrides");
                   }}
                 >
                   Clear iCal
