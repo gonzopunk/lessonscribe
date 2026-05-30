@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, X } from "lucide-react";
 import { useApplyTheme } from "@/lib/planbook/useApplyTheme";
 import { usePlanBook } from "@/lib/planbook/store";
 import {
   APP_NAME,
   FONT_OPTIONS,
+  colorToken,
+  colorTokenSoft,
 } from "@/lib/planbook/constants";
 import { ColorPicker } from "@/components/planbook/ColorPicker";
 import { Button } from "@/components/ui/button";
@@ -138,6 +140,10 @@ function SettingsPage() {
             </div>
           </div>
         </section>
+
+        {/* Favorite colors */}
+        <FavoriteColorsCard />
+
 
         {/* Calendar */}
         <section className="space-y-4">
