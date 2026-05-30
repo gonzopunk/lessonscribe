@@ -29,13 +29,12 @@ const defaultSettings: AppSettings = {
   reduceMotion: false,
   schoolYearStart: null,
   schoolYearEnd: null,
-  icalUrl: "",
+  icalFeeds: [],
   weeksInView: 3,
   filterMode: "dim",
   colorFavorites: [],
   viewMode: "weeks",
   monthCourseIds: [],
-  lastIcalSyncAt: null,
 };
 
 const blankDayMeta = (): DayMeta => ({
@@ -114,8 +113,11 @@ interface Actions {
   // overrides
   setOverride: (dKey: string, ov: Omit<CalendarOverride, "dayKey">) => void;
   clearOverride: (dKey: string) => void;
-  applyIcalOverrides: (entries: Array<{ dayKey: string; label: string; kind: OverrideKind }>) => void;
-  clearIcalOverrides: () => void;
+  applyIcalOverrides: (
+    feedId: string,
+    entries: Array<{ dayKey: string; label: string; kind: OverrideKind }>,
+  ) => void;
+  clearIcalOverrides: (feedId?: string) => void;
 
   // navigation
   shiftAnchor: (weeks: number) => void;
@@ -153,6 +155,16 @@ export const usePlanBook = create<Store>()(
           { id: nanoid(8), courseId, name: "Discussion", color: "teal" },
           { id: nanoid(8), courseId, name: "Assessment", color: "rose" },
         ];
+        const initialFeeds = icalUrl
+          ? [{
+              id: nanoid(8),
+              label: "District calendar",
+              url: icalUrl,
+              color: "indigo",
+              enabled: true,
+              lastSyncAt: null,
+            }]
+          : [];
         set({
           onboarded: true,
           courses: [newCourse],
@@ -162,7 +174,7 @@ export const usePlanBook = create<Store>()(
             ...get().settings,
             schoolYearStart,
             schoolYearEnd,
-            icalUrl,
+            icalFeeds: initialFeeds,
           },
         });
       },
@@ -395,12 +407,16 @@ export const usePlanBook = create<Store>()(
           const { [dKey]: _, ...rest } = s.overrides;
           return { overrides: rest };
         }),
-      applyIcalOverrides: (entries) =>
+      applyIcalOverrides: (feedId, entries) =>
         set((s) => {
-          const next = { ...s.overrides };
+          // First remove any existing overrides from this feed (re-sync)
+          const next: typeof s.overrides = {};
+          Object.entries(s.overrides).forEach(([k, v]) => {
+            if (!(v.source === "ical" && v.feedId === feedId)) next[k] = v;
+          });
           entries.forEach((e) => {
-            // user-manual overrides win — don't clobber existing manual entries
             const existing = next[e.dayKey];
+            // user-manual overrides win
             if (existing && existing.source === "manual") return;
             next[e.dayKey] = {
               dayKey: e.dayKey,
@@ -408,15 +424,17 @@ export const usePlanBook = create<Store>()(
               label: e.label,
               note: "",
               source: "ical",
+              feedId,
             };
           });
           return { overrides: next };
         }),
-      clearIcalOverrides: () =>
+      clearIcalOverrides: (feedId) =>
         set((s) => {
           const next: typeof s.overrides = {};
           Object.entries(s.overrides).forEach(([k, v]) => {
             if (v.source !== "ical") next[k] = v;
+            else if (feedId && v.feedId !== feedId) next[k] = v;
           });
           return { overrides: next };
         }),
@@ -434,9 +452,25 @@ export const usePlanBook = create<Store>()(
       version: SCHEMA_VERSION,
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<PlanBookState>;
-        const ps = (p.settings ?? {}) as Partial<AppSettings>;
-        // Migrate legacy single fontId → heading+body if not yet set.
-        const legacyFont = (ps as { fontId?: string }).fontId;
+        const ps = (p.settings ?? {}) as Partial<AppSettings> & {
+          fontId?: string;
+          icalUrl?: string;
+          lastIcalSyncAt?: number | null;
+        };
+        const legacyFont = ps.fontId;
+        // Migrate legacy single icalUrl → icalFeeds[]
+        const migratedFeeds =
+          ps.icalFeeds ??
+          (ps.icalUrl
+            ? [{
+                id: nanoid(8),
+                label: "District calendar",
+                url: ps.icalUrl,
+                color: "indigo",
+                enabled: true,
+                lastSyncAt: ps.lastIcalSyncAt ?? null,
+              }]
+            : []);
         return {
           ...current,
           ...p,
@@ -446,7 +480,7 @@ export const usePlanBook = create<Store>()(
             colorFavorites: ps.colorFavorites ?? [],
             viewMode: ps.viewMode ?? "weeks",
             monthCourseIds: ps.monthCourseIds ?? [],
-            lastIcalSyncAt: ps.lastIcalSyncAt ?? null,
+            icalFeeds: migratedFeeds,
             headingFontId:
               (ps as { headingFontId?: string }).headingFontId ?? legacyFont ?? "inter",
             bodyFontId:
