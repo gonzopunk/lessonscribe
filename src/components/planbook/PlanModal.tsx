@@ -151,10 +151,6 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
                       <Copy className="mr-2 size-3.5" />
                       Duplicate this day…
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setCopyWeekOpen(true)}>
-                      <CalendarRange className="mr-2 size-3.5" />
-                      Copy this week…
-                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
