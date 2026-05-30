@@ -152,7 +152,7 @@ async function handleSignIn(userId: string) {
       if (snap) applyCloudShape(snap);
       setState({
         status: "saved",
-        lastSavedAt: new Date(remote.updatedAt).getTime(),
+        lastSavedAt: new Date(remote.updatedAt as string).getTime(),
         error: null,
       });
     } else {
