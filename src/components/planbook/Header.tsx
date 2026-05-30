@@ -6,7 +6,6 @@ import {
   Moon,
   ChevronLeft,
   ChevronRight,
-  Copy,
   Printer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,6 @@ import { APP_NAME, colorToken } from "@/lib/planbook/constants";
 import { cn } from "@/lib/utils";
 import { dayKey as toKey, formatWeekRange, mondayOf } from "@/lib/planbook/dates";
 import { addMonths, format } from "date-fns";
-import { CopyWeekDialog } from "./CopyWeekDialog";
 import { RangeExportDialog } from "./RangeExportDialog";
 
 export function Header() {
