@@ -317,13 +317,6 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
         </DialogContent>
       </Dialog>
 
-      <CopyWeekDialog
-        open={copyWeekOpen}
-        onOpenChange={setCopyWeekOpen}
-        courseId={course.id}
-        sourceMondayKey={sourceMondayKey}
-        courseName={course.name}
-      />
       <DuplicateDayDialog
         open={dupDayOpen}
         onOpenChange={setDupDayOpen}
