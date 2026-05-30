@@ -61,6 +61,7 @@ export interface CalendarOverride {
   label: string;              // user label (e.g. "Pep Rally")
   note: string;
   source: "manual" | "ical";
+  feedId?: string;            // when source === "ical"
 }
 
 export interface DayMeta {
@@ -79,9 +80,18 @@ export interface ColorFavorite {
   value: string;         // preset id or hex
 }
 
+export interface IcalFeed {
+  id: string;
+  label: string;            // e.g. "District days off"
+  url: string;
+  color: string;            // ColorId (for future per-feed coloring)
+  enabled: boolean;
+  lastSyncAt: number | null;
+}
+
 export interface AppSettings {
   theme: "dark" | "light" | "parchment";
-  /** @deprecated kept for back-compat; migrated into bodyFontId at load time */
+  /** @deprecated migrated into bodyFontId */
   fontId: string;
   headingFontId: string;
   bodyFontId: string;
@@ -90,13 +100,12 @@ export interface AppSettings {
   reduceMotion: boolean;
   schoolYearStart: string | null; // YYYY-MM-DD
   schoolYearEnd: string | null;
-  icalUrl: string;
+  icalFeeds: IcalFeed[];
   weeksInView: 1 | 2 | 3 | 4;
   filterMode: "dim" | "hide";
   colorFavorites: ColorFavorite[];
   viewMode: "weeks" | "month";
   monthCourseIds: string[];
-  lastIcalSyncAt: number | null;
 }
 
 export interface PlanBookState {
