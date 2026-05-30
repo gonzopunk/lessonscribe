@@ -1,13 +1,6 @@
 import { useMemo } from "react";
 import { addDays, format, startOfMonth, endOfMonth } from "date-fns";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { usePlanBook, getDayMeta } from "@/lib/planbook/store";
+import { usePlanBook } from "@/lib/planbook/store";
 import { dayKey as toKey, mondayOf } from "@/lib/planbook/dates";
 import { colorToken, colorTokenSoft } from "@/lib/planbook/constants";
 import { cn } from "@/lib/utils";
@@ -27,8 +20,8 @@ export function MonthView({ monthAnchor, onOpenPlan, onOpenOverride }: Props) {
 
   const selectedCourseIds =
     monthCourseIds.length > 0
-      ? monthCourseIds
-      : courses.slice(0, 1).map((c) => c.id);
+      ? monthCourseIds.filter((id) => courses.some((c) => c.id === id))
+      : courses.map((c) => c.id);
 
   const weeks = useMemo(() => {
     const start = mondayOf(startOfMonth(monthAnchor));
@@ -37,9 +30,7 @@ export function MonthView({ monthAnchor, onOpenPlan, onOpenOverride }: Props) {
     let cur = start;
     while (cur <= endMonth || result.length < 5) {
       const week: Date[] = [];
-      for (let i = 0; i < 5; i++) {
-        week.push(addDays(cur, i));
-      }
+      for (let i = 0; i < 5; i++) week.push(addDays(cur, i));
       result.push(week);
       cur = addDays(cur, 7);
       if (result.length >= 6) break;
@@ -59,39 +50,59 @@ export function MonthView({ monthAnchor, onOpenPlan, onOpenOverride }: Props) {
     updateSettings({ monthCourseIds: next });
   };
 
+  const selectAll = () => updateSettings({ monthCourseIds: courses.map((c) => c.id) });
+  const clearAll = () => updateSettings({ monthCourseIds: [] });
+
+  const useTwoCol = selectedCourseIds.length >= 4;
+
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="flex items-center gap-2 border-b border-border px-5 py-2 text-xs">
-        <span className="font-bold uppercase tracking-widest text-muted-foreground">
-          Show courses
+      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-border bg-surface/95 px-5 py-2 backdrop-blur">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          Show
         </span>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="sm">
-              {selectedCourseIds.length} selected
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-56 p-2">
-            <div className="space-y-1">
-              {courses.map((c) => (
-                <label
-                  key={c.id}
-                  className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-sm hover:bg-secondary"
-                >
-                  <Checkbox
-                    checked={selectedCourseIds.includes(c.id)}
-                    onCheckedChange={() => toggleCourse(c.id)}
-                  />
-                  <span
-                    className="size-2 rounded-full"
-                    style={{ backgroundColor: colorToken(c.color) }}
-                  />
-                  {c.name}
-                </label>
-              ))}
-            </div>
-          </PopoverContent>
-        </Popover>
+        <button
+          onClick={selectAll}
+          className="rounded-full border border-border bg-card px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground hover:bg-secondary"
+        >
+          All
+        </button>
+        <button
+          onClick={clearAll}
+          className="rounded-full border border-border bg-card px-2.5 py-0.5 text-[11px] font-semibold text-muted-foreground hover:bg-secondary"
+        >
+          None
+        </button>
+        <span className="mx-1 h-4 w-px bg-border" />
+        {courses.map((c) => {
+          const on = selectedCourseIds.includes(c.id);
+          return (
+            <button
+              key={c.id}
+              onClick={() => toggleCourse(c.id)}
+              className={cn(
+                "flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold transition-all",
+                on
+                  ? "border-transparent shadow-sm"
+                  : "border-border bg-card text-muted-foreground opacity-60 hover:opacity-100",
+              )}
+              style={
+                on
+                  ? {
+                      backgroundColor: colorTokenSoft(c.color),
+                      color: colorToken(c.color),
+                    }
+                  : undefined
+              }
+            >
+              <span
+                className="size-2 rounded-full"
+                style={{ backgroundColor: colorToken(c.color) }}
+              />
+              {c.name}
+            </button>
+          );
+        })}
       </div>
 
       <div className="grid grid-cols-5 border-b border-border bg-surface/60 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -129,7 +140,12 @@ export function MonthView({ monthAnchor, onOpenPlan, onOpenOverride }: Props) {
                     </span>
                   )}
                 </div>
-                <div className="space-y-1">
+                <div
+                  className={cn(
+                    "gap-1",
+                    useTwoCol ? "grid grid-cols-2" : "flex flex-col",
+                  )}
+                >
                   {selectedCourseIds.map((cid) => {
                     const course = courses.find((c) => c.id === cid);
                     if (!course) return null;
@@ -142,7 +158,8 @@ export function MonthView({ monthAnchor, onOpenPlan, onOpenOverride }: Props) {
                           e.stopPropagation();
                           onOpenPlan(cid, dk);
                         }}
-                        className="flex w-full items-center justify-between rounded px-1.5 py-0.5 text-left text-[11px] font-medium transition-opacity hover:opacity-80"
+                        title={`${course.name} — ${n} element${n === 1 ? "" : "s"}`}
+                        className="flex w-full items-center justify-between gap-1 overflow-hidden rounded px-1.5 py-0.5 text-left text-[11px] font-medium transition-opacity hover:opacity-80"
                         style={{
                           borderLeft: `3px solid ${colorToken(course.color)}`,
                           backgroundColor: colorTokenSoft(course.color),
@@ -150,7 +167,7 @@ export function MonthView({ monthAnchor, onOpenPlan, onOpenOverride }: Props) {
                         }}
                       >
                         <span className="truncate">{course.name}</span>
-                        <span className="ml-1 opacity-70">{n}</span>
+                        <span className="shrink-0 opacity-70">{n}</span>
                       </button>
                     );
                   })}

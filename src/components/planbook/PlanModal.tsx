@@ -23,8 +23,6 @@ import {
   formatDayLong,
   isWednesday,
   parseDayKey,
-  dayKey as toKey,
-  mondayOf,
 } from "@/lib/planbook/dates";
 import { colorToHex } from "@/lib/planbook/constants";
 import { renderPlanHTML, openPrintWindow } from "@/lib/planbook/printPlan";
@@ -34,11 +32,9 @@ import {
   MoreVertical,
   UserRound,
   ArrowLeft,
-  CalendarRange,
   Copy,
 } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
-import { CopyWeekDialog } from "./CopyWeekDialog";
 import { DuplicateDayDialog } from "./DuplicateDayDialog";
 
 interface Props {
@@ -59,7 +55,7 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
   const updateDayMeta = usePlanBook((s) => s.updateDayMeta);
   const [compact, setCompact] = useState(false);
   const [currentMode, setCurrentMode] = useState<"lesson" | "sub">(mode);
-  const [copyWeekOpen, setCopyWeekOpen] = useState(false);
+  
   const [dupDayOpen, setDupDayOpen] = useState(false);
 
   // Sync to incoming mode whenever the modal is (re)opened with a new day or mode.
@@ -84,7 +80,6 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
   );
 
   const isSub = currentMode === "sub";
-  const sourceMondayKey = toKey(mondayOf(date));
 
   const print = () => {
     const body = renderPlanHTML({
@@ -152,10 +147,6 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
                     <DropdownMenuItem onClick={() => setDupDayOpen(true)}>
                       <Copy className="mr-2 size-3.5" />
                       Duplicate this day…
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setCopyWeekOpen(true)}>
-                      <CalendarRange className="mr-2 size-3.5" />
-                      Copy this week…
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -323,13 +314,6 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
         </DialogContent>
       </Dialog>
 
-      <CopyWeekDialog
-        open={copyWeekOpen}
-        onOpenChange={setCopyWeekOpen}
-        courseId={course.id}
-        sourceMondayKey={sourceMondayKey}
-        courseName={course.name}
-      />
       <DuplicateDayDialog
         open={dupDayOpen}
         onOpenChange={setDupDayOpen}

@@ -6,7 +6,6 @@ import {
   Moon,
   ChevronLeft,
   ChevronRight,
-  Copy,
   Printer,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,6 @@ import { APP_NAME, colorToken } from "@/lib/planbook/constants";
 import { cn } from "@/lib/utils";
 import { dayKey as toKey, formatWeekRange, mondayOf } from "@/lib/planbook/dates";
 import { addMonths, format } from "date-fns";
-import { CopyWeekDialog } from "./CopyWeekDialog";
 import { RangeExportDialog } from "./RangeExportDialog";
 
 export function Header() {
@@ -30,7 +28,6 @@ export function Header() {
   const shiftAnchor = usePlanBook((s) => s.shiftAnchor);
   const setAnchor = usePlanBook((s) => s.setAnchor);
 
-  const [copyOpen, setCopyOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
 
   const anchorDate = new Date(anchor);
@@ -150,18 +147,6 @@ export function Header() {
             </div>
           )}
 
-          {viewMode === "weeks" && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setCopyOpen(true)}
-              aria-label="Copy week"
-            >
-              <Copy className="mr-1 size-4" />
-              Copy week
-            </Button>
-          )}
-
           <Button
             variant="ghost"
             size="sm"
@@ -190,14 +175,6 @@ export function Header() {
         </div>
       </div>
 
-      {activeCourseId && (
-        <CopyWeekDialog
-          open={copyOpen}
-          onOpenChange={setCopyOpen}
-          courseId={activeCourseId}
-          sourceMondayKey={toKey(mondayOf(anchorDate))}
-        />
-      )}
       <RangeExportDialog open={exportOpen} onOpenChange={setExportOpen} />
     </header>
   );
