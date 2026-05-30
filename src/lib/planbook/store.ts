@@ -29,13 +29,12 @@ const defaultSettings: AppSettings = {
   reduceMotion: false,
   schoolYearStart: null,
   schoolYearEnd: null,
-  icalUrl: "",
+  icalFeeds: [],
   weeksInView: 3,
   filterMode: "dim",
   colorFavorites: [],
   viewMode: "weeks",
   monthCourseIds: [],
-  lastIcalSyncAt: null,
 };
 
 const blankDayMeta = (): DayMeta => ({
