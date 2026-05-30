@@ -171,17 +171,40 @@ function SettingsPage() {
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="ical">District iCal URL</Label>
-              <Input
-                id="ical"
-                value={settings.icalUrl}
-                onChange={(e) => updateSettings({ icalUrl: e.target.value })}
-                placeholder="https://…/calendar.ics"
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="ical"
+                  value={settings.icalUrl}
+                  onChange={(e) => updateSettings({ icalUrl: e.target.value })}
+                  placeholder="https://…/calendar.ics"
+                />
+                <Button
+                  variant="outline"
+                  disabled={!settings.icalUrl || icalBusy}
+                  onClick={syncIcalNow}
+                >
+                  {icalBusy ? "Syncing…" : "Sync now"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  disabled={icalBusy}
+                  onClick={() => {
+                    clearIcalOverrides();
+                    toast?.("Cleared iCal-sourced overrides");
+                  }}
+                >
+                  Clear iCal
+                </Button>
+              </div>
               <p className="text-xs text-muted-foreground">
-                iCal import will sync non-school days. (Network proxy + parsing comes in the
-                next release — for now use the per-day overrides on each cell.)
+                {settings.lastIcalSyncAt
+                  ? `Last synced ${new Date(settings.lastIcalSyncAt).toLocaleString()}.`
+                  : "Not yet synced."}{" "}
+                Imported all-day events become calendar overrides; your manual overrides
+                always win.
               </p>
             </div>
+
           </div>
         </section>
 
