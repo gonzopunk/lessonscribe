@@ -80,7 +80,6 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
   );
 
   const isSub = currentMode === "sub";
-  const sourceMondayKey = toKey(mondayOf(date));
 
   const print = () => {
     const body = renderPlanHTML({
