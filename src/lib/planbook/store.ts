@@ -454,7 +454,7 @@ export const usePlanBook = create<Store>()(
       version: SCHEMA_VERSION,
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<PlanBookState>;
-        const ps = p.settings ?? {};
+        const ps = (p.settings ?? {}) as Partial<AppSettings>;
         // Migrate legacy single fontId → heading+body if not yet set.
         const legacyFont = (ps as { fontId?: string }).fontId;
         return {
