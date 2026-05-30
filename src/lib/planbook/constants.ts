@@ -1,5 +1,5 @@
 // Single place to rename the app.
-export const APP_NAME = "PlanBook";
+export const APP_NAME = "LessonScribe";
 
 // 12 curated presets, ordered by hue family for adjacency.
 // Each color carries its own L/C so the palette mixes vivid + muted instead
