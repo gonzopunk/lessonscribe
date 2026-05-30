@@ -57,7 +57,7 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
   const updateDayMeta = usePlanBook((s) => s.updateDayMeta);
   const [compact, setCompact] = useState(false);
   const [currentMode, setCurrentMode] = useState<"lesson" | "sub">(mode);
-  const [copyWeekOpen, setCopyWeekOpen] = useState(false);
+  
   const [dupDayOpen, setDupDayOpen] = useState(false);
 
   // Sync to incoming mode whenever the modal is (re)opened with a new day or mode.
