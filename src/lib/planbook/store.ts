@@ -31,6 +31,9 @@ const defaultSettings: AppSettings = {
   weeksInView: 3,
   filterMode: "dim",
   colorFavorites: [],
+  viewMode: "weeks",
+  monthCourseIds: [],
+  lastIcalSyncAt: null,
 };
 
 const blankDayMeta = (): DayMeta => ({
