@@ -15,6 +15,7 @@ import { FilterBar } from "./FilterBar";
 import { ElementBank } from "./ElementBank";
 import { DayCell } from "./DayCell";
 import { PlanModal } from "./PlanModal";
+import { MonthView } from "./MonthView";
 import { CalendarOverrideDialog } from "./CalendarOverrideDialog";
 import { DuplicateDayDialog } from "./DuplicateDayDialog";
 import { OnboardingDialog } from "./OnboardingDialog";
