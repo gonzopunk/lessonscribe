@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { dayKey as toKey, formatWeekRange, mondayOf } from "@/lib/planbook/dates";
 import { addMonths, format } from "date-fns";
 import { ExportDialog } from "./ExportDialog";
+import { AccountMenu } from "./AccountMenu";
 
 export function Header() {
   const courses = usePlanBook((s) => s.courses);
@@ -172,6 +173,7 @@ export function Header() {
               <Settings className="size-4" />
             </Button>
           </Link>
+          <AccountMenu />
         </div>
       </div>
 
