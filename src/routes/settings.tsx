@@ -95,26 +95,15 @@ function SettingsPage() {
               <Label>Theme</Label>
               <Select
                 value={settings.theme}
-                onValueChange={(v) => updateSettings({ theme: v as "dark" | "light" })}
+                onValueChange={(v) =>
+                  updateSettings({ theme: v as "dark" | "light" | "parchment" })
+                }
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="dark">Dark (warm charcoal)</SelectItem>
                   <SelectItem value="light">Light (soft off-white)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Font</Label>
-              <Select
-                value={settings.fontId}
-                onValueChange={(v) => updateSettings({ fontId: v })}
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {FONT_OPTIONS.map((f) => (
-                    <SelectItem key={f.id} value={f.id}>{f.label}</SelectItem>
-                  ))}
+                  <SelectItem value="parchment">Parchment (aged paper)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -122,13 +111,62 @@ function SettingsPage() {
               <Label>Font size</Label>
               <Select
                 value={settings.fontSize}
-                onValueChange={(v) => updateSettings({ fontSize: v as "sm" | "md" | "lg" })}
+                onValueChange={(v) =>
+                  updateSettings({ fontSize: v as "sm" | "md" | "lg" | "xl" })
+                }
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="sm">Small</SelectItem>
                   <SelectItem value="md">Medium</SelectItem>
                   <SelectItem value="lg">Large</SelectItem>
+                  <SelectItem value="xl">Extra large</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Heading font</Label>
+              <Select
+                value={settings.headingFontId}
+                onValueChange={(v) => updateSettings({ headingFontId: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {HEADING_FONTS.map((f) => (
+                    <SelectItem key={f.id} value={f.id}>
+                      <span style={{ fontFamily: f.value }}>{f.label}</span>
+                      {f.note && (
+                        <span className="ml-2 text-xs text-muted-foreground">
+                          {f.note}
+                        </span>
+                      )}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Body font</Label>
+              <Select
+                value={settings.bodyFontId}
+                onValueChange={(v) => updateSettings({ bodyFontId: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {BODY_FONTS.map((f) => (
+                    <SelectItem key={f.id} value={f.id}>
+                      <span style={{ fontFamily: f.value }}>{f.label}</span>
+                      {f.note && (
+                        <span className="ml-2 text-xs text-muted-foreground">
+                          {f.note}
+                        </span>
+                      )}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
