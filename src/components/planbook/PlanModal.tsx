@@ -23,8 +23,6 @@ import {
   formatDayLong,
   isWednesday,
   parseDayKey,
-  dayKey as toKey,
-  mondayOf,
 } from "@/lib/planbook/dates";
 import { colorToHex } from "@/lib/planbook/constants";
 import { renderPlanHTML, openPrintWindow } from "@/lib/planbook/printPlan";
