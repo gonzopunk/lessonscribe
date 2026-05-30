@@ -19,9 +19,16 @@ interface Props {
   onOpenChange: (v: boolean) => void;
   courseId: string;
   sourceMondayKey: string;
+  courseName?: string;
 }
 
-export function CopyWeekDialog({ open, onOpenChange, courseId, sourceMondayKey }: Props) {
+export function CopyWeekDialog({
+  open,
+  onOpenChange,
+  courseId,
+  sourceMondayKey,
+  courseName,
+}: Props) {
   const duplicateWeek = usePlanBook((s) => s.duplicateWeek);
   const [picked, setPicked] = useState<string[]>([]);
 
@@ -47,10 +54,22 @@ export function CopyWeekDialog({ open, onOpenChange, courseId, sourceMondayKey }
         <DialogHeader>
           <DialogTitle>Copy week</DialogTitle>
           <DialogDescription>
-            Copy every element from Mon–Fri of the week of {formatWeekRange(sourceMonday)} into
-            the matching weekdays of one or more target weeks.
+            Copies every element from Mon–Fri of the source week onto the matching
+            weekdays of each selected target week.
           </DialogDescription>
         </DialogHeader>
+
+        <div className="rounded-md border border-primary/30 bg-primary/10 px-3 py-2 text-xs">
+          <p className="font-bold uppercase tracking-wider text-primary">Source week</p>
+          <p className="mt-0.5 text-foreground">
+            Week of {formatWeekRange(sourceMonday)}
+            {courseName ? ` · ${courseName}` : ""}
+          </p>
+        </div>
+
+        <Label className="pt-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          Copy into these weeks
+        </Label>
         <div className="max-h-72 space-y-1 overflow-y-auto py-1">
           {candidateWeeks.map((w) => (
             <label

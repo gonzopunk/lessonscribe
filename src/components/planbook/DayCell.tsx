@@ -6,7 +6,6 @@ import {
   Copy,
   CalendarOff,
   FileText,
-  UserRound,
   ChevronDown,
   ChevronUp,
   Plus,
@@ -240,18 +239,7 @@ export function DayCell({
               }}
             >
               <FileText className="size-3" />
-              Lesson
-            </Button>
-            <Button
-              size="sm"
-              className="h-7 gap-1 bg-warning text-warning-foreground text-xs shadow-md hover:bg-warning/90"
-              onClick={(e) => {
-                e.stopPropagation();
-                onOpenSubPlan();
-              }}
-            >
-              <UserRound className="size-3" />
-              Sub
+              Lesson plan
             </Button>
           </div>
         </>
