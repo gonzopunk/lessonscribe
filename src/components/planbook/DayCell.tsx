@@ -26,6 +26,7 @@ import {
   formatDayShort,
   isWednesday,
 } from "@/lib/planbook/dates";
+import { colorToken, colorTokenSoft } from "@/lib/planbook/constants";
 import type { Course, DayStatus } from "@/lib/planbook/types";
 
 interface Props {
@@ -46,11 +47,15 @@ const STATUS_NEXT: Record<DayStatus, DayStatus> = {
   taught: "draft",
 };
 
-const STATUS_CLASS: Record<DayStatus, string> = {
-  draft: "bg-status-draft text-status-draft-foreground",
-  ready: "bg-status-ready text-status-ready-foreground",
-  taught: "bg-status-taught text-status-taught-foreground",
-};
+function statusStyle(status: DayStatus, courseColor: string): React.CSSProperties {
+  if (status === "draft") {
+    return { backgroundColor: "var(--muted)", color: "var(--muted-foreground)" };
+  }
+  // ready + taught take the course color, taught reads stronger
+  return status === "taught"
+    ? { backgroundColor: colorToken(courseColor), color: "white" }
+    : { backgroundColor: colorTokenSoft(courseColor), color: colorToken(courseColor) };
+}
 
 export function DayCell({
   date,
@@ -130,10 +135,8 @@ export function DayCell({
               e.stopPropagation();
               setStatus(course.id, dKey, STATUS_NEXT[dayMeta.status]);
             }}
-            className={cn(
-              "rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-tight transition-colors",
-              STATUS_CLASS[dayMeta.status],
-            )}
+            className="rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-tight transition-colors"
+            style={statusStyle(dayMeta.status, course.color)}
             title="Click to cycle status"
           >
             {dayMeta.status}

@@ -73,6 +73,12 @@ export interface DayMeta {
   reflection: string;
 }
 
+export interface ColorFavorite {
+  id: string;
+  name: string;          // user-given label, may be ""
+  value: string;         // preset id or hex
+}
+
 export interface AppSettings {
   theme: "dark" | "light";
   fontId: string;
@@ -84,6 +90,7 @@ export interface AppSettings {
   icalUrl: string;
   weeksInView: 1 | 2 | 3 | 4;
   filterMode: "dim" | "hide";
+  colorFavorites: ColorFavorite[];
 }
 
 export interface PlanBookState {

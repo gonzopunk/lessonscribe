@@ -5,6 +5,7 @@ import type {
   AppSettings,
   CalendarOverride,
   CategoryTag,
+  ColorFavorite,
   Course,
   DayMeta,
   DayStatus,
@@ -29,6 +30,7 @@ const defaultSettings: AppSettings = {
   icalUrl: "",
   weeksInView: 3,
   filterMode: "dim",
+  colorFavorites: [],
 };
 
 const blankDayMeta = (): DayMeta => ({
@@ -54,6 +56,10 @@ interface Actions {
 
   // settings
   updateSettings: (patch: Partial<AppSettings>) => void;
+  addColorFavorite: (value: string, name?: string) => string;
+  renameColorFavorite: (id: string, name: string) => void;
+  setColorFavoriteValue: (id: string, value: string) => void;
+  removeColorFavorite: (id: string) => void;
 
   // courses
   setActiveCourse: (id: string) => void;
@@ -160,6 +166,40 @@ export const usePlanBook = create<Store>()(
 
       updateSettings: (patch) =>
         set((s) => ({ settings: { ...s.settings, ...patch } })),
+
+      addColorFavorite: (value, name) => {
+        const id = nanoid(8);
+        const fav: ColorFavorite = { id, name: name ?? "", value };
+        set((s) => ({
+          settings: { ...s.settings, colorFavorites: [...(s.settings.colorFavorites ?? []), fav] },
+        }));
+        return id;
+      },
+      renameColorFavorite: (id, name) =>
+        set((s) => ({
+          settings: {
+            ...s.settings,
+            colorFavorites: (s.settings.colorFavorites ?? []).map((f) =>
+              f.id === id ? { ...f, name } : f,
+            ),
+          },
+        })),
+      setColorFavoriteValue: (id, value) =>
+        set((s) => ({
+          settings: {
+            ...s.settings,
+            colorFavorites: (s.settings.colorFavorites ?? []).map((f) =>
+              f.id === id ? { ...f, value } : f,
+            ),
+          },
+        })),
+      removeColorFavorite: (id) =>
+        set((s) => ({
+          settings: {
+            ...s.settings,
+            colorFavorites: (s.settings.colorFavorites ?? []).filter((f) => f.id !== id),
+          },
+        })),
 
       setActiveCourse: (id) => set({ activeCourseId: id }),
 
@@ -398,6 +438,18 @@ export const usePlanBook = create<Store>()(
       name: STORAGE_KEY,
       storage: createJSONStorage(() => localStorage),
       version: SCHEMA_VERSION,
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<PlanBookState>;
+        return {
+          ...current,
+          ...p,
+          settings: {
+            ...current.settings,
+            ...(p.settings ?? {}),
+            colorFavorites: p.settings?.colorFavorites ?? [],
+          },
+        };
+      },
     },
   ),
 );

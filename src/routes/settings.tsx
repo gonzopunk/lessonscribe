@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, X } from "lucide-react";
 import { useApplyTheme } from "@/lib/planbook/useApplyTheme";
 import { usePlanBook } from "@/lib/planbook/store";
 import {
   APP_NAME,
   FONT_OPTIONS,
+  colorToken,
+  colorTokenSoft,
 } from "@/lib/planbook/constants";
 import { ColorPicker } from "@/components/planbook/ColorPicker";
 import { Button } from "@/components/ui/button";
@@ -138,6 +140,10 @@ function SettingsPage() {
             </div>
           </div>
         </section>
+
+        {/* Favorite colors */}
+        <FavoriteColorsCard />
+
 
         {/* Calendar */}
         <section className="space-y-4">
@@ -355,3 +361,92 @@ function SettingsPage() {
     </main>
   );
 }
+
+function FavoriteColorsCard() {
+  const favorites = usePlanBook((s) => s.settings.colorFavorites ?? []);
+  const addFavorite = usePlanBook((s) => s.addColorFavorite);
+  const renameFavorite = usePlanBook((s) => s.renameColorFavorite);
+  const setFavoriteValue = usePlanBook((s) => s.setColorFavoriteValue);
+  const removeFavorite = usePlanBook((s) => s.removeColorFavorite);
+  const [editing, setEditing] = useState<string | null>(null);
+
+  return (
+    <section className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+          Favorite colors
+        </h2>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            const id = addFavorite("indigo", "");
+            setEditing(id);
+          }}
+        >
+          <Plus className="mr-1 size-4" />
+          Add favorite
+        </Button>
+      </div>
+      <div className="rounded-xl border border-border bg-card p-5">
+        {favorites.length === 0 ? (
+          <p className="text-xs text-muted-foreground">
+            Save palette entries here for one-click reuse. Each favorite shows a live
+            preview of how the color renders as a tag pill and element card.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {favorites.map((f) => (
+              <div
+                key={f.id}
+                className="flex items-center gap-3 rounded-md border border-border bg-surface p-2.5"
+              >
+                <div
+                  className="flex items-center gap-2 rounded-full border px-2 py-1"
+                  style={{
+                    backgroundColor: colorTokenSoft(f.value),
+                    borderColor: colorToken(f.value),
+                  }}
+                  title={f.value}
+                >
+                  <span
+                    className="size-3 rounded-full"
+                    style={{ backgroundColor: colorToken(f.value) }}
+                  />
+                </div>
+                <Input
+                  value={f.name}
+                  autoFocus={editing === f.id}
+                  onChange={(e) => renameFavorite(f.id, e.target.value)}
+                  onBlur={() => setEditing(null)}
+                  placeholder="Untitled"
+                  className="max-w-xs"
+                />
+                <ColorPicker
+                  value={f.value}
+                  onChange={(next) => setFavoriteValue(f.id, next)}
+                  size="sm"
+                  ringOffsetClass="ring-offset-surface"
+                />
+
+                <span className="ml-auto font-mono text-[10px] text-muted-foreground">
+                  {f.value}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeFavorite(f.id)}
+                  aria-label="Remove favorite"
+                  className="text-destructive"
+                >
+                  <X className="size-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
