@@ -184,6 +184,15 @@ export const usePlanBook = create<Store>()(
             ),
           },
         })),
+      setColorFavoriteValue: (id, value) =>
+        set((s) => ({
+          settings: {
+            ...s.settings,
+            colorFavorites: (s.settings.colorFavorites ?? []).map((f) =>
+              f.id === id ? { ...f, value } : f,
+            ),
+          },
+        })),
       removeColorFavorite: (id) =>
         set((s) => ({
           settings: {

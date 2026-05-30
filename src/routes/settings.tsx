@@ -366,6 +366,7 @@ function FavoriteColorsCard() {
   const favorites = usePlanBook((s) => s.settings.colorFavorites ?? []);
   const addFavorite = usePlanBook((s) => s.addColorFavorite);
   const renameFavorite = usePlanBook((s) => s.renameColorFavorite);
+  const setFavoriteValue = usePlanBook((s) => s.setColorFavoriteValue);
   const removeFavorite = usePlanBook((s) => s.removeColorFavorite);
   const [editing, setEditing] = useState<string | null>(null);
 
