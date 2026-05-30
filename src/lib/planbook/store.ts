@@ -407,12 +407,16 @@ export const usePlanBook = create<Store>()(
           const { [dKey]: _, ...rest } = s.overrides;
           return { overrides: rest };
         }),
-      applyIcalOverrides: (entries) =>
+      applyIcalOverrides: (feedId, entries) =>
         set((s) => {
-          const next = { ...s.overrides };
+          // First remove any existing overrides from this feed (re-sync)
+          const next: typeof s.overrides = {};
+          Object.entries(s.overrides).forEach(([k, v]) => {
+            if (!(v.source === "ical" && v.feedId === feedId)) next[k] = v;
+          });
           entries.forEach((e) => {
-            // user-manual overrides win — don't clobber existing manual entries
             const existing = next[e.dayKey];
+            // user-manual overrides win
             if (existing && existing.source === "manual") return;
             next[e.dayKey] = {
               dayKey: e.dayKey,
@@ -420,15 +424,17 @@ export const usePlanBook = create<Store>()(
               label: e.label,
               note: "",
               source: "ical",
+              feedId,
             };
           });
           return { overrides: next };
         }),
-      clearIcalOverrides: () =>
+      clearIcalOverrides: (feedId) =>
         set((s) => {
           const next: typeof s.overrides = {};
           Object.entries(s.overrides).forEach(([k, v]) => {
             if (v.source !== "ical") next[k] = v;
+            else if (feedId && v.feedId !== feedId) next[k] = v;
           });
           return { overrides: next };
         }),
