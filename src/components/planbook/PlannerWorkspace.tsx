@@ -35,6 +35,7 @@ export function PlannerWorkspace() {
   const activeCourseId = usePlanBook((s) => s.activeCourseId);
   const course = usePlanBook((s) => s.courses.find((c) => c.id === activeCourseId));
   const weeksInView = usePlanBook((s) => s.settings.weeksInView);
+  const viewMode = usePlanBook((s) => s.settings.viewMode);
   const anchor = usePlanBook((s) => s.anchorDate);
   const templates = usePlanBook((s) => s.templates);
   const instances = usePlanBook((s) => s.instances);
