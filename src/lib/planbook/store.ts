@@ -114,6 +114,7 @@ interface Actions {
   setOverride: (dKey: string, ov: Omit<CalendarOverride, "dayKey">) => void;
   clearOverride: (dKey: string) => void;
   applyIcalOverrides: (entries: Array<{ dayKey: string; label: string; kind: OverrideKind }>) => void;
+  clearIcalOverrides: () => void;
 
   // navigation
   shiftAnchor: (weeks: number) => void;
