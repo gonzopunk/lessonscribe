@@ -58,6 +58,7 @@ interface Actions {
   updateSettings: (patch: Partial<AppSettings>) => void;
   addColorFavorite: (value: string, name?: string) => string;
   renameColorFavorite: (id: string, name: string) => void;
+  setColorFavoriteValue: (id: string, value: string) => void;
   removeColorFavorite: (id: string) => void;
 
   // courses
