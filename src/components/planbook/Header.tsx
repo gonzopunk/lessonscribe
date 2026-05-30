@@ -175,7 +175,7 @@ export function Header() {
         </div>
       </div>
 
-      <RangeExportDialog open={exportOpen} onOpenChange={setExportOpen} />
+      <ExportDialog open={exportOpen} onOpenChange={setExportOpen} />
     </header>
   );
 }
