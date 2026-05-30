@@ -14,7 +14,7 @@ import { APP_NAME, colorToken } from "@/lib/planbook/constants";
 import { cn } from "@/lib/utils";
 import { dayKey as toKey, formatWeekRange, mondayOf } from "@/lib/planbook/dates";
 import { addMonths, format } from "date-fns";
-import { RangeExportDialog } from "./RangeExportDialog";
+import { ExportDialog } from "./ExportDialog";
 
 export function Header() {
   const courses = usePlanBook((s) => s.courses);
