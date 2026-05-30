@@ -51,6 +51,7 @@
   --color-status-taught-foreground: var(--status-taught-foreground);
 
   --font-sans: var(--font-app), ui-sans-serif, system-ui, sans-serif;
+  --font-heading-stack: var(--font-heading, var(--font-app));
 }
 
 /* DARK is the default. */
