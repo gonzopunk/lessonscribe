@@ -77,14 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "LessonScribe" },
+      { name: "description", content: "A lesson planning tool for teachers" },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "LessonScribe" },
+      { property: "og:description", content: "A lesson planning tool for teachers" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "LessonScribe" },
+      { name: "twitter:description", content: "A lesson planning tool for teachers" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/689d4a58-f613-4720-88f2-97b9e0dd4aa4/id-preview-572b4e05--1e46a407-5f35-4401-8db2-625ea3f0d5e6.lovable.app-1780171956548.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/689d4a58-f613-4720-88f2-97b9e0dd4aa4/id-preview-572b4e05--1e46a407-5f35-4401-8db2-625ea3f0d5e6.lovable.app-1780171956548.png" },
     ],
     links: [
       {
@@ -115,11 +119,6 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-
-  useEffect(() => {
-    // Initialize cloud sync once on mount.
-    void import("../lib/planbook/cloudSync").then((m) => m.initCloudSync());
-  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
