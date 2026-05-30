@@ -53,20 +53,49 @@ function SettingsPage() {
   const applyIcalOverrides = usePlanBook((s) => s.applyIcalOverrides);
   const clearIcalOverrides = usePlanBook((s) => s.clearIcalOverrides);
 
-  const [icalBusy, setIcalBusy] = useState(false);
+  const [icalBusyId, setIcalBusyId] = useState<string | null>(null);
 
-  const syncIcalNow = async () => {
-    setIcalBusy(true);
+  const feeds = settings.icalFeeds;
+  const updateFeed = (id: string, patch: Partial<typeof feeds[number]>) => {
+    updateSettings({
+      icalFeeds: feeds.map((f) => (f.id === id ? { ...f, ...patch } : f)),
+    });
+  };
+  const addFeed = () => {
+    updateSettings({
+      icalFeeds: [
+        ...feeds,
+        {
+          id: nanoid(8),
+          label: `Feed ${feeds.length + 1}`,
+          url: "",
+          color: "indigo",
+          enabled: true,
+          lastSyncAt: null,
+        },
+      ],
+    });
+  };
+  const removeFeed = (id: string) => {
+    clearIcalOverrides(id);
+    updateSettings({ icalFeeds: feeds.filter((f) => f.id !== id) });
+  };
+  const syncFeed = async (id: string) => {
+    const feed = feeds.find((f) => f.id === id);
+    if (!feed) return;
+    setIcalBusyId(id);
     try {
       const { fetchAndParseIcal } = await import("@/lib/planbook/ical");
-      const entries = await fetchAndParseIcal(settings.icalUrl);
-      applyIcalOverrides(entries);
-      updateSettings({ lastIcalSyncAt: Date.now() });
-      toast.success(`Synced ${entries.length} day${entries.length === 1 ? "" : "s"} from iCal`);
+      const entries = await fetchAndParseIcal(feed.url);
+      applyIcalOverrides(id, entries);
+      updateFeed(id, { lastSyncAt: Date.now() });
+      toast.success(
+        `${feed.label}: synced ${entries.length} day${entries.length === 1 ? "" : "s"}`,
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "iCal sync failed");
     } finally {
-      setIcalBusy(false);
+      setIcalBusyId(null);
     }
   };
 
