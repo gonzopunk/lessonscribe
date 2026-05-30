@@ -106,7 +106,6 @@ interface Actions {
   moveInstance: (id: string, dKey: string, newOrder: number) => void;
   reorderInDay: (courseId: string, dKey: string, orderedIds: string[]) => void;
   duplicateDay: (courseId: string, srcKey: string, destKeys: string[]) => void;
-  duplicateWeek: (courseId: string, srcMondayKey: string, destMondayKey: string) => void;
 
   // day meta
   setDayStatus: (courseId: string, dKey: string, status: DayStatus) => void;
