@@ -430,6 +430,14 @@ export const usePlanBook = create<Store>()(
           });
           return { overrides: next };
         }),
+      clearIcalOverrides: () =>
+        set((s) => {
+          const next: typeof s.overrides = {};
+          Object.entries(s.overrides).forEach(([k, v]) => {
+            if (v.source !== "ical") next[k] = v;
+          });
+          return { overrides: next };
+        }),
 
       shiftAnchor: (weeks) => {
         const cur = new Date(get().anchorDate);
