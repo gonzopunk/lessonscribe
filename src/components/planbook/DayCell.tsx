@@ -6,7 +6,6 @@ import {
   Copy,
   CalendarOff,
   FileText,
-  UserRound,
   ChevronDown,
   ChevronUp,
   Plus,
