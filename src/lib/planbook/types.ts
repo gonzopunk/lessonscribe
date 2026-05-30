@@ -91,6 +91,9 @@ export interface AppSettings {
   weeksInView: 1 | 2 | 3 | 4;
   filterMode: "dim" | "hide";
   colorFavorites: ColorFavorite[];
+  viewMode: "weeks" | "month";
+  monthCourseIds: string[];
+  lastIcalSyncAt: number | null;
 }
 
 export interface PlanBookState {
