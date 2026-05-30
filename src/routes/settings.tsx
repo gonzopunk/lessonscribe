@@ -25,6 +25,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { nanoid } from "nanoid";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
