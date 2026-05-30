@@ -48,6 +48,26 @@ function SettingsPage() {
   const addTag = usePlanBook((s) => s.addTag);
   const updateTag = usePlanBook((s) => s.updateTag);
   const removeTag = usePlanBook((s) => s.removeTag);
+  const applyIcalOverrides = usePlanBook((s) => s.applyIcalOverrides);
+  const clearIcalOverrides = usePlanBook((s) => s.clearIcalOverrides);
+
+  const [icalBusy, setIcalBusy] = useState(false);
+
+  const syncIcalNow = async () => {
+    setIcalBusy(true);
+    try {
+      const { fetchAndParseIcal } = await import("@/lib/planbook/ical");
+      const entries = await fetchAndParseIcal(settings.icalUrl);
+      applyIcalOverrides(entries);
+      updateSettings({ lastIcalSyncAt: Date.now() });
+      toast.success(`Synced ${entries.length} day${entries.length === 1 ? "" : "s"} from iCal`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "iCal sync failed");
+    } finally {
+      setIcalBusy(false);
+    }
+  };
+
 
   return (
     <main className="min-h-dvh bg-background">
