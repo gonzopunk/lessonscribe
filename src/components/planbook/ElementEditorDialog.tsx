@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { usePlanBook } from "@/lib/planbook/store";
-import { colorToken } from "@/lib/planbook/constants";
+import { colorToken, colorTokenSoft } from "@/lib/planbook/constants";
 import { ColorPicker } from "./ColorPicker";
 import { cn } from "@/lib/utils";
 import { Trash2, Archive, ArchiveRestore } from "lucide-react";
@@ -137,11 +137,13 @@ export function ElementEditorDialog({ open, onOpenChange, templateId }: Props) {
                       setTagIds(on ? tagIds.filter((x) => x !== t.id) : [...tagIds, t.id])
                     }
                     className={cn(
-                      "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs",
-                      on
-                        ? "border-foreground/30 bg-secondary text-foreground"
-                        : "border-border bg-surface text-muted-foreground",
+                      "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors",
+                      on ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                     )}
+                    style={{
+                      backgroundColor: on ? colorTokenSoft(t.color) : "transparent",
+                      borderColor: on ? colorToken(t.color) : "var(--border)",
+                    }}
                   >
                     <span
                       className="size-1.5 rounded-full"

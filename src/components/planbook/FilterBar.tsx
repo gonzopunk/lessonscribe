@@ -42,7 +42,7 @@ export function FilterBar() {
             )}
             style={{
               backgroundColor: on ? colorTokenSoft(t.color) : "transparent",
-              borderColor: on ? colorToken(t.color) : "hsl(var(--border))",
+              borderColor: on ? colorToken(t.color) : "var(--border)",
             }}
           >
             <span
