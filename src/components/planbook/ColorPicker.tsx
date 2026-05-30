@@ -1,15 +1,97 @@
 import { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Input } from "@/components/ui/input";
-import { COURSE_COLORS, EXTENDED_SWATCHES, colorToken } from "@/lib/planbook/constants";
+import {
+  COURSE_COLORS,
+  EXTENDED_SWATCHES,
+  colorToken,
+  colorTokenSoft,
+} from "@/lib/planbook/constants";
+import { usePlanBook } from "@/lib/planbook/store";
 import { cn } from "@/lib/utils";
-import { Plus } from "lucide-react";
+import { Plus, Star } from "lucide-react";
 
 interface Props {
   value: string;
   onChange: (next: string) => void;
   size?: "sm" | "md";
   ringOffsetClass?: string;
+}
+
+/** Tiny preview showing the color as it appears in a tag pill + element bar. */
+function PreviewChip({ value, label }: { value: string; label?: string }) {
+  return (
+    <div className="space-y-1.5">
+      {label && (
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          {label}
+        </p>
+      )}
+      <div
+        className="flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px]"
+        style={{
+          backgroundColor: colorTokenSoft(value),
+          borderColor: colorToken(value),
+        }}
+      >
+        <span
+          className="size-1.5 rounded-full"
+          style={{ backgroundColor: colorToken(value) }}
+        />
+        <span className="text-foreground">Tag pill</span>
+      </div>
+      <div
+        className="flex items-center gap-2 rounded-md border border-border px-2 py-1 text-[11px]"
+        style={{
+          backgroundColor: colorTokenSoft(value),
+          borderLeft: `3px solid ${colorToken(value)}`,
+        }}
+      >
+        <span className="text-foreground">Element card</span>
+        <span className="ml-auto text-[10px] text-muted-foreground">15m</span>
+      </div>
+    </div>
+  );
+}
+
+function Swatch({
+  value,
+  selected,
+  onClick,
+  size = "md",
+  ringOffsetClass,
+  label,
+}: {
+  value: string;
+  selected: boolean;
+  onClick: () => void;
+  size?: "sm" | "md";
+  ringOffsetClass?: string;
+  label?: string;
+}) {
+  const dim = size === "sm" ? "size-5" : "size-7";
+  return (
+    <HoverCard openDelay={120} closeDelay={50}>
+      <HoverCardTrigger asChild>
+        <button
+          type="button"
+          onClick={onClick}
+          aria-label={label ?? value}
+          className={cn(
+            dim,
+            "rounded-full ring-offset-2 transition-all",
+            ringOffsetClass,
+            selected && "ring-2 ring-ring",
+          )}
+          style={{ backgroundColor: colorToken(value) }}
+        />
+      </HoverCardTrigger>
+      <HoverCardContent side="top" className="w-52 p-2.5">
+        <PreviewChip value={value} label={label} />
+      </HoverCardContent>
+    </HoverCard>
+  );
 }
 
 export function ColorPicker({
@@ -19,7 +101,8 @@ export function ColorPicker({
   ringOffsetClass = "ring-offset-background",
 }: Props) {
   const [hexDraft, setHexDraft] = useState(value.startsWith("#") ? value : "#");
-  const dim = size === "sm" ? "size-5" : "size-7";
+  const favorites = usePlanBook((s) => s.settings.colorFavorites ?? []);
+  const addFavorite = usePlanBook((s) => s.addColorFavorite);
   const trigger = size === "sm" ? "size-5" : "size-7";
 
   const commitHex = (raw: string) => {
@@ -32,18 +115,14 @@ export function ColorPicker({
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {COURSE_COLORS.map((c) => (
-        <button
+        <Swatch
           key={c.id}
-          type="button"
+          value={c.id}
+          selected={value === c.id}
           onClick={() => onChange(c.id)}
-          aria-label={c.label}
-          className={cn(
-            dim,
-            "rounded-full ring-offset-2 transition-all",
-            ringOffsetClass,
-            value === c.id && "ring-2 ring-ring",
-          )}
-          style={{ backgroundColor: colorToken(c.id) }}
+          size={size}
+          ringOffsetClass={ringOffsetClass}
+          label={c.label}
         />
       ))}
       <Popover>
@@ -57,31 +136,69 @@ export function ColorPicker({
               ringOffsetClass,
               isCustom && "ring-2 ring-ring border-solid",
             )}
-            style={isCustom ? { backgroundColor: value, color: "white" } : undefined}
+            style={isCustom ? { backgroundColor: colorToken(value), color: "white" } : undefined}
           >
             {isCustom ? null : <Plus className="size-3" />}
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-64 space-y-3" align="start">
+        <PopoverContent className="w-72 space-y-3" align="start">
+          {favorites.length > 0 && (
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Favorites
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {favorites.map((f) => (
+                  <HoverCard key={f.id} openDelay={120}>
+                    <HoverCardTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onChange(f.value);
+                          setHexDraft(f.value.startsWith("#") ? f.value : "#");
+                        }}
+                        aria-label={f.name || f.value}
+                        className={cn(
+                          "flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] transition-all",
+                          value === f.value
+                            ? "border-foreground/40 ring-2 ring-ring ring-offset-2 ring-offset-popover"
+                            : "border-border hover:border-foreground/30",
+                        )}
+                        style={{ backgroundColor: colorTokenSoft(f.value) }}
+                      >
+                        <span
+                          className="size-2.5 rounded-full"
+                          style={{ backgroundColor: colorToken(f.value) }}
+                        />
+                        <span className="max-w-[90px] truncate">
+                          {f.name || "Untitled"}
+                        </span>
+                      </button>
+                    </HoverCardTrigger>
+                    <HoverCardContent side="top" className="w-52 p-2.5">
+                      <PreviewChip value={f.value} label={f.name || "Favorite"} />
+                    </HoverCardContent>
+                  </HoverCard>
+                ))}
+              </div>
+            </div>
+          )}
           <div>
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               More swatches
             </p>
             <div className="grid grid-cols-6 gap-1.5">
               {EXTENDED_SWATCHES.map((hex) => (
-                <button
+                <Swatch
                   key={hex}
-                  type="button"
+                  value={hex}
+                  selected={value.toLowerCase() === hex}
                   onClick={() => {
                     onChange(hex);
                     setHexDraft(hex);
                   }}
-                  aria-label={hex}
-                  className={cn(
-                    "size-6 rounded-full ring-offset-2 ring-offset-popover transition-all",
-                    value.toLowerCase() === hex && "ring-2 ring-ring",
-                  )}
-                  style={{ backgroundColor: hex }}
+                  size="md"
+                  ringOffsetClass="ring-offset-popover"
                 />
               ))}
             </div>
@@ -107,7 +224,21 @@ export function ColorPicker({
               placeholder="#a83279"
               className="h-8 font-mono text-xs"
             />
+            <button
+              type="button"
+              onClick={() => addFavorite(value, "")}
+              title="Save as favorite"
+              aria-label="Save as favorite"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30"
+            >
+              <Star className="size-3.5" />
+            </button>
           </div>
+          {value && (
+            <div className="rounded-md border border-border p-2.5">
+              <PreviewChip value={value} label="Preview" />
+            </div>
+          )}
         </PopoverContent>
       </Popover>
     </div>
