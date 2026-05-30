@@ -450,6 +450,9 @@ export const usePlanBook = create<Store>()(
             ...current.settings,
             ...(p.settings ?? {}),
             colorFavorites: p.settings?.colorFavorites ?? [],
+            viewMode: p.settings?.viewMode ?? "weeks",
+            monthCourseIds: p.settings?.monthCourseIds ?? [],
+            lastIcalSyncAt: p.settings?.lastIcalSyncAt ?? null,
           },
         };
       },
