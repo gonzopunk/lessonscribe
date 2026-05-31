@@ -74,6 +74,9 @@ export interface DayMeta {
   objectives: string;
   standards: string;
   reflection: string;
+  differentiationNotes: string;  // 504/IEP accommodations and differentiation
+  behaviorNotes: string;         // behavior management notes
+  materialsNotes: string;        // materials needed for the lesson
 }
 
 export interface ColorFavorite {
