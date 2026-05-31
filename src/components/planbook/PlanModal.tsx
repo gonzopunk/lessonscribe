@@ -57,6 +57,7 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
   const updateDayMeta = usePlanBook((s) => s.updateDayMeta);
   const [compact, setCompact] = useState(false);
   const [currentMode, setCurrentMode] = useState<"lesson" | "sub">(mode);
+  const [extrasOpen, setExtrasOpen] = useState(false);
   
   const [dupDayOpen, setDupDayOpen] = useState(false);
 
