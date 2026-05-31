@@ -17,16 +17,22 @@ export type Database = {
       plan_snapshots: {
         Row: {
           data: Json
+          previous_data: Json | null
+          previous_updated_at: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           data: Json
+          previous_data?: Json | null
+          previous_updated_at?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           data?: Json
+          previous_data?: Json | null
+          previous_updated_at?: string | null
           updated_at?: string
           user_id?: string
         }
