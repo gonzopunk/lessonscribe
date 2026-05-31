@@ -33,6 +33,8 @@ import {
   UserRound,
   ArrowLeft,
   Copy,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { DuplicateDayDialog } from "./DuplicateDayDialog";
