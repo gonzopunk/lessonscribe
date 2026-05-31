@@ -13,7 +13,9 @@ import type {
   ElementTemplate,
   OverrideKind,
   PlanBookState,
+  WorksheetTemplate,
 } from "./types";
+
 import { dayKey, metaKey, mondayOf, parseDayKey } from "./dates";
 
 const STORAGE_KEY = "planbook:v1";
@@ -85,6 +87,12 @@ interface Actions {
   archiveTemplate: (id: string) => void;
   restoreTemplate: (id: string) => void;
 
+  // worksheet templates
+  addWorksheetTemplate: (t: Omit<WorksheetTemplate, "id">) => string;
+  updateWorksheetTemplate: (id: string, patch: Partial<WorksheetTemplate>) => void;
+  removeWorksheetTemplate: (id: string) => void;
+
+
   // instances
   addInstanceFromTemplate: (templateId: string, dKey: string) => void;
   addInstanceToMany: (templateId: string, dayKeys: string[]) => void;
@@ -139,7 +147,9 @@ const initialState: PlanBookState = {
   dayMeta: {},
   selectedFilterTagIds: [],
   anchorDate: dayKey(mondayOf(new Date())),
+  worksheetTemplates: [],
 };
+
 
 export const usePlanBook = create<Store>()(
   persist(
