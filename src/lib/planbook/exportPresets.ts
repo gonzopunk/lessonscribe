@@ -93,6 +93,9 @@ export const EXPORT_PRESETS: Record<
       standards: false,
       reflection: false,
       subNotes: true,
+      differentiation: true,
+      behaviorNotes: false,
+      materials: true,
     },
   },
   admin: {
