@@ -178,6 +178,10 @@ export function renderPlanHTML(args: RenderPlanArgs): string {
       );
     if (sections.dayNotes)
       parts.push(`<h2>Day Notes</h2><div class="field">${escape(meta.notes || "—")}</div>`);
+    if (sections.differentiation && ((meta.differentiationNotes ?? "") || !compact))
+      parts.push(`<h2>Differentiation / 504 &amp; IEP</h2><div class="field">${escape((meta.differentiationNotes ?? "") || "—")}</div>`);
+    if (sections.materials && ((meta.materialsNotes ?? "") || !compact))
+      parts.push(`<h2>Materials</h2><div class="field">${escape((meta.materialsNotes ?? "") || "—")}</div>`);
     parts.push(sectionNotesBlock);
     if (sections.sequence)
       parts.push(`<h2>Lesson Sequence</h2>${instances.map(renderEl).join("") || "<p>—</p>"}`);
@@ -186,6 +190,10 @@ export function renderPlanHTML(args: RenderPlanArgs): string {
       parts.push(`<h2>Learning Objectives</h2><div class="field">${escape(meta.objectives || "—")}</div>`);
     if (sections.standards)
       parts.push(`<h2>Standards</h2><div class="field">${escape(meta.standards || "—")}</div>`);
+    if (sections.differentiation && ((meta.differentiationNotes ?? "") || !compact))
+      parts.push(`<h2>Differentiation / 504 &amp; IEP</h2><div class="field">${escape((meta.differentiationNotes ?? "") || "—")}</div>`);
+    if (sections.materials && ((meta.materialsNotes ?? "") || !compact))
+      parts.push(`<h2>Materials</h2><div class="field">${escape((meta.materialsNotes ?? "") || "—")}</div>`);
     if (sections.sequence)
       parts.push(`<h2>Lesson Sequence</h2>${instances.map(renderEl).join("") || "<p>—</p>"}`);
     if (sections.dayNotes)
@@ -193,6 +201,8 @@ export function renderPlanHTML(args: RenderPlanArgs): string {
     parts.push(sectionNotesBlock);
     if (sections.reflection)
       parts.push(`<h2>Reflection</h2><div class="field">${escape(meta.reflection || "—")}</div>`);
+    if (sections.behaviorNotes && ((meta.behaviorNotes ?? "") || !compact))
+      parts.push(`<h2>Behavior Notes</h2><div class="field">${escape((meta.behaviorNotes ?? "") || "—")}</div>`);
   }
 
   return parts.filter(Boolean).join("\n");
