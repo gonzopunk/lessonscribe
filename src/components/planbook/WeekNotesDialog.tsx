@@ -20,9 +20,10 @@ interface Props {
 }
 
 export function WeekNotesDialog({ open, onOpenChange, courseId, weekKey }: Props) {
-  const wm = usePlanBook(
-    (s) => s.weekMeta[weekMetaKey(courseId, weekKey)] ?? blankWeekMeta(),
+  const stored = usePlanBook(
+    (s) => s.weekMeta[weekMetaKey(courseId, weekKey)],
   );
+  const wm = stored ?? blankWeekMeta();
   const course = usePlanBook((s) => s.courses.find((c) => c.id === courseId));
   const updateWeekMeta = usePlanBook((s) => s.updateWeekMeta);
 
