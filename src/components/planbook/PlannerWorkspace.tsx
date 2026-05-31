@@ -31,7 +31,7 @@ import {
 import { cn } from "@/lib/utils";
 import { colorToken, colorTokenSoft, APP_NAME } from "@/lib/planbook/constants";
 import { supabase } from "@/integrations/supabase/client";
-import { subscribeSync, type SyncStatus } from "@/lib/planbook/cloudSync";
+import { subscribeSync, initCloudSync, type SyncStatus } from "@/lib/planbook/cloudSync";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
