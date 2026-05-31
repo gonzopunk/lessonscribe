@@ -242,7 +242,9 @@ export const usePlanBook = create<Store>()(
           tags: s.tags.filter((t) => t.courseId !== id),
           templates: s.templates.filter((t) => t.courseId !== id),
           instances: s.instances.filter((i) => i.courseId !== id),
+          worksheetTemplates: s.worksheetTemplates.filter((t) => t.courseId !== id),
         })),
+
 
       addTag: (t) => {
         const id = nanoid(8);

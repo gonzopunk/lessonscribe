@@ -121,4 +121,33 @@ export interface PlanBookState {
   dayMeta: Record<string, DayMeta>;                  // `${courseId}:${dayKey}`
   selectedFilterTagIds: string[];
   anchorDate: string;                                 // YYYY-MM-DD, monday of leftmost visible week
+  worksheetTemplates: WorksheetTemplate[];
 }
+
+// ---------- Worksheet Generator ----------
+
+export type DayOffset = 0 | 1 | 2 | 3 | 4; // 0=Mon 1=Tue 2=Wed 3=Thu 4=Fri
+
+export type FieldSource =
+  | { type: "element-content"; dayOffset: DayOffset; tagId: string }
+  | { type: "element-titles"; dayOffset: DayOffset; tagId?: string; separator: string }
+  | { type: "day-notes"; dayOffset: DayOffset }
+  | { type: "day-objectives"; dayOffset: DayOffset }
+  | { type: "week-of-date"; format: string }
+  | { type: "static"; text: string };
+
+export interface FieldMapping {
+  fieldName: string;
+  source: FieldSource;
+  characterBudget?: number;
+}
+
+export interface WorksheetTemplate {
+  id: string;
+  courseId: string;
+  name: string;
+  pdfBase64: string;
+  detectedFields: string[];
+  fieldMappings: FieldMapping[];
+}
+
