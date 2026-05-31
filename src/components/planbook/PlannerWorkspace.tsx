@@ -22,6 +22,7 @@ import { DuplicateDayDialog } from "./DuplicateDayDialog";
 import { OnboardingDialog } from "./OnboardingDialog";
 import { QuickAddDialog } from "./QuickAddDialog";
 import { WorksheetGenerateDialog } from "./WorksheetGenerateDialog";
+import { WeekNotesDialog } from "./WeekNotesDialog";
 import { usePlanBook } from "@/lib/planbook/store";
 
 import {
@@ -30,6 +31,7 @@ import {
   parseDayKey,
   weeksFrom,
   formatWeekRange,
+  weekMetaKey,
 } from "@/lib/planbook/dates";
 import { cn } from "@/lib/utils";
 import { colorToken, colorTokenSoft, APP_NAME } from "@/lib/planbook/constants";
@@ -37,7 +39,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { subscribeSync, initCloudSync, type SyncStatus } from "@/lib/planbook/cloudSync";
 import { initHistory } from "@/lib/planbook/history";
 import { Button } from "@/components/ui/button";
-import { Loader2, ChevronLeft, ChevronRight, FileDown } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, FileDown, Notebook } from "lucide-react";
 
 export function PlannerWorkspace() {
   const onboarded = usePlanBook((s) => s.onboarded);
@@ -83,9 +85,16 @@ export function PlannerWorkspace() {
     weekMonday: Date | null;
   }>({ open: false, weekMonday: null });
 
+  const [weekNotesDialog, setWeekNotesDialog] = useState<{
+    open: boolean;
+    weekKey: string | null;
+  }>({ open: false, weekKey: null });
+
   const courseHasTemplates = usePlanBook((s) =>
     s.worksheetTemplates.some((t) => t.courseId === activeCourseId),
   );
+
+  const weekMetaMap = usePlanBook((s) => s.weekMeta);
 
 
 
