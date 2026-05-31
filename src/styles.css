@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * LessonScribe design system.
+ * LessonCraft design system.
  * Dark-first, calm, dyslexia-friendly. Color values use oklch.
  * Density + font-size are controlled by data attributes on <html>.
  */

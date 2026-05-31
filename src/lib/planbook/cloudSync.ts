@@ -1,4 +1,4 @@
-// Cloud sync controller for the LessonScribe zustand store.
+// Cloud sync controller for the LessonCraft zustand store.
 //
 // When a user is signed in, the cloud is the source of truth:
 // - Hydrate the in-memory store from `plan_snapshots` on sign-in.
