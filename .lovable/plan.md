@@ -1,49 +1,23 @@
-## Root causes
+## Problem
 
-All three bugs trace back to two issues.
-
-### 1. `new Date("yyyy-MM-dd")` parses as UTC midnight
-JavaScript's `Date` constructor treats a bare `yyyy-MM-dd` string as UTC midnight. In any negative-UTC timezone (most of the Americas) that renders as the **previous day** in local time. This is the cause of two of the three bugs.
-
-- **Toolbar dates don't match the week view.** In `Header.tsx`, `anchorDate = new Date(anchor)` becomes the previous calendar day in local time, so `formatWeekRange(anchorDate)` prints the wrong week. Meanwhile `PlannerWorkspace.tsx` does `mondayOf(new Date(anchor))`, which shifts to the previous local day and then snaps back to that day's Monday — a different week entirely. Result: toolbar label and grid disagree.
-- **Single-day print preview shows the previous day.** `ExportDialog.buildDoc` does `new Date(from)` / `new Date(to)` and iterates with `addDays`, then keys days with `format(d, "yyyy-MM-dd")`. Because the start Date is already shifted one day earlier in local time, the rendered day is off by one.
-
-Fix: use the existing timezone-safe `parseDayKey` (date-fns `parseISO`) for every `yyyy-MM-dd → Date` conversion, instead of `new Date(str)`.
-
-### 2. Export dialog "vibrates"
-`PrintPreview` runs a `ResizeObserver` on the scroll container and writes `scale` back into a child whose width is `pageW * scale`. When the child width crosses the container's available width, a horizontal scrollbar toggles, the container's `clientWidth` changes by the scrollbar's thickness, the observer fires again, and we get a steady-state oscillation (classic ResizeObserver feedback loop). It's especially visible with the iframe srcDoc swapping in after the 150 ms debounce, which retriggers layout.
-
-Fix: prevent the loop by (a) measuring against a stable width source (use `getBoundingClientRect().width` and round/clamp before comparing) and (b) preventing horizontal overflow on the outer wrapper so the scrollbar doesn't toggle. Concretely: add `overflow-x: hidden` (keep `overflow-y: auto`) on the scaled-page scroll area, and only call `setScale` when the new value differs from the current one by more than a small epsilon (e.g. 0.005).
+The toolbar date label ("Jun 28 – Jul 2 – Jul 23") doesn't match what's actually rendered (Week of Jun 22 → Jul 17). Rather than hunt down yet another timezone/parse mismatch in the label formatter, remove the label entirely. The week column headers already show the dates accurately. Move week-paging arrows down next to those headers.
 
 ## Changes
 
 ### `src/components/planbook/Header.tsx`
-- Import `parseDayKey` from `@/lib/planbook/dates`.
-- Replace `const anchorDate = new Date(anchor)` with `const anchorDate = parseDayKey(anchor)`.
-- Replace `const lastWeekStart = new Date(anchorDate)` + mutation with `addDays(anchorDate, (weeksInView - 1) * 7)` (already importing `date-fns` helpers).
-- Replace the "today" button's `new Date().toISOString().slice(0, 10)` with `dayKey(new Date())` so the local-day key is used (matches the store's convention).
+- Remove the toolbar date cluster: the `ChevronLeft`/"today" button/`ChevronRight` group between the course tabs and the Weeks/Month toggle.
+- Remove now-unused imports: `ChevronLeft`, `ChevronRight`, `formatWeekRange`, `parseDayKey`, `addDays`, `mondayOf`, `format`, `shiftAnchor`, `setAnchor`, `anchor`, `anchorDate`, `lastWeekStart`, `monthShift`, and the `toKey` alias if no longer used. Keep month-shift behavior available via the new week-header arrows (weeks view) and the existing Month-view path — but since arrows now live in the week column header, drop `monthShift` from Header entirely. For Month view, paging will be handled inside `MonthView` (see below).
 
 ### `src/components/planbook/PlannerWorkspace.tsx`
-- Replace `mondayOf(new Date(anchor))` with `mondayOf(parseDayKey(anchor))`.
-- Replace `monthAnchor={new Date(anchor)}` with `monthAnchor={parseDayKey(anchor)}`.
+- In the weeks-view column header (currently `<div className="flex items-center justify-between border-b border-border pb-2">` wrapping the `<h2>Week of …</h2>`), add a left chevron button on the **first** week column and a right chevron button on the **last** week column.
+- Wire them to `usePlanBook.getState().shiftAnchor(-1)` and `shiftAnchor(1)` respectively (one week at a time, per the user's spec).
+- Use `Button variant="ghost" size="icon"` with `ChevronLeft`/`ChevronRight` from lucide-react, sized `size-4`, with `aria-label="Previous week"` / `"Next week"`.
+- Layout: header row keeps `justify-between`; left column renders `[◀ | Week of …]`, right column renders `[Week of … | ▶]`, middle columns render just the heading (with an invisible spacer or simply no button — `justify-between` still works with a single child).
 
-### `src/components/planbook/DuplicateDayDialog.tsx`
-- Replace `mondayOf(new Date(anchor))` with `mondayOf(parseDayKey(anchor))`.
-
-### `src/lib/planbook/store.ts`
-- Replace `new Date(get().anchorDate)` (line 443) with `parseDayKey(get().anchorDate)` (import already available).
-
-### `src/components/planbook/ExportDialog.tsx`
-- Import `parseDayKey`.
-- In `buildDoc`: `const start = parseDayKey(from); const end = parseDayKey(to);`
-- In `exportNow`: compare with `parseDayKey(to) < parseDayKey(from)`.
-- (Leave `monthStart` / `monthEnd` alone — those are constructed from numeric args, which is timezone-safe.)
-
-### `src/components/planbook/PrintPreview.tsx`
-- In the scroll container, change `className="flex-1 overflow-auto p-3"` to `className="flex-1 overflow-y-auto overflow-x-hidden p-3"`.
-- In the `compute` callback, read width via `el.getBoundingClientRect().width`, compute `next = Math.min(1, Math.max(0.3, (w - 24) / pageW))`, and only call `setScale` if `Math.abs(next - scale) > 0.005`. Use a ref to hold the latest scale so the observer callback stays stable without re-subscribing.
+### `src/components/planbook/MonthView.tsx` (light touch)
+- Add small prev/next month chevron buttons in the existing month header so month navigation isn't lost when the toolbar buttons go away. (If MonthView already has its own header with arrows, no change needed — I'll confirm during implementation and skip if present.)
 
 ## Out of scope
-- Other `new Date(...)` call sites that already receive proper inputs (ISO timestamps with time, numeric args, or Date objects) are untouched.
-- No data model or persisted-format changes; `anchorDate` stays a `yyyy-MM-dd` string.
-- No design or copy changes.
+- No date-parsing changes. The week column header (`formatWeekRange(wkMonday)`) is already correct because `wkMonday` comes from `mondayOf(parseDayKey(anchor))`.
+- No store/data changes. `shiftAnchor` already exists and moves the anchor by N weeks.
+- No styling changes to surrounding toolbar items.
