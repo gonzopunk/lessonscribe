@@ -35,7 +35,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { subscribeSync, initCloudSync, type SyncStatus } from "@/lib/planbook/cloudSync";
 import { initHistory } from "@/lib/planbook/history";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 
 export function PlannerWorkspace() {
   const onboarded = usePlanBook((s) => s.onboarded);
