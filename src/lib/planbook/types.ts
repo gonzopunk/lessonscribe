@@ -139,6 +139,9 @@ export type FieldSource =
   | { type: "element-titles"; dayOffset: DayOffset; tagId?: string; separator: string }
   | { type: "day-notes"; dayOffset: DayOffset }
   | { type: "day-objectives"; dayOffset: DayOffset }
+  | { type: "day-differentiation"; dayOffset: DayOffset }
+  | { type: "day-behavior"; dayOffset: DayOffset }
+  | { type: "day-materials"; dayOffset: DayOffset }
   | { type: "week-of-date"; format: string }
   | { type: "static"; text: string }
   | { type: "week-objectives" }
