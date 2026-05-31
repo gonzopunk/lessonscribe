@@ -86,6 +86,7 @@ function pickCloudShape(s: Store): Partial<PlanBookState> {
     instances: s.instances,
     overrides: s.overrides,
     dayMeta: s.dayMeta,
+    worksheetTemplates: s.worksheetTemplates,
     // device-local: anchorDate, selectedFilterTagIds intentionally omitted
   };
 }
