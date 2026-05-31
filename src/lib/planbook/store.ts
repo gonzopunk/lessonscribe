@@ -308,6 +308,24 @@ export const usePlanBook = create<Store>()(
           ),
         })),
 
+      addWorksheetTemplate: (t) => {
+        const id = nanoid(8);
+        set((s) => ({ worksheetTemplates: [...s.worksheetTemplates, { ...t, id }] }));
+        return id;
+      },
+      updateWorksheetTemplate: (id, patch) =>
+        set((s) => ({
+          worksheetTemplates: s.worksheetTemplates.map((t) =>
+            t.id === id ? { ...t, ...patch } : t,
+          ),
+        })),
+      removeWorksheetTemplate: (id) =>
+        set((s) => ({
+          worksheetTemplates: s.worksheetTemplates.filter((t) => t.id !== id),
+        })),
+
+
+
       addInstanceFromTemplate: (templateId, dKey) => {
         const tpl = get().templates.find((t) => t.id === templateId);
         if (!tpl) return;
@@ -486,9 +504,11 @@ export const usePlanBook = create<Store>()(
         return {
           ...current,
           ...p,
+          worksheetTemplates: p.worksheetTemplates ?? [],
           settings: {
             ...current.settings,
             ...ps,
+
             colorFavorites: ps.colorFavorites ?? [],
             viewMode: ps.viewMode ?? "weeks",
             monthCourseIds: ps.monthCourseIds ?? [],
