@@ -1,29 +1,28 @@
-## Objective
-Move the existing filter bank from its standalone position below the main header into the ElementBank sidebar, placing it directly below the "Element Bank" header and above the search bar. Remove the old standalone filter bank. Preserve all existing filter behavior.
+# Worksheet Generator
 
-## Current State
-- `FilterBar.tsx` is a standalone component rendered in `PlannerWorkspace.tsx` between `<Header />` and the main workspace content.
-- `ElementBank.tsx` is the right-hand sidebar with a header, search bar, and element list.
-- `FilterBar` is only imported and used in `PlannerWorkspace.tsx` (no other usages).
+Self-contained addition to LessonCraft. No existing behavior changes.
 
-## Changes Required
+## Pre-flight additions
 
-### 1. `src/components/planbook/ElementBank.tsx`
-- Import `colorToken`, `colorTokenSoft`, and `cn` (currently only imported in `FilterBar.tsx`).
-- Add store selectors: `selectedFilterTagIds`, `toggleFilterTag`, `setFilterTags`.
-- Insert a new "Filters" section between the existing header (`<div className="flex items-center justify-between border-b...">`) and the search bar (`<div className="border-b border-border p-3">`).
-- The new section should:
-  - Have a "Filters" label styled consistently with other small uppercase labels in the sidebar.
-  - Include the "All" reset button and per-tag toggle buttons, with identical active/inactive styling and behavior as the current `FilterBar.tsx`.
+- **removeCourse cascade**: In `src/lib/planbook/store.ts`, extend `removeCourse` so it also drops the deleted course's worksheet templates:
+  `worksheetTemplates: s.worksheetTemplates.filter(t => t.courseId !== id)`
+  This keeps cleanup symmetric with tags/templates/instances and prevents orphaned PDF blobs.
+- **Editor-scoped preview**: In `WorksheetTemplateSettings`, the live preview column in the field-mapping table must resolve values against the `courseId` currently selected in the editor form — not against `activeCourseId` from the store. The preview week comes from `state.anchorDate`.
 
-### 2. `src/components/planbook/PlannerWorkspace.tsx`
-- Remove the `FilterBar` import.
-- Remove the `<FilterBar />` JSX line.
+## Implementation steps
 
-### 3. `src/components/planbook/FilterBar.tsx`
-- This file becomes unused and should be deleted after the above changes are verified working.
+1. `bun add pdf-lib`.
+2. Add `DayOffset`, `FieldSource`, `FieldMapping`, `WorksheetTemplate` types and `worksheetTemplates` on `PlanBookState` in `types.ts`.
+3. Update `store.ts`: initial state, persist merge, three actions (`addWorksheetTemplate`, `updateWorksheetTemplate`, `removeWorksheetTemplate`), and the `removeCourse` cascade.
+4. Add `worksheetResolver.ts` with `resolveFieldValue(source, courseId, weekMonday, state)`.
+5. Add `worksheetGenerator.ts` with `fillWorksheetPdf` + `triggerPdfDownload`.
+6. Add `WorksheetTemplateSettings.tsx` (per-course template manager, PDF AcroForm parse, field-mapping editor, editor-scoped preview).
+7. Add `WorksheetGenerateDialog.tsx` (template select, preview table with overflow warnings, Editable/Print-ready toggle, download).
+8. Patch `PlannerWorkspace.tsx`: hover-revealed "Generate worksheet" button in each week header (when course has templates), and mount the dialog.
+9. Patch `routes/settings.tsx`: render `<WorksheetTemplateSettings />` after Category tags.
 
-## Out of Scope
-- No changes to filter logic, store selectors, or state management.
-- No changes to the visual styling of individual filter buttons beyond what is needed for the new container layout.
-- No changes to ElementBank collapsed state behavior.
+## Notes
+- pdf-lib runs entirely client-side; no server route, no worker mode.
+- Every `PDFDocument.load` is wrapped in try/catch with `toast.error`.
+- `characterBudget` is advisory only — UI warnings, no generation effect.
+- Base64 storage of typical worksheet PDFs (~100–400 KB) is acceptable in the existing zustand-persist localStorage model.

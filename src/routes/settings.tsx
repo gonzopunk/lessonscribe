@@ -27,6 +27,8 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { nanoid } from "nanoid";
 import { toast } from "sonner";
+import { WorksheetTemplateSettings } from "@/components/planbook/WorksheetTemplateSettings";
+
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -501,7 +503,16 @@ function SettingsPage() {
             );
           })}
         </section>
+
+        {/* Worksheet templates */}
+        <section className="space-y-4">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            Worksheet Templates
+          </h2>
+          <WorksheetTemplateSettings />
+        </section>
       </div>
+
     </main>
   );
 }

@@ -13,7 +13,9 @@ import type {
   ElementTemplate,
   OverrideKind,
   PlanBookState,
+  WorksheetTemplate,
 } from "./types";
+
 import { dayKey, metaKey, mondayOf, parseDayKey } from "./dates";
 
 const STORAGE_KEY = "planbook:v1";
@@ -85,6 +87,12 @@ interface Actions {
   archiveTemplate: (id: string) => void;
   restoreTemplate: (id: string) => void;
 
+  // worksheet templates
+  addWorksheetTemplate: (t: Omit<WorksheetTemplate, "id">) => string;
+  updateWorksheetTemplate: (id: string, patch: Partial<WorksheetTemplate>) => void;
+  removeWorksheetTemplate: (id: string) => void;
+
+
   // instances
   addInstanceFromTemplate: (templateId: string, dKey: string) => void;
   addInstanceToMany: (templateId: string, dayKeys: string[]) => void;
@@ -139,7 +147,9 @@ const initialState: PlanBookState = {
   dayMeta: {},
   selectedFilterTagIds: [],
   anchorDate: dayKey(mondayOf(new Date())),
+  worksheetTemplates: [],
 };
+
 
 export const usePlanBook = create<Store>()(
   persist(
@@ -242,7 +252,9 @@ export const usePlanBook = create<Store>()(
           tags: s.tags.filter((t) => t.courseId !== id),
           templates: s.templates.filter((t) => t.courseId !== id),
           instances: s.instances.filter((i) => i.courseId !== id),
+          worksheetTemplates: s.worksheetTemplates.filter((t) => t.courseId !== id),
         })),
+
 
       addTag: (t) => {
         const id = nanoid(8);
@@ -295,6 +307,24 @@ export const usePlanBook = create<Store>()(
             t.id === id ? { ...t, archived: false } : t,
           ),
         })),
+
+      addWorksheetTemplate: (t) => {
+        const id = nanoid(8);
+        set((s) => ({ worksheetTemplates: [...s.worksheetTemplates, { ...t, id }] }));
+        return id;
+      },
+      updateWorksheetTemplate: (id, patch) =>
+        set((s) => ({
+          worksheetTemplates: s.worksheetTemplates.map((t) =>
+            t.id === id ? { ...t, ...patch } : t,
+          ),
+        })),
+      removeWorksheetTemplate: (id) =>
+        set((s) => ({
+          worksheetTemplates: s.worksheetTemplates.filter((t) => t.id !== id),
+        })),
+
+
 
       addInstanceFromTemplate: (templateId, dKey) => {
         const tpl = get().templates.find((t) => t.id === templateId);
@@ -474,9 +504,11 @@ export const usePlanBook = create<Store>()(
         return {
           ...current,
           ...p,
+          worksheetTemplates: p.worksheetTemplates ?? [],
           settings: {
             ...current.settings,
             ...ps,
+
             colorFavorites: ps.colorFavorites ?? [],
             viewMode: ps.viewMode ?? "weeks",
             monthCourseIds: ps.monthCourseIds ?? [],
