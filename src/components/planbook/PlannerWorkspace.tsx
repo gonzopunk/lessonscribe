@@ -343,7 +343,7 @@ export function PlannerWorkspace() {
                   const isLast = wi === weeks.length - 1;
                   return (
                     <div key={wi} className="flex flex-col gap-3">
-                      <div className="flex items-center justify-between gap-2 border-b border-border pb-2">
+                      <div className="group flex items-center justify-between gap-2 border-b border-border pb-2">
                         {isFirst ? (
                           <Button
                             variant="ghost"
@@ -360,20 +360,37 @@ export function PlannerWorkspace() {
                         <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                           Week of {formatWeekRange(wkMonday)}
                         </h2>
-                        {isLast ? (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-6 shrink-0"
-                            aria-label="Next week"
-                            onClick={() => usePlanBook.getState().shiftAnchor(1)}
-                          >
-                            <ChevronRight className="size-4" />
-                          </Button>
-                        ) : (
-                          <span className="size-6 shrink-0" />
-                        )}
+                        <div className="flex items-center gap-1">
+                          {courseHasTemplates && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-6 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+                              aria-label="Generate worksheet"
+                              title="Generate worksheet"
+                              onClick={() =>
+                                setWorksheetDialog({ open: true, weekMonday: wkMonday })
+                              }
+                            >
+                              <FileDown className="size-4" />
+                            </Button>
+                          )}
+                          {isLast ? (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-6 shrink-0"
+                              aria-label="Next week"
+                              onClick={() => usePlanBook.getState().shiftAnchor(1)}
+                            >
+                              <ChevronRight className="size-4" />
+                            </Button>
+                          ) : (
+                            <span className="size-6 shrink-0" />
+                          )}
+                        </div>
                       </div>
+
                       <div className="flex flex-1 flex-col gap-3">
                         {week.map((d) => {
                           const k = toKey(d);
@@ -459,8 +476,17 @@ export function PlannerWorkspace() {
         courseId={course.id}
         dayKey={quickAdd.key}
       />
+      {worksheetDialog.weekMonday && (
+        <WorksheetGenerateDialog
+          open={worksheetDialog.open}
+          onOpenChange={(v) => setWorksheetDialog((p) => ({ ...p, open: v }))}
+          courseId={activeCourseId!}
+          weekMonday={worksheetDialog.weekMonday}
+        />
+      )}
     </div>
   );
 }
+
 
 export const _cn = cn;
