@@ -5,8 +5,6 @@ import {
   Sun,
   Moon,
   BookOpen,
-  ChevronLeft,
-  ChevronRight,
   Printer,
   Undo2,
   Redo2,
@@ -15,8 +13,6 @@ import { Button } from "@/components/ui/button";
 import { usePlanBook } from "@/lib/planbook/store";
 import { APP_NAME, colorToken } from "@/lib/planbook/constants";
 import { cn } from "@/lib/utils";
-import { dayKey as toKey, formatWeekRange, mondayOf, parseDayKey } from "@/lib/planbook/dates";
-import { addDays, addMonths, format } from "date-fns";
 import { ExportDialog } from "./ExportDialog";
 import { AccountMenu } from "./AccountMenu";
 import {
@@ -43,9 +39,6 @@ export function Header() {
   const viewMode = usePlanBook((s) => s.settings.viewMode);
   const updateSettings = usePlanBook((s) => s.updateSettings);
   const theme = usePlanBook((s) => s.settings.theme);
-  const anchor = usePlanBook((s) => s.anchorDate);
-  const shiftAnchor = usePlanBook((s) => s.shiftAnchor);
-  const setAnchor = usePlanBook((s) => s.setAnchor);
 
   const [exportOpen, setExportOpen] = useState(false);
   const [, setHistTick] = useState(0);
@@ -56,14 +49,6 @@ export function Header() {
     const idx = THEME_CYCLE.indexOf(theme as Theme);
     const next = THEME_CYCLE[(idx + 1) % THEME_CYCLE.length];
     updateSettings({ theme: next });
-  };
-
-  const anchorDate = parseDayKey(anchor);
-  const lastWeekStart = addDays(anchorDate, (weeksInView - 1) * 7);
-
-  const monthShift = (months: number) => {
-    const next = addMonths(anchorDate, months);
-    setAnchor(toKey(mondayOf(next)));
   };
 
   return (
@@ -99,37 +84,6 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 text-sm">
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Previous"
-              onClick={() =>
-                viewMode === "month" ? monthShift(-1) : shiftAnchor(-weeksInView)
-              }
-            >
-              <ChevronLeft className="size-4" />
-            </Button>
-            <button
-              onClick={() => setAnchor(toKey(new Date()))}
-              className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-secondary"
-            >
-              {viewMode === "month"
-                ? format(anchorDate, "MMMM yyyy")
-                : `${formatWeekRange(anchorDate)} – ${formatWeekRange(lastWeekStart).split(" – ")[1]}`}
-            </button>
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Next"
-              onClick={() =>
-                viewMode === "month" ? monthShift(1) : shiftAnchor(weeksInView)
-              }
-            >
-              <ChevronRight className="size-4" />
-            </Button>
-          </div>
-
           <div className="flex overflow-hidden rounded-md border border-border">
             <button
               onClick={() => updateSettings({ viewMode: "weeks" })}
