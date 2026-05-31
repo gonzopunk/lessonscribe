@@ -1,73 +1,96 @@
-# WeekMeta (Weekly Notes) Feature
+# Add three optional day-level note fields (Tweak 2)
 
-Self-contained addition for per-course, per-week notes (objectives, essential question, general notes, two custom-labeled fields). Surfaces via a hover-revealed "Weekly notes" button in each week column header, persists to existing localStorage store, and integrates with the worksheet generator so weekly fields can be mapped to PDF form fields.
+Self-contained addition. Three new `DayMeta` fields surface in the lesson plan modal, the export dialog, the print renderer, and the worksheet field-source picker.
 
 ## 1. Types — `src/lib/planbook/types.ts`
 
-- Add `WeekMeta` interface (5 string fields: `weeklyObjectives`, `essentialQuestion`, `weeklyNotes`, `custom1`, `custom2`).
-- Add optional `weekMetaLabel1?: string` and `weekMetaLabel2?: string` on `Course` (after `subDefaults`).
-- Add `weekMeta: Record<string, WeekMeta>` on `PlanBookState` (key: `week:${courseId}:${weekKey}`).
-- Extend `FieldSource` union with four new variants:
-  - `{ type: "week-objectives" }`
-  - `{ type: "week-essential-question" }`
-  - `{ type: "week-notes" }`
-  - `{ type: "week-custom"; fieldKey: "custom1" | "custom2" }`
-- Export a `blankWeekMeta()` factory from this file (placed here to avoid a circular import between `store.ts` and `worksheetResolver.ts`).
+Append to `DayMeta` (after `reflection`):
 
-## 2. Dates — `src/lib/planbook/dates.ts`
+```ts
+differentiationNotes: string;
+behaviorNotes: string;
+materialsNotes: string;
+```
 
-- Add `export const weekMetaKey = (courseId, weekKey) => \`week:${courseId}:${weekKey}\`` after `metaKey`.
+Append to the `FieldSource` union (after `day-objectives`):
 
-## 3. Store — `src/lib/planbook/store.ts`
+```ts
+| { type: "day-differentiation"; dayOffset: DayOffset }
+| { type: "day-behavior";        dayOffset: DayOffset }
+| { type: "day-materials";       dayOffset: DayOffset }
+```
 
-- Import `weekMetaKey` from `./dates` and `WeekMeta` + `blankWeekMeta` from `./types`.
-- Add `weekMeta: {}` to `initialState`.
-- Add `weekMeta: p.weekMeta ?? {}` to `merge`.
-- Add `updateWeekMeta(courseId, weekKey, patch)` to `Actions` and implement using the exact pattern in the spec.
-- Extend `removeCourse` cascade with `weekMeta: Object.fromEntries(Object.entries(s.weekMeta).filter(([k]) => !k.startsWith(\`week:${id}:\`)))`.
+## 2. Store — `src/lib/planbook/store.ts`
 
-## 4. Worksheet Resolver — `src/lib/planbook/worksheetResolver.ts`
+Extend `blankDayMeta()` with the three new fields (empty strings). No other store changes — `updateDayMeta` already takes `Partial<DayMeta>`, and `getDayMeta` will merge legacy records against the new blank so stored records without these fields read as `""`.
 
-- Import `weekMetaKey` from `./dates` and `blankWeekMeta` from `./types`.
-- Inside `resolveFieldValue`, add four new cases. Each computes `const wm = state.weekMeta[weekMetaKey(courseId, dayKey(weekMonday))] ?? blankWeekMeta()` then returns the matching field. `week-custom` switches on `source.fieldKey`.
+## 3. Export presets — `src/lib/planbook/exportPresets.ts`
 
-## 5. New Component — `src/components/planbook/WeekNotesDialog.tsx`
+Add to `ExportSectionFlags` (after `reflection`): `differentiation`, `behaviorNotes`, `materials`.
 
-- Props: `{ open, onOpenChange, courseId, weekKey }`.
-- Reads `weekMeta[weekMetaKey(courseId, weekKey)] ?? blankWeekMeta()` and active course from store.
-- `label1 = course?.weekMetaLabel1 || "Custom note 1"`, same for label2.
-- shadcn `Dialog` with title `Week of {format(parseDayKey(weekKey), "MMM d, yyyy")}`.
-- Five `Textarea rows={3}` in order: Weekly objectives, Essential question, Weekly notes, label1, label2. Each calls `updateWeekMeta(courseId, weekKey, { [field]: value })` on every `onChange` (auto-save, no Save button).
-- "Clear week notes" button at bottom, behind `window.confirm`, resets all five fields to `""`.
+`baseSections` defaults:
+- `differentiation: false`
+- `behaviorNotes: false`
+- `materials: true`
 
-## 6. PlannerWorkspace — `src/components/planbook/PlannerWorkspace.tsx`
+Override per preset:
+- teacher: `differentiation: true, behaviorNotes: false, materials: true`
+- sub:     `differentiation: true, behaviorNotes: false, materials: true`
+- admin:   `differentiation: false, behaviorNotes: false, materials: false`
+- formal:  `differentiation: true, behaviorNotes: false, materials: true`
 
-- Add `weekNotesDialog` state and `weekMetaMap = usePlanBook(s => s.weekMeta)`.
-- Import `weekMetaKey` from `@/lib/planbook/dates`, `Notebook` from `lucide-react`, and `WeekNotesDialog`.
-- In the existing `group` week-header div, add a `Notebook` icon button to the LEFT of the worksheet button:
-  - `size-6`, `aria-label="Week notes"`, `title="Weekly notes"`, `relative` container.
-  - When `hasNotes` (any non-empty value in this week's WeekMeta): full opacity + small `bg-primary` dot at `-top-0.5 -right-0.5`.
-  - Otherwise: `opacity-0 group-hover:opacity-100 transition-opacity`.
-  - `onClick` opens dialog with `dayKey(wkMonday)`.
-- Render `<WeekNotesDialog>` alongside other dialogs, guarded by `weekNotesDialog.weekKey`.
+## 4. Print renderer — `src/lib/planbook/printPlan.ts`
 
-## 7. Settings — `src/routes/settings.tsx`
+Extend `ALL_SECTIONS` with `differentiation: true, behaviorNotes: false, materials: true` so explicit overrides aren't lost.
 
-- In each course card, after the sub-plan-defaults `Textarea`, add two labeled `Input` fields bound to `weekMetaLabel1` / `weekMetaLabel2` via `updateCourse`. Placeholders default to `"Custom note 1"` / `"Custom note 2"`.
-- Add a small muted helper note explaining the labels appear in the Weekly notes dialog.
+In `renderPlanHTML`, all reads use `meta.<field> ?? ""` (DayMeta records from older localStorage may lack these fields even though the type now declares them).
 
-## 8. WorksheetTemplateSettings dropdown — `src/components/planbook/WorksheetTemplateSettings.tsx`
+Lesson plan mode:
+- After standards block → render Differentiation, then Materials (each guarded `sections.<flag> && (value || !compact)`).
+- After reflection block → render Behavior Notes (same guard).
 
-The source-type dropdown is built from a hard-coded label map (not the union), so the four new variants need to be added manually:
+Sub plan mode:
+- After day notes block → render Differentiation, then Materials.
+- Do not render Behavior Notes in sub mode.
 
-- Extend the `defaultSourceFor` switch with four new cases returning the appropriate object shapes.
-- Add four entries to the source-type label map: `"week-objectives": "Weekly objectives"`, `"week-essential-question": "Essential question"`, `"week-notes": "Weekly notes"`, `"week-custom": "Custom weekly note"`.
-- For `week-custom`, render a small inline `Select` (custom1 / custom2) to set `source.fieldKey`. The other three need no extra controls (no day offset, no tag).
-- The existing `requiresDay` guard already excludes these (it only lists element/day variants), so day pickers stay hidden.
+Section titles: `Differentiation / 504 & IEP`, `Materials`, `Behavior Notes`. Empty value renders `—`.
 
-## Technical Notes
+## 5. Worksheet resolver — `src/lib/planbook/worksheetResolver.ts`
 
-- `blankWeekMeta` lives in `types.ts` (exported) — avoids any circular import between store and resolver.
-- `weekMetaKey` is the single source of truth for the key format; imported wherever needed.
-- No existing behavior is modified. `DayMeta`, `ElementInstance`, `worksheetTemplates`, routes, and other components are untouched beyond the additions above.
-- `resolveFieldValue` continues to never throw; the new branches use `?? blankWeekMeta()` and return `""` on missing data.
+Add three cases mirroring `day-notes` / `day-objectives`, each reading `state.dayMeta[metaKey(courseId, dKey)]?.<field> ?? ""`.
+
+## 6. Plan modal — `src/components/planbook/PlanModal.tsx`
+
+Lesson plan mode only. Insert a new collapsible section between the Day notes / Section notes block and the Reflection section.
+
+- Local `useState<boolean>` for expanded state (default collapsed).
+- Collapsed: a single button row showing a ChevronDown / ChevronRight icon + label "Differentiation, behavior & materials".
+  - If any of the three fields has a non-empty value, swap the label color to `text-foreground` and show a small filled dot (`size-1.5 rounded-full bg-primary`) before the label. Otherwise `text-muted-foreground`.
+- Expanded: three `Textarea rows={3}` blocks with labels/placeholders exactly as specified, each calling `updateDayMeta(course.id, dayKey, { <field>: e.target.value })`. Read values as `meta.<field> ?? ""`.
+
+No save button — follows existing autosave pattern.
+
+## 7. Export dialog — `src/components/planbook/ExportDialog.tsx`
+
+Extend `SECTION_GROUPS` with three new entries so they appear in the existing sections list:
+- `{ key: "differentiation", label: "Differentiation / 504 & IEP", group: "both" }`
+- `{ key: "behaviorNotes",   label: "Behavior notes",              group: "lesson" }`
+- `{ key: "materials",       label: "Materials needed",            group: "both" }`
+
+This reuses the existing `visibleSectionKeys` filter and `setSection` handler — no new UI primitives needed. Initial state already flows from the active profile.
+
+## 8. Worksheet template settings — `src/components/planbook/WorksheetTemplateSettings.tsx`
+
+Extend `defaultSourceForKind` switch with the three new kinds (each `{ type, dayOffset: 0 }`).
+
+Extend `sourceLabels` in `SourceEditor` with:
+- `"day-differentiation": "Day differentiation"`
+- `"day-behavior": "Day behavior notes"`
+- `"day-materials": "Day materials"`
+
+Extend the `hasDay` boolean to include the three new types so the day-picker row renders.
+
+## Notes
+
+- All reads use `meta.<field> ?? ""` because pre-existing stored DayMeta records do not have the new keys.
+- No changes to routes, cloud sync (DayMeta is already in the cloud shape), or any component not listed above.
