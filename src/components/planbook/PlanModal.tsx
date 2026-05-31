@@ -33,6 +33,8 @@ import {
   UserRound,
   ArrowLeft,
   Copy,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { DuplicateDayDialog } from "./DuplicateDayDialog";
@@ -55,6 +57,7 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
   const updateDayMeta = usePlanBook((s) => s.updateDayMeta);
   const [compact, setCompact] = useState(false);
   const [currentMode, setCurrentMode] = useState<"lesson" | "sub">(mode);
+  const [extrasOpen, setExtrasOpen] = useState(false);
   
   const [dupDayOpen, setDupDayOpen] = useState(false);
 
@@ -285,6 +288,75 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
                 </div>
               </section>
             )}
+
+            {!isSub && (() => {
+              const diff = meta.differentiationNotes ?? "";
+              const beh = meta.behaviorNotes ?? "";
+              const mat = meta.materialsNotes ?? "";
+              const hasContent = !!(diff || beh || mat);
+              return (
+                <section className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => setExtrasOpen((v) => !v)}
+                    className="flex w-full items-center gap-2 text-left text-xs"
+                  >
+                    {extrasOpen ? (
+                      <ChevronDown className="size-3.5 text-muted-foreground" />
+                    ) : (
+                      <ChevronRight className="size-3.5 text-muted-foreground" />
+                    )}
+                    {hasContent && !extrasOpen && (
+                      <span className="size-1.5 rounded-full bg-primary" />
+                    )}
+                    <span className={hasContent ? "text-foreground" : "text-muted-foreground"}>
+                      Differentiation, behavior &amp; materials
+                    </span>
+                  </button>
+                  {extrasOpen && (
+                    <div className="space-y-3 pl-5">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="diff">Differentiation / 504 &amp; IEP accommodations</Label>
+                        <Textarea
+                          id="diff"
+                          rows={3}
+                          placeholder="Note any accommodations or modifications for this lesson…"
+                          value={diff}
+                          onChange={(e) =>
+                            updateDayMeta(course.id, dayKey, { differentiationNotes: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="beh">Behavior notes</Label>
+                        <Textarea
+                          id="beh"
+                          rows={3}
+                          placeholder="Behavior management notes for this lesson…"
+                          value={beh}
+                          onChange={(e) =>
+                            updateDayMeta(course.id, dayKey, { behaviorNotes: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="mat">Materials needed</Label>
+                        <Textarea
+                          id="mat"
+                          rows={3}
+                          placeholder="List materials, handouts, or resources needed…"
+                          value={mat}
+                          onChange={(e) =>
+                            updateDayMeta(course.id, dayKey, { materialsNotes: e.target.value })
+                          }
+                        />
+                      </div>
+                    </div>
+                  )}
+                </section>
+              );
+            })()}
+
 
             {!isSub && (
               <section className="space-y-1.5">

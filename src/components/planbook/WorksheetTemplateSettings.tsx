@@ -55,6 +55,12 @@ function defaultSourceForKind(kind: SourceKind): FieldSource {
       return { type: "day-notes", dayOffset: 0 };
     case "day-objectives":
       return { type: "day-objectives", dayOffset: 0 };
+    case "day-differentiation":
+      return { type: "day-differentiation", dayOffset: 0 };
+    case "day-behavior":
+      return { type: "day-behavior", dayOffset: 0 };
+    case "day-materials":
+      return { type: "day-materials", dayOffset: 0 };
     case "week-of-date":
       return { type: "week-of-date", format: "MMMM d, yyyy" };
     case "static":
@@ -476,6 +482,9 @@ function SourceEditor({
     "element-titles": "Element titles joined",
     "day-notes": "Day notes",
     "day-objectives": "Day objectives",
+    "day-differentiation": "Day differentiation",
+    "day-behavior": "Day behavior notes",
+    "day-materials": "Day materials",
     "week-of-date": "Week-of date",
     static: "Static text",
     "week-objectives": "Weekly objectives",
@@ -488,7 +497,10 @@ function SourceEditor({
     source.type === "element-content" ||
     source.type === "element-titles" ||
     source.type === "day-notes" ||
-    source.type === "day-objectives";
+    source.type === "day-objectives" ||
+    source.type === "day-differentiation" ||
+    source.type === "day-behavior" ||
+    source.type === "day-materials";
 
   const dayOffset =
     hasDay && "dayOffset" in source ? source.dayOffset : 0;

@@ -6,6 +6,9 @@ export interface ExportSectionFlags {
   dayNotes: boolean;
   sectionNotes: boolean;
   reflection: boolean;
+  differentiation: boolean;
+  behaviorNotes: boolean;
+  materials: boolean;
   subNotes: boolean;
   tagLegend: boolean;
   pageNumbers: boolean;
@@ -40,6 +43,9 @@ const baseSections: ExportSectionFlags = {
   dayNotes: true,
   sectionNotes: true,
   reflection: true,
+  differentiation: false,
+  behaviorNotes: false,
+  materials: true,
   subNotes: true,
   tagLegend: true,
   pageNumbers: true,
@@ -72,7 +78,7 @@ export const EXPORT_PRESETS: Record<
     includeEmpty: false,
     orientation: "portrait",
     fontFamily: "inter",
-    sections: { ...baseSections, coverPage: false, reflection: true, subNotes: false },
+    sections: { ...baseSections, coverPage: false, reflection: true, subNotes: false, differentiation: true, behaviorNotes: false, materials: true },
   },
   sub: {
     mode: "sub",
@@ -87,6 +93,9 @@ export const EXPORT_PRESETS: Record<
       standards: false,
       reflection: false,
       subNotes: true,
+      differentiation: true,
+      behaviorNotes: false,
+      materials: true,
     },
   },
   admin: {
@@ -103,6 +112,9 @@ export const EXPORT_PRESETS: Record<
       reflection: false,
       subNotes: false,
       tagLegend: true,
+      differentiation: false,
+      behaviorNotes: false,
+      materials: false,
     },
   },
   formal: {
@@ -116,6 +128,9 @@ export const EXPORT_PRESETS: Record<
       coverPage: true,
       reflection: false,
       subNotes: false,
+      differentiation: true,
+      behaviorNotes: false,
+      materials: true,
     },
   },
 };
