@@ -112,6 +112,9 @@ export const EXPORT_PRESETS: Record<
       reflection: false,
       subNotes: false,
       tagLegend: true,
+      differentiation: false,
+      behaviorNotes: false,
+      materials: false,
     },
   },
   formal: {
@@ -125,6 +128,9 @@ export const EXPORT_PRESETS: Record<
       coverPage: true,
       reflection: false,
       subNotes: false,
+      differentiation: true,
+      behaviorNotes: false,
+      materials: true,
     },
   },
 };
