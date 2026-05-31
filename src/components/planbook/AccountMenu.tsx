@@ -96,25 +96,32 @@ export function AccountMenu() {
 
   return (
     <div className="flex items-center gap-2">
-      <button
-        type="button"
-        onClick={() => sync.status === "error" && manualRetry()}
-        className={`flex items-center gap-1.5 text-xs ${tone}`}
-        title={sync.error ?? label}
-      >
-        <Icon className={`size-3.5 ${spin ? "animate-spin" : ""}`} />
-        <span className="hidden md:inline">{label}</span>
-      </button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" aria-label="Account menu">
-            <UserIcon className="size-4" />
+          <Button variant="ghost" size="icon" aria-label="Account menu" title={sync.error ?? label}>
+            <span className="relative inline-flex">
+              <UserIcon className="size-4" />
+              <Icon className={`absolute -bottom-1 -right-1 size-2.5 ${spin ? "animate-spin" : ""} ${tone}`} />
+            </span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel className="font-normal text-muted-foreground">
             {email}
           </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={(e) => {
+              if (sync.status === "error") {
+                e.preventDefault();
+                manualRetry();
+              }
+            }}
+            className={`cursor-${sync.status === "error" ? "pointer" : "default"} focus:bg-transparent`}
+          >
+            <Icon className={`mr-2 size-4 ${spin ? "animate-spin" : ""} ${tone}`} />
+            <span className={`text-xs ${tone}`}>{label}</span>
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           {sync.hasPrevious && (
             <DropdownMenuItem
@@ -134,6 +141,7 @@ export function AccountMenu() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
 
       <AlertDialog open={restoreOpen} onOpenChange={setRestoreOpen}>
         <AlertDialogContent>
