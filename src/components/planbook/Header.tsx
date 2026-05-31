@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   Settings,
   Sun,
   Moon,
+  BookOpen,
   ChevronLeft,
   ChevronRight,
   Printer,
+  Undo2,
+  Redo2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePlanBook } from "@/lib/planbook/store";
@@ -16,6 +19,21 @@ import { dayKey as toKey, formatWeekRange, mondayOf } from "@/lib/planbook/dates
 import { addMonths, format } from "date-fns";
 import { ExportDialog } from "./ExportDialog";
 import { AccountMenu } from "./AccountMenu";
+import {
+  canUndo,
+  canRedo,
+  undo,
+  redo,
+  subscribeHistory,
+} from "@/lib/planbook/history";
+
+type Theme = "light" | "dark" | "parchment";
+const THEME_CYCLE: Theme[] = ["light", "dark", "parchment"];
+const NEXT_THEME_LABEL: Record<Theme, string> = {
+  light: "Switch to dark theme",
+  dark: "Switch to parchment theme",
+  parchment: "Switch to light theme",
+};
 
 export function Header() {
   const courses = usePlanBook((s) => s.courses);
