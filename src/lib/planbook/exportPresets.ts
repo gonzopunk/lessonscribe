@@ -6,6 +6,9 @@ export interface ExportSectionFlags {
   dayNotes: boolean;
   sectionNotes: boolean;
   reflection: boolean;
+  differentiation: boolean;
+  behaviorNotes: boolean;
+  materials: boolean;
   subNotes: boolean;
   tagLegend: boolean;
   pageNumbers: boolean;
