@@ -60,7 +60,6 @@ export function MonthView({ monthAnchor, onOpenPlan, onOpenOverride }: Props) {
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-border bg-surface/95 px-5 py-2 backdrop-blur">
-      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-border bg-surface/95 px-5 py-2 backdrop-blur">
         <div className="mr-2 flex items-center gap-1">
           <Button
             variant="ghost"
