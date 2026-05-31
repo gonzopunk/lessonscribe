@@ -36,15 +36,17 @@ export const saveSnapshot = createServerFn({ method: "POST" })
     if (readErr) throw new Error(readErr.message);
 
     const now = new Date().toISOString();
-    const row: Record<string, unknown> = {
+    const row = {
       user_id: userId,
       data: data.data,
       updated_at: now,
+      ...(current
+        ? {
+            previous_data: current.data,
+            previous_updated_at: current.updated_at,
+          }
+        : {}),
     };
-    if (current) {
-      row.previous_data = current.data;
-      row.previous_updated_at = current.updated_at;
-    }
     const { error } = await supabase
       .from("plan_snapshots")
       .upsert(row, { onConflict: "user_id" });
