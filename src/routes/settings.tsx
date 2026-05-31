@@ -427,6 +427,32 @@ function SettingsPage() {
                     placeholder="Seating chart location, bathroom policy, emergency procedures…"
                   />
                 </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label>Weekly notes — custom label 1</Label>
+                    <Input
+                      value={c.weekMetaLabel1 ?? ""}
+                      placeholder="Custom note 1"
+                      onChange={(e) =>
+                        updateCourse(c.id, { weekMetaLabel1: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Weekly notes — custom label 2</Label>
+                    <Input
+                      value={c.weekMetaLabel2 ?? ""}
+                      placeholder="Custom note 2"
+                      onChange={(e) =>
+                        updateCourse(c.id, { weekMetaLabel2: e.target.value })
+                      }
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  These labels appear in the Weekly notes dialog for this course.
+                  Leave blank to use the defaults ("Custom note 1" / "Custom note 2").
+                </p>
                 <Separator />
                 <div className="flex justify-end">
                   <Button

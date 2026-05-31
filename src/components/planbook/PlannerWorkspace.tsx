@@ -350,6 +350,13 @@ export function PlannerWorkspace() {
                   const wkMonday = week[0];
                   const isFirst = wi === 0;
                   const isLast = wi === weeks.length - 1;
+                  const wKey = toKey(wkMonday);
+                  const wmEntry = activeCourseId
+                    ? weekMetaMap[weekMetaKey(activeCourseId, wKey)]
+                    : undefined;
+                  const hasNotes = wmEntry
+                    ? Object.values(wmEntry).some((v) => v !== "")
+                    : false;
                   return (
                     <div key={wi} className="flex flex-col gap-3">
                       <div className="group flex items-center justify-between gap-2 border-b border-border pb-2">
@@ -370,6 +377,26 @@ export function PlannerWorkspace() {
                           Week of {formatWeekRange(wkMonday)}
                         </h2>
                         <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn(
+                              "relative size-6 shrink-0 transition-opacity",
+                              hasNotes
+                                ? "opacity-100"
+                                : "opacity-0 group-hover:opacity-100",
+                            )}
+                            aria-label="Week notes"
+                            title="Weekly notes"
+                            onClick={() =>
+                              setWeekNotesDialog({ open: true, weekKey: wKey })
+                            }
+                          >
+                            <Notebook className="size-4" />
+                            {hasNotes && (
+                              <span className="absolute -right-0.5 -top-0.5 size-1.5 rounded-full bg-primary" />
+                            )}
+                          </Button>
                           {courseHasTemplates && (
                             <Button
                               variant="ghost"
@@ -491,6 +518,14 @@ export function PlannerWorkspace() {
           onOpenChange={(v) => setWorksheetDialog((p) => ({ ...p, open: v }))}
           courseId={activeCourseId!}
           weekMonday={worksheetDialog.weekMonday}
+        />
+      )}
+      {weekNotesDialog.weekKey && (
+        <WeekNotesDialog
+          open={weekNotesDialog.open}
+          onOpenChange={(v) => setWeekNotesDialog((p) => ({ ...p, open: v }))}
+          courseId={activeCourseId!}
+          weekKey={weekNotesDialog.weekKey}
         />
       )}
     </div>
