@@ -19,6 +19,8 @@ export function ElementBank({ collapsed, onToggle }: Props) {
   const allTemplates = usePlanBook((s) => s.templates);
   const allTags = usePlanBook((s) => s.tags);
   const selectedFilterTagIds = usePlanBook((s) => s.selectedFilterTagIds);
+  const toggleFilterTag = usePlanBook((s) => s.toggleFilterTag);
+  const setFilterTags = usePlanBook((s) => s.setFilterTags);
   const [search, setSearch] = useState("");
   const [showArchived, setShowArchived] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
