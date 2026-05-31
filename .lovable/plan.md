@@ -1,23 +1,29 @@
-## Problem
+## Objective
+Move the existing filter bank from its standalone position below the main header into the ElementBank sidebar, placing it directly below the "Element Bank" header and above the search bar. Remove the old standalone filter bank. Preserve all existing filter behavior.
 
-The toolbar date label ("Jun 28 – Jul 2 – Jul 23") doesn't match what's actually rendered (Week of Jun 22 → Jul 17). Rather than hunt down yet another timezone/parse mismatch in the label formatter, remove the label entirely. The week column headers already show the dates accurately. Move week-paging arrows down next to those headers.
+## Current State
+- `FilterBar.tsx` is a standalone component rendered in `PlannerWorkspace.tsx` between `<Header />` and the main workspace content.
+- `ElementBank.tsx` is the right-hand sidebar with a header, search bar, and element list.
+- `FilterBar` is only imported and used in `PlannerWorkspace.tsx` (no other usages).
 
-## Changes
+## Changes Required
 
-### `src/components/planbook/Header.tsx`
-- Remove the toolbar date cluster: the `ChevronLeft`/"today" button/`ChevronRight` group between the course tabs and the Weeks/Month toggle.
-- Remove now-unused imports: `ChevronLeft`, `ChevronRight`, `formatWeekRange`, `parseDayKey`, `addDays`, `mondayOf`, `format`, `shiftAnchor`, `setAnchor`, `anchor`, `anchorDate`, `lastWeekStart`, `monthShift`, and the `toKey` alias if no longer used. Keep month-shift behavior available via the new week-header arrows (weeks view) and the existing Month-view path — but since arrows now live in the week column header, drop `monthShift` from Header entirely. For Month view, paging will be handled inside `MonthView` (see below).
+### 1. `src/components/planbook/ElementBank.tsx`
+- Import `colorToken`, `colorTokenSoft`, and `cn` (currently only imported in `FilterBar.tsx`).
+- Add store selectors: `selectedFilterTagIds`, `toggleFilterTag`, `setFilterTags`.
+- Insert a new "Filters" section between the existing header (`<div className="flex items-center justify-between border-b...">`) and the search bar (`<div className="border-b border-border p-3">`).
+- The new section should:
+  - Have a "Filters" label styled consistently with other small uppercase labels in the sidebar.
+  - Include the "All" reset button and per-tag toggle buttons, with identical active/inactive styling and behavior as the current `FilterBar.tsx`.
 
-### `src/components/planbook/PlannerWorkspace.tsx`
-- In the weeks-view column header (currently `<div className="flex items-center justify-between border-b border-border pb-2">` wrapping the `<h2>Week of …</h2>`), add a left chevron button on the **first** week column and a right chevron button on the **last** week column.
-- Wire them to `usePlanBook.getState().shiftAnchor(-1)` and `shiftAnchor(1)` respectively (one week at a time, per the user's spec).
-- Use `Button variant="ghost" size="icon"` with `ChevronLeft`/`ChevronRight` from lucide-react, sized `size-4`, with `aria-label="Previous week"` / `"Next week"`.
-- Layout: header row keeps `justify-between`; left column renders `[◀ | Week of …]`, right column renders `[Week of … | ▶]`, middle columns render just the heading (with an invisible spacer or simply no button — `justify-between` still works with a single child).
+### 2. `src/components/planbook/PlannerWorkspace.tsx`
+- Remove the `FilterBar` import.
+- Remove the `<FilterBar />` JSX line.
 
-### `src/components/planbook/MonthView.tsx` (light touch)
-- Add small prev/next month chevron buttons in the existing month header so month navigation isn't lost when the toolbar buttons go away. (If MonthView already has its own header with arrows, no change needed — I'll confirm during implementation and skip if present.)
+### 3. `src/components/planbook/FilterBar.tsx`
+- This file becomes unused and should be deleted after the above changes are verified working.
 
-## Out of scope
-- No date-parsing changes. The week column header (`formatWeekRange(wkMonday)`) is already correct because `wkMonday` comes from `mondayOf(parseDayKey(anchor))`.
-- No store/data changes. `shiftAnchor` already exists and moves the anchor by N weeks.
-- No styling changes to surrounding toolbar items.
+## Out of Scope
+- No changes to filter logic, store selectors, or state management.
+- No changes to the visual styling of individual filter buttons beyond what is needed for the new container layout.
+- No changes to ElementBank collapsed state behavior.

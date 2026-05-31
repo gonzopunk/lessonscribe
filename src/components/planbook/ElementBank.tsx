@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { BankCard } from "./BankCard";
 import { ElementEditorDialog } from "./ElementEditorDialog";
 import { cn } from "@/lib/utils";
-import { colorToken } from "@/lib/planbook/constants";
+import { colorToken, colorTokenSoft } from "@/lib/planbook/constants";
 
 interface Props {
   collapsed: boolean;
