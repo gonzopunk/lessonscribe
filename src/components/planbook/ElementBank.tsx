@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { BankCard } from "./BankCard";
 import { ElementEditorDialog } from "./ElementEditorDialog";
 import { cn } from "@/lib/utils";
-import { colorToken } from "@/lib/planbook/constants";
+import { colorToken, colorTokenSoft } from "@/lib/planbook/constants";
 
 interface Props {
   collapsed: boolean;
@@ -19,6 +19,8 @@ export function ElementBank({ collapsed, onToggle }: Props) {
   const allTemplates = usePlanBook((s) => s.templates);
   const allTags = usePlanBook((s) => s.tags);
   const selectedFilterTagIds = usePlanBook((s) => s.selectedFilterTagIds);
+  const toggleFilterTag = usePlanBook((s) => s.toggleFilterTag);
+  const setFilterTags = usePlanBook((s) => s.setFilterTags);
   const [search, setSearch] = useState("");
   const [showArchived, setShowArchived] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -91,6 +93,48 @@ export function ElementBank({ collapsed, onToggle }: Props) {
         <Button variant="ghost" size="icon" onClick={onToggle} aria-label="Collapse element bank">
           <ChevronRight className="size-4" />
         </Button>
+      </div>
+
+      <div className="border-b border-border bg-surface/40 p-3">
+        <h3 className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          Filters
+        </h3>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <button
+            onClick={() => setFilterTags([])}
+            className={cn(
+              "rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors",
+              selectedFilterTagIds.length === 0
+                ? "border-primary/40 bg-primary/15 text-primary"
+                : "border-border bg-surface text-muted-foreground hover:bg-secondary",
+            )}
+          >
+            All
+          </button>
+          {tags.map((t) => {
+            const on = selectedFilterTagIds.includes(t.id);
+            return (
+              <button
+                key={t.id}
+                onClick={() => toggleFilterTag(t.id)}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors",
+                  on ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                )}
+                style={{
+                  backgroundColor: on ? colorTokenSoft(t.color) : "transparent",
+                  borderColor: on ? colorToken(t.color) : "var(--border)",
+                }}
+              >
+                <span
+                  className="size-1.5 rounded-full"
+                  style={{ backgroundColor: colorToken(t.color) }}
+                />
+                {t.name}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div className="border-b border-border p-3">

@@ -12,7 +12,7 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { Header } from "./Header";
-import { FilterBar } from "./FilterBar";
+
 import { ElementBank } from "./ElementBank";
 import { DayCell } from "./DayCell";
 import { PlanModal } from "./PlanModal";
@@ -281,7 +281,6 @@ export function PlannerWorkspace() {
   return (
     <div className="flex h-dvh flex-col bg-background">
       <Header />
-      <FilterBar />
 
       {selectedDays.length > 1 && (
         <div className="flex items-center justify-between border-b border-border bg-primary/10 px-5 py-2 text-xs text-foreground">
