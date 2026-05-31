@@ -15,6 +15,7 @@ import {
   getSnapshotMeta,
   restorePreviousSnapshot,
 } from "./sync";
+import { resetHistory } from "./history";
 import type { PlanBookState } from "./types";
 
 export type SyncStatus = "idle" | "loading" | "saving" | "saved" | "error" | "offline";
