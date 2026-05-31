@@ -16,7 +16,13 @@ import { APP_NAME } from "@/lib/planbook/constants";
 import { ColorPicker } from "./ColorPicker";
 
 
-export function OnboardingDialog({ open }: { open: boolean }) {
+export function OnboardingDialog({
+  open,
+  onDismiss,
+}: {
+  open: boolean;
+  onDismiss?: () => void;
+}) {
   const completeOnboarding = usePlanBook((s) => s.completeOnboarding);
   const [start, setStart] = useState(() => `${new Date().getFullYear()}-08-15`);
   const [end, setEnd] = useState(() => `${new Date().getFullYear() + 1}-06-15`);
@@ -33,12 +39,8 @@ export function OnboardingDialog({ open }: { open: boolean }) {
   );
 
   return (
-    <Dialog open={open}>
-      <DialogContent
-        className="max-w-2xl max-h-[90vh] overflow-y-auto"
-        onPointerDownOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-      >
+    <Dialog open={open} onOpenChange={(v) => !v && onDismiss?.()}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Welcome to {APP_NAME}</DialogTitle>
           <DialogDescription>

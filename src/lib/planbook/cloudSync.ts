@@ -1,16 +1,20 @@
-// Cloud sync controller for the PlanBook zustand store.
+// Cloud sync controller for the LessonScribe zustand store.
 //
-// When a user is signed in, we treat the cloud as the source of truth:
+// When a user is signed in, the cloud is the source of truth:
 // - Hydrate the in-memory store from `plan_snapshots` on sign-in.
 // - Debounce store changes and push the full state to the server.
 // - Surface sync status (idle | saving | saved | error | offline) for the UI.
-//
-// We deliberately strip a few volatile UI fields so each device keeps its
-// own view position (anchor week, active filter chips, weeks/month toggle).
+// - Refuse to overwrite a non-empty cloud snapshot with an empty local one
+//   (prevents the "blank onboarding clobbers real data" race).
 
 import { supabase } from "@/integrations/supabase/client";
 import { usePlanBook, type Store } from "./store";
-import { loadSnapshot, saveSnapshot } from "./sync";
+import {
+  loadSnapshot,
+  saveSnapshot,
+  getSnapshotMeta,
+  restorePreviousSnapshot,
+} from "./sync";
 import type { PlanBookState } from "./types";
 
 export type SyncStatus = "idle" | "loading" | "saving" | "saved" | "error" | "offline";
@@ -22,6 +26,8 @@ interface SyncState {
   lastSavedAt: number | null;
   error: string | null;
   userId: string | null;
+  hasPrevious: boolean;
+  previousUpdatedAt: string | null;
 }
 
 const DEBOUNCE_MS = 800;
@@ -31,6 +37,8 @@ let state: SyncState = {
   lastSavedAt: null,
   error: null,
   userId: null,
+  hasPrevious: false,
+  previousUpdatedAt: null,
 };
 const listeners = new Set<Listener>();
 
@@ -39,6 +47,7 @@ let saveTimer: ReturnType<typeof setTimeout> | null = null;
 let pendingSave = false;
 let saving = false;
 let suppressNextChange = false;
+let remoteHasSnapshot = false; // true once we confirm cloud row exists
 
 function setState(patch: Partial<SyncState>) {
   state = { ...state, ...patch };
@@ -55,15 +64,20 @@ export function getSyncState(): SyncState {
   return state;
 }
 
-/** Strip device-local fields before pushing to the cloud. */
+function isEmptySnapshot(s: Store): boolean {
+  return (
+    s.courses.length === 0 &&
+    s.templates.length === 0 &&
+    s.instances.length === 0 &&
+    !s.onboarded
+  );
+}
+
 function pickCloudShape(s: Store): Partial<PlanBookState> {
   return {
     version: s.version,
     onboarded: s.onboarded,
-    settings: {
-      ...s.settings,
-      viewMode: s.settings.viewMode, // kept; harmless
-    },
+    settings: { ...s.settings },
     courses: s.courses,
     activeCourseId: s.activeCourseId,
     tags: s.tags,
@@ -76,15 +90,25 @@ function pickCloudShape(s: Store): Partial<PlanBookState> {
 }
 
 function applyCloudShape(snapshot: Partial<PlanBookState>) {
-  // Replace cloud-managed fields, keep device-local fields as-is.
   suppressNextChange = true;
   usePlanBook.setState((cur) => ({
     ...cur,
     ...snapshot,
-    // Force-keep these device-local fields:
     anchorDate: cur.anchorDate,
     selectedFilterTagIds: cur.selectedFilterTagIds,
   }));
+}
+
+async function refreshMeta() {
+  try {
+    const meta = await getSnapshotMeta();
+    setState({
+      hasPrevious: meta.hasPrevious,
+      previousUpdatedAt: meta.previousUpdatedAt,
+    });
+  } catch {
+    // non-fatal
+  }
 }
 
 async function flushSave() {
@@ -97,12 +121,34 @@ async function flushSave() {
     setState({ status: "offline", error: null });
     return;
   }
+
+  // Guard: never let an empty local state overwrite a non-empty cloud
+  // snapshot. This is the safety net for the onboarding-clobber race.
+  const cur = usePlanBook.getState();
+  if (remoteHasSnapshot && isEmptySnapshot(cur)) {
+    console.warn("[sync] refusing to overwrite cloud snapshot with empty local state");
+    // Re-hydrate from cloud so the UI matches reality.
+    try {
+      const remote = await loadSnapshot();
+      if (remote && remote.data) {
+        const snap = (remote.data as { data?: Partial<PlanBookState> }).data;
+        if (snap) applyCloudShape(snap);
+      }
+    } catch {
+      /* noop */
+    }
+    setState({ status: "saved", error: null });
+    return;
+  }
+
   saving = true;
   setState({ status: "saving", error: null });
   try {
     const snap = pickCloudShape(usePlanBook.getState());
     await saveSnapshot({ data: { data: snap } });
+    remoteHasSnapshot = true;
     setState({ status: "saved", lastSavedAt: Date.now(), error: null });
+    void refreshMeta();
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     setState({ status: "error", error: msg });
@@ -148,6 +194,7 @@ async function handleSignIn(userId: string) {
   try {
     const remote = await loadSnapshot();
     if (remote && remote.data) {
+      remoteHasSnapshot = true;
       const snap = (remote.data as { data?: Partial<PlanBookState> }).data;
       if (snap) applyCloudShape(snap);
       setState({
@@ -155,13 +202,15 @@ async function handleSignIn(userId: string) {
         lastSavedAt: new Date(remote.updatedAt as string).getTime(),
         error: null,
       });
+      void refreshMeta();
     } else {
-      // First time signing in on this account → seed cloud with a blank state.
+      // Truly new account on this user — seed cloud with whatever local
+      // state happens to exist (usually a fresh resetAll).
+      remoteHasSnapshot = false;
       suppressNextChange = true;
       usePlanBook.getState().resetAll();
       attachStoreListener();
       await flushSave();
-      attachStoreListener();
       return;
     }
   } catch (e) {
@@ -173,19 +222,45 @@ async function handleSignIn(userId: string) {
 
 function handleSignOut() {
   detachStoreListener();
+  remoteHasSnapshot = false;
   setState({
     userId: null,
     status: "idle",
     lastSavedAt: null,
     error: null,
+    hasPrevious: false,
+    previousUpdatedAt: null,
   });
-  // Reset to the local persisted state — zustand persist will rehydrate
-  // from localStorage on next page load. For now we keep the in-memory
-  // state intact so the planner doesn't blank out mid-session.
 }
 
 export function manualRetry() {
   if (state.userId) void flushSave();
+}
+
+export async function restorePrevious(): Promise<boolean> {
+  if (!state.userId) return false;
+  try {
+    setState({ status: "loading", error: null });
+    const restored = await restorePreviousSnapshot();
+    if (!restored) {
+      setState({ status: "saved", error: null });
+      return false;
+    }
+    const snap = (restored.data as { data?: Partial<PlanBookState> }).data;
+    if (snap) applyCloudShape(snap);
+    remoteHasSnapshot = true;
+    setState({
+      status: "saved",
+      lastSavedAt: new Date(restored.updatedAt).getTime(),
+      error: null,
+    });
+    void refreshMeta();
+    return true;
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    setState({ status: "error", error: msg });
+    return false;
+  }
 }
 
 let initialized = false;
@@ -193,7 +268,6 @@ export function initCloudSync() {
   if (initialized || typeof window === "undefined") return;
   initialized = true;
 
-  // Online/offline transitions.
   window.addEventListener("online", () => {
     if (state.userId && state.status === "offline") void flushSave();
   });
@@ -201,7 +275,6 @@ export function initCloudSync() {
     if (state.userId) setState({ status: "offline" });
   });
 
-  // Wire to Supabase auth state.
   void (async () => {
     const { data } = await supabase.auth.getSession();
     if (data.session?.user) await handleSignIn(data.session.user.id);
