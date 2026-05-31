@@ -42,6 +42,18 @@ export function resolveFieldValue(
         const dKey = dayKey(addDays(weekMonday, source.dayOffset));
         return state.dayMeta[metaKey(courseId, dKey)]?.objectives ?? "";
       }
+      case "day-differentiation": {
+        const dKey = dayKey(addDays(weekMonday, source.dayOffset));
+        return state.dayMeta[metaKey(courseId, dKey)]?.differentiationNotes ?? "";
+      }
+      case "day-behavior": {
+        const dKey = dayKey(addDays(weekMonday, source.dayOffset));
+        return state.dayMeta[metaKey(courseId, dKey)]?.behaviorNotes ?? "";
+      }
+      case "day-materials": {
+        const dKey = dayKey(addDays(weekMonday, source.dayOffset));
+        return state.dayMeta[metaKey(courseId, dKey)]?.materialsNotes ?? "";
+      }
       case "week-of-date":
         return format(weekMonday, source.format || "MMMM d, yyyy");
       case "static":
