@@ -257,6 +257,9 @@ export const usePlanBook = create<Store>()(
           templates: s.templates.filter((t) => t.courseId !== id),
           instances: s.instances.filter((i) => i.courseId !== id),
           worksheetTemplates: s.worksheetTemplates.filter((t) => t.courseId !== id),
+          weekMeta: Object.fromEntries(
+            Object.entries(s.weekMeta).filter(([k]) => !k.startsWith(`week:${id}:`)),
+          ),
         })),
 
 
@@ -433,6 +436,15 @@ export const usePlanBook = create<Store>()(
           },
         }));
       },
+      updateWeekMeta: (courseId, weekKey, patch) => {
+        const k = weekMetaKey(courseId, weekKey);
+        set((s) => ({
+          weekMeta: {
+            ...s.weekMeta,
+            [k]: { ...(s.weekMeta[k] ?? blankWeekMeta()), ...patch },
+          },
+        }));
+      },
 
       setOverride: (dKey, ov) =>
         set((s) => ({ overrides: { ...s.overrides, [dKey]: { ...ov, dayKey: dKey } } })),
@@ -509,6 +521,7 @@ export const usePlanBook = create<Store>()(
           ...current,
           ...p,
           worksheetTemplates: p.worksheetTemplates ?? [],
+          weekMeta: p.weekMeta ?? {},
           settings: {
             ...current.settings,
             ...ps,
