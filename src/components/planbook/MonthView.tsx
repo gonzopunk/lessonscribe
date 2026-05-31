@@ -60,6 +60,36 @@ export function MonthView({ monthAnchor, onOpenPlan, onOpenOverride }: Props) {
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-border bg-surface/95 px-5 py-2 backdrop-blur">
+      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-border bg-surface/95 px-5 py-2 backdrop-blur">
+        <div className="mr-2 flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-7"
+            aria-label="Previous month"
+            onClick={() => {
+              const next = addMonths(monthAnchor, -1);
+              usePlanBook.getState().setAnchor(toKey(mondayOf(startOfMonth(next))));
+            }}
+          >
+            <ChevronLeft className="size-4" />
+          </Button>
+          <span className="min-w-[8.5rem] text-center text-xs font-semibold">
+            {format(monthAnchor, "MMMM yyyy")}
+          </span>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-7"
+            aria-label="Next month"
+            onClick={() => {
+              const next = addMonths(monthAnchor, 1);
+              usePlanBook.getState().setAnchor(toKey(mondayOf(startOfMonth(next))));
+            }}
+          >
+            <ChevronRight className="size-4" />
+          </Button>
+        </div>
         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
           Show
         </span>
