@@ -101,7 +101,7 @@ export function AccountMenu() {
           <Button variant="ghost" size="icon" aria-label="Account menu" title={sync.error ?? label}>
             <span className="relative inline-flex">
               <UserIcon className="size-4" />
-              <Icon className={`absolute -bottom-1 -right-1 size-2.5 ${spin ? "animate-spin" : ""} ${tone}`} />
+              <Icon className={`absolute -top-1 -right-1 size-2.5 ${spin ? "animate-spin" : ""} ${tone}`} />
             </span>
           </Button>
         </DropdownMenuTrigger>
