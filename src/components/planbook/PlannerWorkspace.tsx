@@ -195,6 +195,7 @@ export function PlannerWorkspace() {
 
   useEffect(() => {
     initCloudSync();
+    initHistory();
     return subscribeSync((s) => setSyncStatus(s.status));
   }, []);
 
