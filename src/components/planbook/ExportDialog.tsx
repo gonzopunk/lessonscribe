@@ -64,6 +64,9 @@ const SECTION_GROUPS: Array<{ key: keyof ExportSectionFlags; label: string; grou
   { key: "dayNotes", label: "Day notes", group: "both" },
   { key: "sectionNotes", label: "Section notes", group: "both" },
   { key: "reflection", label: "Reflection", group: "lesson" },
+  { key: "differentiation", label: "Differentiation / 504 & IEP", group: "both" },
+  { key: "behaviorNotes", label: "Behavior notes", group: "lesson" },
+  { key: "materials", label: "Materials needed", group: "both" },
   { key: "subNotes", label: "Sub notes", group: "sub" },
 ];
 
