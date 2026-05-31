@@ -207,13 +207,25 @@ async function handleSignIn(userId: string) {
       });
       void refreshMeta();
     } else {
-      // Truly new account on this user — seed cloud with whatever local
-      // state happens to exist (usually a fresh resetAll).
+      // loadSnapshot returned null. This means either:
+      // (a) genuinely new user with no cloud snapshot, OR
+      // (b) server function failed silently (returns null instead of throwing).
+      // Guard: if local state is already onboarded, treat as case (b) and
+      // leave local data intact. Only reset if local state is also empty.
       remoteHasSnapshot = false;
-      suppressNextChange = true;
-      usePlanBook.getState().resetAll();
-      attachStoreListener();
-      await flushSave();
+      const local = usePlanBook.getState();
+      if (!local.onboarded && isEmptySnapshot(local)) {
+        // Truly new user — seed cloud with fresh default state.
+        suppressNextChange = true;
+        local.resetAll();
+        attachStoreListener();
+        await flushSave();
+      } else {
+        // Local state exists — server function likely failed in preview.
+        // Leave local data intact and sync it up to the cloud.
+        attachStoreListener();
+        await flushSave();
+      }
       return;
     }
   } catch (e) {
