@@ -21,7 +21,7 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
   useApplyTheme();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -30,11 +30,16 @@ function LoginPage() {
 
   useEffect(() => {
     // If a session arrives (initial check or via OAuth), bounce home.
+    // Skip during password recovery — that flow lives on /reset-password.
     void supabase.auth.getSession().then(({ data }) => {
       if (data.session) navigate({ to: "/", replace: true });
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (session) navigate({ to: "/", replace: true });
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY") {
+        navigate({ to: "/reset-password", replace: true });
+      } else if (session) {
+        navigate({ to: "/", replace: true });
+      }
     });
     return () => sub.subscription.unsubscribe();
   }, [navigate]);
@@ -54,6 +59,12 @@ function LoginPage() {
         if (error) throw error;
         setInfo("Check your email to confirm your account, then sign in.");
         setMode("signin");
+      } else if (mode === "forgot") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) throw error;
+        setInfo("If that email has an account, a reset link is on its way.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -87,31 +98,41 @@ function LoginPage() {
             {APP_NAME}
           </Link>
           <h1 className="mt-6 text-2xl font-semibold">
-            {mode === "signin" ? "Welcome back" : "Create your account"}
+            {mode === "signin"
+              ? "Welcome back"
+              : mode === "signup"
+                ? "Create your account"
+                : "Reset your password"}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Sync your lesson plans across every device.
+            {mode === "forgot"
+              ? "Enter your email and we'll send you a reset link."
+              : "Sync your lesson plans across every device."}
           </p>
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          onClick={handleGoogle}
-          disabled={busy}
-        >
-          Continue with Google
-        </Button>
+        {mode !== "forgot" && (
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={handleGoogle}
+              disabled={busy}
+            >
+              Continue with Google
+            </Button>
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-border" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">or</span>
-          </div>
-        </div>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">or</span>
+              </div>
+            </div>
+          </>
+        )}
 
         <form onSubmit={handleEmail} className="space-y-3">
           <div className="space-y-1.5">
@@ -125,22 +146,45 @@ function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              autoComplete={mode === "signin" ? "current-password" : "new-password"}
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
+          {mode !== "forgot" && (
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                {mode === "signin" && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setError(null);
+                      setInfo(null);
+                      setMode("forgot");
+                    }}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Forgot?
+                  </button>
+                )}
+              </div>
+              <Input
+                id="password"
+                type="password"
+                autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                required
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+          )}
           {error && <p className="text-sm text-destructive">{error}</p>}
           {info && <p className="text-sm text-muted-foreground">{info}</p>}
           <Button type="submit" className="w-full" disabled={busy}>
-            {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
+            {busy
+              ? "Please wait…"
+              : mode === "signin"
+                ? "Sign in"
+                : mode === "signup"
+                  ? "Create account"
+                  : "Send reset link"}
           </Button>
         </form>
 
@@ -158,10 +202,14 @@ function LoginPage() {
             </>
           ) : (
             <>
-              Already have an account?{" "}
+              {mode === "forgot" ? "Remembered it?" : "Already have an account?"}{" "}
               <button
                 type="button"
-                onClick={() => setMode("signin")}
+                onClick={() => {
+                  setError(null);
+                  setInfo(null);
+                  setMode("signin");
+                }}
                 className="text-foreground underline underline-offset-4"
               >
                 Sign in

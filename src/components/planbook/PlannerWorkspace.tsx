@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { colorToken, colorTokenSoft, APP_NAME } from "@/lib/planbook/constants";
 import { supabase } from "@/integrations/supabase/client";
 import { subscribeSync, initCloudSync, type SyncStatus } from "@/lib/planbook/cloudSync";
+import { initHistory } from "@/lib/planbook/history";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
@@ -195,6 +196,7 @@ export function PlannerWorkspace() {
 
   useEffect(() => {
     initCloudSync();
+    initHistory();
     return subscribeSync((s) => setSyncStatus(s.status));
   }, []);
 

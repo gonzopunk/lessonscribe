@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   Settings,
   Sun,
   Moon,
+  BookOpen,
   ChevronLeft,
   ChevronRight,
   Printer,
+  Undo2,
+  Redo2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePlanBook } from "@/lib/planbook/store";
@@ -16,6 +19,21 @@ import { dayKey as toKey, formatWeekRange, mondayOf } from "@/lib/planbook/dates
 import { addMonths, format } from "date-fns";
 import { ExportDialog } from "./ExportDialog";
 import { AccountMenu } from "./AccountMenu";
+import {
+  canUndo,
+  canRedo,
+  undo,
+  redo,
+  subscribeHistory,
+} from "@/lib/planbook/history";
+
+type Theme = "light" | "dark" | "parchment";
+const THEME_CYCLE: Theme[] = ["light", "dark", "parchment"];
+const NEXT_THEME_LABEL: Record<Theme, string> = {
+  light: "Switch to dark theme",
+  dark: "Switch to parchment theme",
+  parchment: "Switch to light theme",
+};
 
 export function Header() {
   const courses = usePlanBook((s) => s.courses);
@@ -30,6 +48,15 @@ export function Header() {
   const setAnchor = usePlanBook((s) => s.setAnchor);
 
   const [exportOpen, setExportOpen] = useState(false);
+  const [, setHistTick] = useState(0);
+  useEffect(() => subscribeHistory(() => setHistTick((n) => n + 1)), []);
+
+  const ThemeIcon = theme === "dark" ? Sun : theme === "light" ? Moon : BookOpen;
+  const cycleTheme = () => {
+    const idx = THEME_CYCLE.indexOf(theme as Theme);
+    const next = THEME_CYCLE[(idx + 1) % THEME_CYCLE.length];
+    updateSettings({ theme: next });
+  };
 
   const anchorDate = new Date(anchor);
   const lastWeekStart = new Date(anchorDate);
@@ -148,6 +175,29 @@ export function Header() {
             </div>
           )}
 
+          <div className="flex items-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Undo"
+              title="Undo (⌘Z)"
+              disabled={!canUndo()}
+              onClick={() => undo()}
+            >
+              <Undo2 className="size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Redo"
+              title="Redo (⌘⇧Z)"
+              disabled={!canRedo()}
+              onClick={() => redo()}
+            >
+              <Redo2 className="size-4" />
+            </Button>
+          </div>
+
           <Button
             variant="ghost"
             size="sm"
@@ -161,12 +211,11 @@ export function Header() {
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Toggle theme"
-            onClick={() =>
-              updateSettings({ theme: theme === "dark" ? "light" : "dark" })
-            }
+            aria-label={NEXT_THEME_LABEL[theme as Theme] ?? "Toggle theme"}
+            title={NEXT_THEME_LABEL[theme as Theme] ?? "Toggle theme"}
+            onClick={cycleTheme}
           >
-            {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+            <ThemeIcon className="size-4" />
           </Button>
           <Link to="/settings" aria-label="Open settings">
             <Button variant="ghost" size="icon">
