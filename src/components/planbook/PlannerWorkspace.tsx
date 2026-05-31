@@ -193,10 +193,10 @@ export function PlannerWorkspace() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  useEffect(
-    () => subscribeSync((s) => setSyncStatus(s.status)),
-    [],
-  );
+  useEffect(() => {
+    initCloudSync();
+    return subscribeSync((s) => setSyncStatus(s.status));
+  }, []);
 
   if (!authChecked) {
     return (
