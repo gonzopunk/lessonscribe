@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import {
   DndContext,
   DragOverlay,
@@ -28,7 +29,11 @@ import {
   formatWeekRange,
 } from "@/lib/planbook/dates";
 import { cn } from "@/lib/utils";
-import { colorToken, colorTokenSoft } from "@/lib/planbook/constants";
+import { colorToken, colorTokenSoft, APP_NAME } from "@/lib/planbook/constants";
+import { supabase } from "@/integrations/supabase/client";
+import { subscribeSync, type SyncStatus } from "@/lib/planbook/cloudSync";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 export function PlannerWorkspace() {
   const onboarded = usePlanBook((s) => s.onboarded);
