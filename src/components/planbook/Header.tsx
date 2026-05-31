@@ -175,6 +175,29 @@ export function Header() {
             </div>
           )}
 
+          <div className="flex items-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Undo"
+              title="Undo (⌘Z)"
+              disabled={!canUndo()}
+              onClick={() => undo()}
+            >
+              <Undo2 className="size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Redo"
+              title="Redo (⌘⇧Z)"
+              disabled={!canRedo()}
+              onClick={() => redo()}
+            >
+              <Redo2 className="size-4" />
+            </Button>
+          </div>
+
           <Button
             variant="ghost"
             size="sm"
@@ -188,12 +211,11 @@ export function Header() {
           <Button
             variant="ghost"
             size="icon"
-            aria-label="Toggle theme"
-            onClick={() =>
-              updateSettings({ theme: theme === "dark" ? "light" : "dark" })
-            }
+            aria-label={NEXT_THEME_LABEL[theme as Theme] ?? "Toggle theme"}
+            title={NEXT_THEME_LABEL[theme as Theme] ?? "Toggle theme"}
+            onClick={cycleTheme}
           >
-            {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+            <ThemeIcon className="size-4" />
           </Button>
           <Link to="/settings" aria-label="Open settings">
             <Button variant="ghost" size="icon">
