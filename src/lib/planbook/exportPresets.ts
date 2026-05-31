@@ -78,7 +78,7 @@ export const EXPORT_PRESETS: Record<
     includeEmpty: false,
     orientation: "portrait",
     fontFamily: "inter",
-    sections: { ...baseSections, coverPage: false, reflection: true, subNotes: false },
+    sections: { ...baseSections, coverPage: false, reflection: true, subNotes: false, differentiation: true, behaviorNotes: false, materials: true },
   },
   sub: {
     mode: "sub",
