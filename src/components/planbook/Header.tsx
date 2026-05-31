@@ -48,6 +48,15 @@ export function Header() {
   const setAnchor = usePlanBook((s) => s.setAnchor);
 
   const [exportOpen, setExportOpen] = useState(false);
+  const [, setHistTick] = useState(0);
+  useEffect(() => subscribeHistory(() => setHistTick((n) => n + 1)), []);
+
+  const ThemeIcon = theme === "dark" ? Sun : theme === "light" ? Moon : BookOpen;
+  const cycleTheme = () => {
+    const idx = THEME_CYCLE.indexOf(theme as Theme);
+    const next = THEME_CYCLE[(idx + 1) % THEME_CYCLE.length];
+    updateSettings({ theme: next });
+  };
 
   const anchorDate = new Date(anchor);
   const lastWeekStart = new Date(anchorDate);
