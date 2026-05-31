@@ -14,6 +14,8 @@ export interface Course {
   periodMinutes: number;       // Mon/Tue/Thu/Fri
   wednesdayMinutes: number;
   subDefaults: string;          // free-text class management context
+  weekMetaLabel1?: string;      // defaults to "Custom note 1" when absent
+  weekMetaLabel2?: string;      // defaults to "Custom note 2" when absent
   createdAt: number;
 }
 
@@ -122,6 +124,7 @@ export interface PlanBookState {
   selectedFilterTagIds: string[];
   anchorDate: string;                                 // YYYY-MM-DD, monday of leftmost visible week
   worksheetTemplates: WorksheetTemplate[];
+  weekMeta: Record<string, WeekMeta>;                 // `week:${courseId}:${weekKey}`
 }
 
 // ---------- Worksheet Generator ----------
@@ -134,7 +137,11 @@ export type FieldSource =
   | { type: "day-notes"; dayOffset: DayOffset }
   | { type: "day-objectives"; dayOffset: DayOffset }
   | { type: "week-of-date"; format: string }
-  | { type: "static"; text: string };
+  | { type: "static"; text: string }
+  | { type: "week-objectives" }
+  | { type: "week-essential-question" }
+  | { type: "week-notes" }
+  | { type: "week-custom"; fieldKey: "custom1" | "custom2" };
 
 export interface FieldMapping {
   fieldName: string;
@@ -150,4 +157,20 @@ export interface WorksheetTemplate {
   detectedFields: string[];
   fieldMappings: FieldMapping[];
 }
+
+export interface WeekMeta {
+  weeklyObjectives: string;
+  essentialQuestion: string;
+  weeklyNotes: string;
+  custom1: string;
+  custom2: string;
+}
+
+export const blankWeekMeta = (): WeekMeta => ({
+  weeklyObjectives: "",
+  essentialQuestion: "",
+  weeklyNotes: "",
+  custom1: "",
+  custom2: "",
+});
 

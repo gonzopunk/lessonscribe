@@ -33,3 +33,6 @@ export function isWednesday(d: Date): boolean {
 }
 
 export const metaKey = (courseId: string, dKey: string) => `${courseId}:${dKey}`;
+
+export const weekMetaKey = (courseId: string, weekKey: string) =>
+  `week:${courseId}:${weekKey}`;

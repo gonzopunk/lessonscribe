@@ -22,6 +22,7 @@ import { DuplicateDayDialog } from "./DuplicateDayDialog";
 import { OnboardingDialog } from "./OnboardingDialog";
 import { QuickAddDialog } from "./QuickAddDialog";
 import { WorksheetGenerateDialog } from "./WorksheetGenerateDialog";
+import { WeekNotesDialog } from "./WeekNotesDialog";
 import { usePlanBook } from "@/lib/planbook/store";
 
 import {
@@ -30,6 +31,7 @@ import {
   parseDayKey,
   weeksFrom,
   formatWeekRange,
+  weekMetaKey,
 } from "@/lib/planbook/dates";
 import { cn } from "@/lib/utils";
 import { colorToken, colorTokenSoft, APP_NAME } from "@/lib/planbook/constants";
@@ -37,7 +39,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { subscribeSync, initCloudSync, type SyncStatus } from "@/lib/planbook/cloudSync";
 import { initHistory } from "@/lib/planbook/history";
 import { Button } from "@/components/ui/button";
-import { Loader2, ChevronLeft, ChevronRight, FileDown } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, FileDown, Notebook } from "lucide-react";
 
 export function PlannerWorkspace() {
   const onboarded = usePlanBook((s) => s.onboarded);
@@ -83,9 +85,16 @@ export function PlannerWorkspace() {
     weekMonday: Date | null;
   }>({ open: false, weekMonday: null });
 
+  const [weekNotesDialog, setWeekNotesDialog] = useState<{
+    open: boolean;
+    weekKey: string | null;
+  }>({ open: false, weekKey: null });
+
   const courseHasTemplates = usePlanBook((s) =>
     s.worksheetTemplates.some((t) => t.courseId === activeCourseId),
   );
+
+  const weekMetaMap = usePlanBook((s) => s.weekMeta);
 
 
 
@@ -341,6 +350,13 @@ export function PlannerWorkspace() {
                   const wkMonday = week[0];
                   const isFirst = wi === 0;
                   const isLast = wi === weeks.length - 1;
+                  const wKey = toKey(wkMonday);
+                  const wmEntry = activeCourseId
+                    ? weekMetaMap[weekMetaKey(activeCourseId, wKey)]
+                    : undefined;
+                  const hasNotes = wmEntry
+                    ? Object.values(wmEntry).some((v) => v !== "")
+                    : false;
                   return (
                     <div key={wi} className="flex flex-col gap-3">
                       <div className="group flex items-center justify-between gap-2 border-b border-border pb-2">
@@ -361,6 +377,26 @@ export function PlannerWorkspace() {
                           Week of {formatWeekRange(wkMonday)}
                         </h2>
                         <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={cn(
+                              "relative size-6 shrink-0 transition-opacity",
+                              hasNotes
+                                ? "opacity-100"
+                                : "opacity-0 group-hover:opacity-100",
+                            )}
+                            aria-label="Week notes"
+                            title="Weekly notes"
+                            onClick={() =>
+                              setWeekNotesDialog({ open: true, weekKey: wKey })
+                            }
+                          >
+                            <Notebook className="size-4" />
+                            {hasNotes && (
+                              <span className="absolute -right-0.5 -top-0.5 size-1.5 rounded-full bg-primary" />
+                            )}
+                          </Button>
                           {courseHasTemplates && (
                             <Button
                               variant="ghost"
@@ -482,6 +518,14 @@ export function PlannerWorkspace() {
           onOpenChange={(v) => setWorksheetDialog((p) => ({ ...p, open: v }))}
           courseId={activeCourseId!}
           weekMonday={worksheetDialog.weekMonday}
+        />
+      )}
+      {weekNotesDialog.weekKey && (
+        <WeekNotesDialog
+          open={weekNotesDialog.open}
+          onOpenChange={(v) => setWeekNotesDialog((p) => ({ ...p, open: v }))}
+          courseId={activeCourseId!}
+          weekKey={weekNotesDialog.weekKey}
         />
       )}
     </div>

@@ -1,6 +1,6 @@
 import { addDays, format } from "date-fns";
-import { dayKey, metaKey } from "./dates";
-import type { FieldSource, PlanBookState } from "./types";
+import { dayKey, metaKey, weekMetaKey } from "./dates";
+import { blankWeekMeta, type FieldSource, type PlanBookState } from "./types";
 
 export function resolveFieldValue(
   source: FieldSource,
@@ -46,6 +46,22 @@ export function resolveFieldValue(
         return format(weekMonday, source.format || "MMMM d, yyyy");
       case "static":
         return source.text ?? "";
+      case "week-objectives": {
+        const wm = state.weekMeta[weekMetaKey(courseId, dayKey(weekMonday))] ?? blankWeekMeta();
+        return wm.weeklyObjectives;
+      }
+      case "week-essential-question": {
+        const wm = state.weekMeta[weekMetaKey(courseId, dayKey(weekMonday))] ?? blankWeekMeta();
+        return wm.essentialQuestion;
+      }
+      case "week-notes": {
+        const wm = state.weekMeta[weekMetaKey(courseId, dayKey(weekMonday))] ?? blankWeekMeta();
+        return wm.weeklyNotes;
+      }
+      case "week-custom": {
+        const wm = state.weekMeta[weekMetaKey(courseId, dayKey(weekMonday))] ?? blankWeekMeta();
+        return source.fieldKey === "custom1" ? wm.custom1 : wm.custom2;
+      }
       default:
         return "";
     }

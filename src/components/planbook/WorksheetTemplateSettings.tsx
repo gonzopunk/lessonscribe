@@ -59,6 +59,14 @@ function defaultSourceForKind(kind: SourceKind): FieldSource {
       return { type: "week-of-date", format: "MMMM d, yyyy" };
     case "static":
       return { type: "static", text: "" };
+    case "week-objectives":
+      return { type: "week-objectives" };
+    case "week-essential-question":
+      return { type: "week-essential-question" };
+    case "week-notes":
+      return { type: "week-notes" };
+    case "week-custom":
+      return { type: "week-custom", fieldKey: "custom1" };
   }
 }
 
@@ -470,6 +478,10 @@ function SourceEditor({
     "day-objectives": "Day objectives",
     "week-of-date": "Week-of date",
     static: "Static text",
+    "week-objectives": "Weekly objectives",
+    "week-essential-question": "Essential question",
+    "week-notes": "Weekly notes",
+    "week-custom": "Custom weekly note",
   };
 
   const hasDay =
@@ -592,6 +604,23 @@ function SourceEditor({
           className="h-8 w-[220px]"
           placeholder="Static text"
         />
+      )}
+
+      {source.type === "week-custom" && (
+        <Select
+          value={source.fieldKey}
+          onValueChange={(v) =>
+            onSourceChange({ ...source, fieldKey: v as "custom1" | "custom2" })
+          }
+        >
+          <SelectTrigger className="h-8 w-[160px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="custom1">Custom note 1</SelectItem>
+            <SelectItem value="custom2">Custom note 2</SelectItem>
+          </SelectContent>
+        </Select>
       )}
     </div>
   );
