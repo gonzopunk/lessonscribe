@@ -21,7 +21,9 @@ import { CalendarOverrideDialog } from "./CalendarOverrideDialog";
 import { DuplicateDayDialog } from "./DuplicateDayDialog";
 import { OnboardingDialog } from "./OnboardingDialog";
 import { QuickAddDialog } from "./QuickAddDialog";
+import { WorksheetGenerateDialog } from "./WorksheetGenerateDialog";
 import { usePlanBook } from "@/lib/planbook/store";
+
 import {
   dayKey as toKey,
   mondayOf,
@@ -35,7 +37,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { subscribeSync, initCloudSync, type SyncStatus } from "@/lib/planbook/cloudSync";
 import { initHistory } from "@/lib/planbook/history";
 import { Button } from "@/components/ui/button";
-import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, FileDown } from "lucide-react";
 
 export function PlannerWorkspace() {
   const onboarded = usePlanBook((s) => s.onboarded);
@@ -75,6 +77,17 @@ export function PlannerWorkspace() {
     open: false,
     key: null,
   });
+
+  const [worksheetDialog, setWorksheetDialog] = useState<{
+    open: boolean;
+    weekMonday: Date | null;
+  }>({ open: false, weekMonday: null });
+
+  const courseHasTemplates = usePlanBook((s) =>
+    s.worksheetTemplates.some((t) => t.courseId === activeCourseId),
+  );
+
+
 
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [draggingTemplateId, setDraggingTemplateId] = useState<string | null>(null);
