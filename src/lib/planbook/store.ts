@@ -13,10 +13,12 @@ import type {
   ElementTemplate,
   OverrideKind,
   PlanBookState,
+  WeekMeta,
   WorksheetTemplate,
 } from "./types";
+import { blankWeekMeta } from "./types";
 
-import { dayKey, metaKey, mondayOf, parseDayKey } from "./dates";
+import { dayKey, metaKey, mondayOf, parseDayKey, weekMetaKey } from "./dates";
 
 const STORAGE_KEY = "planbook:v1";
 const SCHEMA_VERSION = 1;
