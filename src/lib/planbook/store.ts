@@ -14,7 +14,7 @@ import type {
   OverrideKind,
   PlanBookState,
 } from "./types";
-import { dayKey, metaKey, mondayOf } from "./dates";
+import { dayKey, metaKey, mondayOf, parseDayKey } from "./dates";
 
 const STORAGE_KEY = "planbook:v1";
 const SCHEMA_VERSION = 1;
@@ -440,7 +440,7 @@ export const usePlanBook = create<Store>()(
         }),
 
       shiftAnchor: (weeks) => {
-        const cur = new Date(get().anchorDate);
+        const cur = parseDayKey(get().anchorDate);
         cur.setDate(cur.getDate() + weeks * 7);
         set({ anchorDate: dayKey(cur) });
       },

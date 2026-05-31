@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { usePlanBook, getDayMeta } from "@/lib/planbook/store";
-import { dayKey as toKey } from "@/lib/planbook/dates";
+import { dayKey as toKey, parseDayKey } from "@/lib/planbook/dates";
 import { addDays, format } from "date-fns";
 import { colorToHex } from "@/lib/planbook/constants";
 import {
@@ -122,8 +122,8 @@ export function ExportDialog({ open, onOpenChange }: Props) {
 
   // Shared doc builder for preview + print
   const buildDoc = (limit?: number) => {
-    const start = new Date(from);
-    const end = new Date(to);
+    const start = parseDayKey(from);
+    const end = parseDayKey(to);
     const days: string[] = [];
     if (end >= start) {
       for (let d = new Date(start); d <= end; d = addDays(d, 1)) days.push(toKey(d));
@@ -198,7 +198,7 @@ export function ExportDialog({ open, onOpenChange }: Props) {
   };
 
   const exportNow = () => {
-    if (new Date(to) < new Date(from)) return;
+    if (parseDayKey(to) < parseDayKey(from)) return;
     const doc = buildDoc();
     openPrintWindow({
       title: doc.title,

@@ -13,6 +13,7 @@ import {
   dayKey as toKey,
   formatDayShort,
   mondayOf,
+  parseDayKey,
   weeksFrom,
 } from "@/lib/planbook/dates";
 import { cn } from "@/lib/utils";
@@ -30,7 +31,7 @@ export function DuplicateDayDialog({ open, onOpenChange, courseId, sourceDay }: 
   const overrides = usePlanBook((s) => s.overrides);
   const [picked, setPicked] = useState<string[]>([]);
 
-  const monday = mondayOf(new Date(anchor));
+  const monday = mondayOf(parseDayKey(anchor));
   const weeks = weeksFrom(monday, 4);
 
   return (

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
+const SCALE_EPSILON = 0.005;
+
 interface Props {
   docHTML: string;
   orientation: "portrait" | "landscape";
@@ -15,6 +17,7 @@ export function PrintPreview({ docHTML, orientation, pageCount, truncatedNote }:
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const [debouncedDoc, setDebouncedDoc] = useState(docHTML);
   const [scale, setScale] = useState(1);
+  const scaleRef = useRef(1);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedDoc(docHTML), 150);
@@ -28,8 +31,12 @@ export function PrintPreview({ docHTML, orientation, pageCount, truncatedNote }:
     const el = wrapRef.current;
     if (!el) return;
     const compute = () => {
-      const w = el.clientWidth - 24;
-      setScale(Math.min(1, Math.max(0.3, w / pageW)));
+      const w = el.getBoundingClientRect().width - 24;
+      const next = Math.min(1, Math.max(0.3, w / pageW));
+      if (Math.abs(next - scaleRef.current) > SCALE_EPSILON) {
+        scaleRef.current = next;
+        setScale(next);
+      }
     };
     compute();
     const ro = new ResizeObserver(compute);
@@ -48,7 +55,7 @@ export function PrintPreview({ docHTML, orientation, pageCount, truncatedNote }:
       </div>
       <div
         ref={wrapRef}
-        className="flex-1 overflow-auto p-3"
+        className="flex-1 overflow-y-auto overflow-x-hidden p-3"
         style={{ background: "color-mix(in oklab, var(--muted) 50%, transparent)" }}
       >
         <div
