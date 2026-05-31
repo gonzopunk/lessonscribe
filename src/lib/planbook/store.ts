@@ -119,6 +119,7 @@ interface Actions {
   // day meta
   setDayStatus: (courseId: string, dKey: string, status: DayStatus) => void;
   updateDayMeta: (courseId: string, dKey: string, patch: Partial<DayMeta>) => void;
+  updateWeekMeta: (courseId: string, weekKey: string, patch: Partial<WeekMeta>) => void;
 
   // overrides
   setOverride: (dKey: string, ov: Omit<CalendarOverride, "dayKey">) => void;
@@ -150,6 +151,7 @@ const initialState: PlanBookState = {
   selectedFilterTagIds: [],
   anchorDate: dayKey(mondayOf(new Date())),
   worksheetTemplates: [],
+  weekMeta: {},
 };
 
 
