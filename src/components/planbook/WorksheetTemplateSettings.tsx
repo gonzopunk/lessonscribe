@@ -55,6 +55,12 @@ function defaultSourceForKind(kind: SourceKind): FieldSource {
       return { type: "day-notes", dayOffset: 0 };
     case "day-objectives":
       return { type: "day-objectives", dayOffset: 0 };
+    case "day-differentiation":
+      return { type: "day-differentiation", dayOffset: 0 };
+    case "day-behavior":
+      return { type: "day-behavior", dayOffset: 0 };
+    case "day-materials":
+      return { type: "day-materials", dayOffset: 0 };
     case "week-of-date":
       return { type: "week-of-date", format: "MMMM d, yyyy" };
     case "static":
