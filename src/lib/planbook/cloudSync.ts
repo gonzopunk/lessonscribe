@@ -98,6 +98,8 @@ function applyCloudShape(snapshot: Partial<PlanBookState>) {
     anchorDate: cur.anchorDate,
     selectedFilterTagIds: cur.selectedFilterTagIds,
   }));
+  // Hydrating from the cloud should not be undoable.
+  resetHistory();
 }
 
 async function refreshMeta() {
