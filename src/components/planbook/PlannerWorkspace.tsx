@@ -25,6 +25,7 @@ import { usePlanBook } from "@/lib/planbook/store";
 import {
   dayKey as toKey,
   mondayOf,
+  parseDayKey,
   weeksFrom,
   formatWeekRange,
 } from "@/lib/planbook/dates";
@@ -80,7 +81,7 @@ export function PlannerWorkspace() {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
-  const monday = useMemo(() => mondayOf(new Date(anchor)), [anchor]);
+  const monday = useMemo(() => mondayOf(parseDayKey(anchor)), [anchor]);
   const weeks = useMemo(() => weeksFrom(monday, weeksInView), [monday, weeksInView]);
 
   const onCellClick = (k: string, e: React.MouseEvent) => {
@@ -299,7 +300,7 @@ export function PlannerWorkspace() {
 
       {viewMode === "month" ? (
         <MonthView
-          monthAnchor={new Date(anchor)}
+          monthAnchor={parseDayKey(anchor)}
           onOpenPlan={(cid, dk) => {
             if (cid !== activeCourseId) usePlanBook.getState().setActiveCourse(cid);
             setPlanModal({ open: true, mode: "lesson", dayKey: dk });

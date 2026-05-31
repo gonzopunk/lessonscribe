@@ -15,8 +15,8 @@ import { Button } from "@/components/ui/button";
 import { usePlanBook } from "@/lib/planbook/store";
 import { APP_NAME, colorToken } from "@/lib/planbook/constants";
 import { cn } from "@/lib/utils";
-import { dayKey as toKey, formatWeekRange, mondayOf } from "@/lib/planbook/dates";
-import { addMonths, format } from "date-fns";
+import { dayKey as toKey, formatWeekRange, mondayOf, parseDayKey } from "@/lib/planbook/dates";
+import { addDays, addMonths, format } from "date-fns";
 import { ExportDialog } from "./ExportDialog";
 import { AccountMenu } from "./AccountMenu";
 import {
@@ -58,9 +58,8 @@ export function Header() {
     updateSettings({ theme: next });
   };
 
-  const anchorDate = new Date(anchor);
-  const lastWeekStart = new Date(anchorDate);
-  lastWeekStart.setDate(anchorDate.getDate() + (weeksInView - 1) * 7);
+  const anchorDate = parseDayKey(anchor);
+  const lastWeekStart = addDays(anchorDate, (weeksInView - 1) * 7);
 
   const monthShift = (months: number) => {
     const next = addMonths(anchorDate, months);
@@ -112,7 +111,7 @@ export function Header() {
               <ChevronLeft className="size-4" />
             </Button>
             <button
-              onClick={() => setAnchor(new Date().toISOString().slice(0, 10))}
+              onClick={() => setAnchor(toKey(new Date()))}
               className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-secondary"
             >
               {viewMode === "month"
