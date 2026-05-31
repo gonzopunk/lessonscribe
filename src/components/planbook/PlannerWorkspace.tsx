@@ -35,7 +35,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { subscribeSync, initCloudSync, type SyncStatus } from "@/lib/planbook/cloudSync";
 import { initHistory } from "@/lib/planbook/history";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 
 export function PlannerWorkspace() {
   const onboarded = usePlanBook((s) => s.onboarded);
@@ -327,12 +327,40 @@ export function PlannerWorkspace() {
               >
                 {weeks.map((week, wi) => {
                   const wkMonday = week[0];
+                  const isFirst = wi === 0;
+                  const isLast = wi === weeks.length - 1;
                   return (
                     <div key={wi} className="flex flex-col gap-3">
-                      <div className="flex items-center justify-between border-b border-border pb-2">
+                      <div className="flex items-center justify-between gap-2 border-b border-border pb-2">
+                        {isFirst ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-6 shrink-0"
+                            aria-label="Previous week"
+                            onClick={() => usePlanBook.getState().shiftAnchor(-1)}
+                          >
+                            <ChevronLeft className="size-4" />
+                          </Button>
+                        ) : (
+                          <span className="size-6 shrink-0" />
+                        )}
                         <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                           Week of {formatWeekRange(wkMonday)}
                         </h2>
+                        {isLast ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-6 shrink-0"
+                            aria-label="Next week"
+                            onClick={() => usePlanBook.getState().shiftAnchor(1)}
+                          >
+                            <ChevronRight className="size-4" />
+                          </Button>
+                        ) : (
+                          <span className="size-6 shrink-0" />
+                        )}
                       </div>
                       <div className="flex flex-1 flex-col gap-3">
                         {week.map((d) => {
