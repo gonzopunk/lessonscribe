@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import {
   DndContext,
   DragOverlay,
@@ -28,7 +29,11 @@ import {
   formatWeekRange,
 } from "@/lib/planbook/dates";
 import { cn } from "@/lib/utils";
-import { colorToken, colorTokenSoft } from "@/lib/planbook/constants";
+import { colorToken, colorTokenSoft, APP_NAME } from "@/lib/planbook/constants";
+import { supabase } from "@/integrations/supabase/client";
+import { subscribeSync, type SyncStatus } from "@/lib/planbook/cloudSync";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 export function PlannerWorkspace() {
   const onboarded = usePlanBook((s) => s.onboarded);
@@ -167,8 +172,103 @@ export function PlannerWorkspace() {
     }
   };
 
+  // Auth + sync gate: never show onboarding to a signed-out returning user,
+  // and never show it while we're still loading their cloud snapshot.
+  const [authChecked, setAuthChecked] = useState(false);
+  const [hasSession, setHasSession] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>("idle");
+  const [newUserIntent, setNewUserIntent] = useState(
+    () => typeof window !== "undefined" && sessionStorage.getItem("ls:newUser") === "1",
+  );
+
+  useEffect(() => {
+    void supabase.auth.getSession().then(({ data }) => {
+      setHasSession(!!data.session);
+      setAuthChecked(true);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setHasSession(!!session);
+      setAuthChecked(true);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  useEffect(
+    () => subscribeSync((s) => setSyncStatus(s.status)),
+    [],
+  );
+
+  if (!authChecked) {
+    return (
+      <div className="flex h-dvh items-center justify-center bg-background">
+        <Loader2 className="size-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  // Signed-out: show a welcome card with explicit Sign in vs Get started.
+  // Never auto-show onboarding for an anonymous visitor — that path is what
+  // overwrites real cloud data when the user later signs in.
+  if (!hasSession && !newUserIntent) {
+    return (
+      <div className="flex h-dvh items-center justify-center bg-background px-4">
+        <div className="w-full max-w-md rounded-xl border border-border bg-card p-8 text-center shadow-sm">
+          <h1 className="text-2xl font-bold tracking-tight">Welcome to {APP_NAME}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            A calm, color-coded lesson planner. Sign in to sync across devices,
+            or get started fresh.
+          </p>
+          <div className="mt-6 flex flex-col gap-2">
+            <Link to="/login">
+              <Button className="w-full">Sign in to existing account</Button>
+            </Link>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                sessionStorage.setItem("ls:newUser", "1");
+                setNewUserIntent(true);
+              }}
+            >
+              I'm new — get started
+            </Button>
+          </div>
+          <p className="mt-4 text-xs text-muted-foreground">
+            Returning user? Always sign in first so your saved plans load.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Signed-in but cloud snapshot is still loading — don't render the
+  // onboarding dialog yet (would race with cloud hydrate).
+  if (hasSession && (syncStatus === "loading" || syncStatus === "idle")) {
+    return (
+      <div className="flex h-dvh items-center justify-center bg-background">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" />
+          Loading your plans…
+        </div>
+      </div>
+    );
+  }
+
   if (!onboarded || !course) {
-    return <OnboardingDialog open={true} />;
+    return (
+      <OnboardingDialog
+        open={true}
+        onDismiss={() => {
+          // Dismiss closes the modal cleanly without touching app state.
+          // Bounce anonymous "new user" path back to the welcome card so
+          // we don't leave them on a blank screen.
+          if (!hasSession) {
+            sessionStorage.removeItem("ls:newUser");
+            setNewUserIntent(false);
+          }
+        }}
+      />
+    );
   }
 
   const activeTemplate = draggingTemplateId

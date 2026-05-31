@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { LogIn, LogOut, User as UserIcon, Cloud, CloudOff, Loader2, AlertCircle } from "lucide-react";
+import { LogIn, LogOut, User as UserIcon, Cloud, CloudOff, Loader2, AlertCircle, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,8 +10,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { subscribeSync, manualRetry, type SyncStatus } from "@/lib/planbook/cloudSync";
+import { subscribeSync, manualRetry, restorePrevious, type SyncStatus } from "@/lib/planbook/cloudSync";
+import { format } from "date-fns";
 
 function statusBits(status: SyncStatus, lastSavedAt: number | null) {
   switch (status) {
@@ -44,8 +55,10 @@ export function AccountMenu() {
     lastSavedAt: null as number | null,
     error: null as string | null,
     userId: null as string | null,
+    hasPrevious: false,
+    previousUpdatedAt: null as string | null,
   });
-  // Re-render every 15s so "Synced 2s ago" updates without new events.
+  const [restoreOpen, setRestoreOpen] = useState(false);
   const [, setTick] = useState(0);
 
   useEffect(() => {
@@ -77,6 +90,9 @@ export function AccountMenu() {
   }
 
   const { Icon, label, spin, tone } = statusBits(sync.status, sync.lastSavedAt);
+  const prevLabel = sync.previousUpdatedAt
+    ? format(new Date(sync.previousUpdatedAt), "MMM d, yyyy 'at' h:mm a")
+    : null;
 
   return (
     <div className="flex items-center gap-2">
@@ -100,6 +116,15 @@ export function AccountMenu() {
             {email}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          {sync.hasPrevious && (
+            <DropdownMenuItem
+              onClick={() => setRestoreOpen(true)}
+              className="cursor-pointer"
+            >
+              <History className="mr-2 size-4" />
+              Restore previous version
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem
             onClick={() => void supabase.auth.signOut()}
             className="cursor-pointer"
@@ -109,6 +134,30 @@ export function AccountMenu() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <AlertDialog open={restoreOpen} onOpenChange={setRestoreOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Restore previous version?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This replaces your current plans with the version saved
+              {prevLabel ? ` on ${prevLabel}` : " previously"}. Your current
+              version will be kept as the next "previous" — you can swap back
+              once if needed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                void restorePrevious();
+              }}
+            >
+              Restore
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
