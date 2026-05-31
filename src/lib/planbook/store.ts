@@ -48,6 +48,9 @@ const blankDayMeta = (): DayMeta => ({
   objectives: "",
   standards: "",
   reflection: "",
+  differentiationNotes: "",
+  behaviorNotes: "",
+  materialsNotes: "",
 });
 
 const EMPTY_DAY_META: DayMeta = blankDayMeta();
