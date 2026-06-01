@@ -8,6 +8,8 @@ import { resolveFieldValue } from "@/lib/planbook/worksheetResolver";
 import {
   fillWorksheetPdf,
   triggerPdfDownload,
+  fillDocxTemplate,
+  triggerDocxDownload,
 } from "@/lib/planbook/worksheetGenerator";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
