@@ -316,18 +316,36 @@ export function WorksheetGenerateDialog({
                 </div>
               )}
 
-              <Button
-                onClick={onGenerate}
-                disabled={!template || generating}
-                className="w-full"
-              >
-                {generating && <Loader2 className="mr-2 size-4 animate-spin" />}
-                {template?.type === "docx-fill" ? "Generate .docx" : "Generate PDF"}
-              </Button>
+              {template?.type === "docx-fill" ? (
+                <Button
+                  onClick={onPreview}
+                  disabled={!template || generating}
+                  className="w-full"
+                >
+                  {generating && <Loader2 className="mr-2 size-4 animate-spin" />}
+                  Preview document
+                </Button>
+              ) : (
+                <Button
+                  onClick={onGenerate}
+                  disabled={!template || generating}
+                  className="w-full"
+                >
+                  {generating && <Loader2 className="mr-2 size-4 animate-spin" />}
+                  Generate PDF
+                </Button>
+              )}
             </div>
           </TooltipProvider>
         )}
       </DialogContent>
     </Dialog>
+    <WorksheetPreviewModal
+      open={previewOpen}
+      onClose={() => setPreviewOpen(false)}
+      bytes={previewBytes}
+      filename={previewFilename}
+    />
+    </>
   );
 }
