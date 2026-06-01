@@ -11,6 +11,7 @@ import {
   fillDocxTemplate,
   triggerDocxDownload,
 } from "@/lib/planbook/worksheetGenerator";
+import { WorksheetPreviewModal } from "@/components/planbook/WorksheetPreviewModal";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -67,6 +68,8 @@ export function WorksheetGenerateDialog({
   const [mode, setMode] = useState<"editable" | "print-ready">("editable");
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewBytes, setPreviewBytes] = useState<Uint8Array | null>(null);
 
   const template = templates.find((t) => t.id === templateId) ?? null;
 
@@ -133,7 +136,36 @@ export function WorksheetGenerateDialog({
     }
   };
 
+  const onPreview = async () => {
+    if (!template || !course) return;
+    setGenerating(true);
+    try {
+      const bytes = await fillDocxTemplate(
+        template,
+        courseId,
+        weekMonday,
+        fullState,
+      );
+      setPreviewBytes(bytes);
+      setPreviewOpen(true);
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? `Failed to generate preview: ${err.message}`
+          : "Failed to generate preview",
+      );
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const previewFilename = `${course?.name.replace(/[^\w\-]+/g, "_") ?? "worksheet"}-${format(
+    weekMonday,
+    "yyyy-MM-dd",
+  )}.docx`;
+
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
@@ -284,18 +316,36 @@ export function WorksheetGenerateDialog({
                 </div>
               )}
 
-              <Button
-                onClick={onGenerate}
-                disabled={!template || generating}
-                className="w-full"
-              >
-                {generating && <Loader2 className="mr-2 size-4 animate-spin" />}
-                {template?.type === "docx-fill" ? "Generate .docx" : "Generate PDF"}
-              </Button>
+              {template?.type === "docx-fill" ? (
+                <Button
+                  onClick={onPreview}
+                  disabled={!template || generating}
+                  className="w-full"
+                >
+                  {generating && <Loader2 className="mr-2 size-4 animate-spin" />}
+                  Preview document
+                </Button>
+              ) : (
+                <Button
+                  onClick={onGenerate}
+                  disabled={!template || generating}
+                  className="w-full"
+                >
+                  {generating && <Loader2 className="mr-2 size-4 animate-spin" />}
+                  Generate PDF
+                </Button>
+              )}
             </div>
           </TooltipProvider>
         )}
       </DialogContent>
     </Dialog>
+    <WorksheetPreviewModal
+      open={previewOpen}
+      onClose={() => setPreviewOpen(false)}
+      bytes={previewBytes}
+      filename={previewFilename}
+    />
+    </>
   );
 }
