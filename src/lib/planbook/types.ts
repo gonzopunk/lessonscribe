@@ -143,6 +143,7 @@ export type FieldSource =
   | { type: "day-behavior"; dayOffset: DayOffset }
   | { type: "day-materials"; dayOffset: DayOffset }
   | { type: "week-of-date"; format: string }
+  | { type: "day-date"; dayOffset: DayOffset; format: string }
   | { type: "static"; text: string }
   | { type: "week-objectives" }
   | { type: "week-essential-question" }
