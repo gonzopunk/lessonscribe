@@ -523,7 +523,10 @@ export const usePlanBook = create<Store>()(
         return {
           ...current,
           ...p,
-          worksheetTemplates: p.worksheetTemplates ?? [],
+          worksheetTemplates: (p.worksheetTemplates ?? []).map((t: any) => ({
+            type: "pdf-fill" as const,
+            ...t,
+          })),
           weekMeta: p.weekMeta ?? {},
           settings: {
             ...current.settings,

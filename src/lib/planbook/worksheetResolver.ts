@@ -94,3 +94,27 @@ export function resolveFieldValue(
     return "";
   }
 }
+
+export function resolveFieldValueForDocx(
+  source: FieldSource,
+  courseId: string,
+  weekMonday: Date,
+  state: PlanBookState,
+): string | string[] {
+  try {
+    if (source.type === "element-titles" && source.asArray) {
+      const dKey = dayKey(addDays(weekMonday, source.dayOffset));
+      return state.instances
+        .filter((i) => {
+          if (i.courseId !== courseId || i.dayKey !== dKey) return false;
+          if (source.tagId && !i.tagIds.includes(source.tagId)) return false;
+          return true;
+        })
+        .sort((a, b) => a.order - b.order)
+        .map((i) => i.title);
+    }
+    return resolveFieldValue(source, courseId, weekMonday, state);
+  } catch {
+    return "";
+  }
+}
