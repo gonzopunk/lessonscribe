@@ -11,6 +11,7 @@ import {
   fillDocxTemplate,
   triggerDocxDownload,
 } from "@/lib/planbook/worksheetGenerator";
+import { WorksheetPreviewModal } from "@/components/planbook/WorksheetPreviewModal";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
