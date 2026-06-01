@@ -23,18 +23,29 @@ export function WorksheetPreviewModal({
     if (!open || !bytes || !containerRef.current) return;
     containerRef.current.innerHTML = "";
     setRendering(true);
-    renderAsync(
-      bytes.buffer as ArrayBuffer,
-      containerRef.current,
-      undefined,
-      {
-        className: "docx-preview",
-        breakPages: true,
-        inWrapper: true,
-        ignoreWidth: false,
-        ignoreHeight: false,
-      },
-    ).finally(() => setRendering(false));
+    let cancelled = false;
+    import("docx-preview")
+      .then(({ renderAsync }) => {
+        if (cancelled || !containerRef.current) return;
+        return renderAsync(
+          bytes.buffer as ArrayBuffer,
+          containerRef.current,
+          undefined,
+          {
+            className: "docx-preview",
+            breakPages: true,
+            inWrapper: true,
+            ignoreWidth: false,
+            ignoreHeight: false,
+          },
+        );
+      })
+      .finally(() => {
+        if (!cancelled) setRendering(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [open, bytes]);
 
   const onPrint = () => {
