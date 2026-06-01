@@ -68,6 +68,8 @@ export function WorksheetGenerateDialog({
   const [mode, setMode] = useState<"editable" | "print-ready">("editable");
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewBytes, setPreviewBytes] = useState<Uint8Array | null>(null);
 
   const template = templates.find((t) => t.id === templateId) ?? null;
 
