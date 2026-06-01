@@ -48,13 +48,18 @@ export function WorksheetGenerateDialog({
   courseId,
   weekMonday,
 }: WorksheetGenerateDialogProps) {
-  const templates = usePlanBook((s) =>
-    s.worksheetTemplates.filter((t) => t.courseId === courseId),
+  const allTemplates = usePlanBook((s) => s.worksheetTemplates);
+  const allCourses = usePlanBook((s) => s.courses);
+  const fullState = usePlanBook((s) => s);
+
+  const templates = useMemo(
+    () => allTemplates.filter((t) => t.courseId === courseId),
+    [allTemplates, courseId],
   );
-  const course = usePlanBook((s) =>
-    s.courses.find((c) => c.id === courseId),
+  const course = useMemo(
+    () => allCourses.find((c) => c.id === courseId),
+    [allCourses, courseId],
   );
-  const fullState = usePlanBook();
 
   const [templateId, setTemplateId] = useState<string | null>(
     templates[0]?.id ?? null,
