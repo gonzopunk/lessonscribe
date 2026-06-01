@@ -272,6 +272,67 @@ function TemplateEditor({ template, onClose, onChange }: TemplateEditorProps) {
     }
   };
 
+  const onDocxFile = async (file: File) => {
+    try {
+      const buf = await file.arrayBuffer();
+      const PizZipMod = (await import("pizzip")).default;
+      const zip = new PizZipMod(buf);
+      const xmlContent = zip.files["word/document.xml"]?.asText() ?? "";
+      const textContent = xmlContent.replace(/<[^>]+>/g, "");
+      const simpleFields = [
+        ...textContent.matchAll(/\{\{([^#/.][^}]*?)\}\}/g),
+      ].map((m) => m[1].trim());
+      const loopFields = [
+        ...textContent.matchAll(/\{\{#([^}]+?)\}\}/g),
+      ].map((m) => m[1].trim());
+      const allFields = [...new Set([...simpleFields, ...loopFields])];
+      const base64 = await fileToBase64(file);
+      const keptMappings = template.fieldMappings.filter((m) =>
+        allFields.includes(m.fieldName),
+      );
+      const newMappings: FieldMapping[] = allFields.map(
+        (name) =>
+          keptMappings.find((m) => m.fieldName === name) ?? {
+            fieldName: name,
+            source: loopFields.includes(name)
+              ? {
+                  type: "element-titles" as const,
+                  dayOffset: 0 as DayOffset,
+                  separator: "\\n",
+                  asArray: true,
+                }
+              : { type: "static" as const, text: "" },
+          },
+      );
+      onChange({
+        docxBase64: base64,
+        detectedFields: allFields,
+        loopFields,
+        fieldMappings: newMappings,
+      });
+      const loopNote =
+        loopFields.length > 0
+          ? ` (${loopFields.length} loop field${loopFields.length === 1 ? "" : "s"})`
+          : "";
+      if (allFields.length === 0) {
+        toast.warning(
+          "No template fields detected. Make sure your document contains {{field_name}} placeholders.",
+        );
+      } else {
+        toast.success(
+          `Detected ${allFields.length} field${allFields.length === 1 ? "" : "s"}${loopNote}.`,
+        );
+      }
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? `Could not read DOCX: ${err.message}`
+          : "Could not read DOCX file.",
+      );
+      onChange({ docxBase64: "", detectedFields: [], loopFields: [], fieldMappings: [] });
+    }
+  };
+
   const updateMapping = (idx: number, patch: Partial<FieldMapping>) => {
     const next = template.fieldMappings.map((m, i) =>
       i === idx ? { ...m, ...patch } : m,
