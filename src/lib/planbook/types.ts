@@ -151,7 +151,7 @@ export type FieldSource =
   | { type: "week-objectives" }
   | { type: "week-essential-question" }
   | { type: "week-notes" }
-  | { type: "week-custom"; fieldKey: "custom1" | "custom2" };
+  | { type: "week-custom"; fieldKey: "custom1" | "custom2" | "custom3" | "custom4" | "custom5" };
 
 export interface FieldMapping {
   fieldName: string;
@@ -174,6 +174,9 @@ export interface WeekMeta {
   weeklyNotes: string;
   custom1: string;
   custom2: string;
+  custom3: string;
+  custom4: string;
+  custom5: string;
 }
 
 export const blankWeekMeta = (): WeekMeta => ({
@@ -182,5 +185,8 @@ export const blankWeekMeta = (): WeekMeta => ({
   weeklyNotes: "",
   custom1: "",
   custom2: "",
+  custom3: "",
+  custom4: "",
+  custom5: "",
 });
 

@@ -76,8 +76,16 @@ export function resolveFieldValue(
         return wm.weeklyNotes;
       }
       case "week-custom": {
-        const wm = state.weekMeta[weekMetaKey(courseId, dayKey(weekMonday))] ?? blankWeekMeta();
-        return source.fieldKey === "custom1" ? wm.custom1 : wm.custom2;
+        const wm = state.weekMeta[weekMetaKey(courseId, dayKey(weekMonday))]
+          ?? blankWeekMeta();
+        switch (source.fieldKey) {
+          case "custom1": return wm.custom1;
+          case "custom2": return wm.custom2;
+          case "custom3": return wm.custom3;
+          case "custom4": return wm.custom4;
+          case "custom5": return wm.custom5;
+          default: return "";
+        }
       }
       default:
         return "";
