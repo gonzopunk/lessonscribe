@@ -98,16 +98,17 @@ export function WorksheetTemplateSettings() {
 
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const startNew = () => {
+  const startNew = (type: "pdf-fill" | "docx-fill") => {
     if (courses.length === 0) {
       toast.error("Add a course first.");
       return;
     }
     const id = addWorksheetTemplate({
+      type,
       courseId: courses[0].id,
       name: "Untitled worksheet",
-      pdfBase64: "",
       detectedFields: [],
+      loopFields: type === "docx-fill" ? [] : undefined,
       fieldMappings: [],
     });
     setEditingId(id);
@@ -130,15 +131,22 @@ export function WorksheetTemplateSettings() {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">
-          Upload a fillable PDF with named AcroForm fields, then map each field
-          to a piece of weekly plan data.
+          Add a PDF form template (AcroForm fields) or a Word document template
+          ({"{{field_name}}"} placeholders), then map each field to weekly plan
+          data.
         </p>
-        <Button variant="outline" size="sm" onClick={startNew}>
-          <Plus className="mr-1 size-4" />
-          Add template
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => startNew("pdf-fill")}>
+            <Plus className="mr-1 size-4" />
+            Add PDF template
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => startNew("docx-fill")}>
+            <Plus className="mr-1 size-4" />
+            Add Word template
+          </Button>
+        </div>
       </div>
 
       {worksheetTemplates.length === 0 ? (
