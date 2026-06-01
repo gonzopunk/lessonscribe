@@ -29,6 +29,9 @@ export function WeekNotesDialog({ open, onOpenChange, courseId, weekKey }: Props
 
   const label1 = course?.weekMetaLabel1 || "Custom note 1";
   const label2 = course?.weekMetaLabel2 || "Custom note 2";
+  const label3 = course?.weekMetaLabel3 || "Custom note 3";
+  const label4 = course?.weekMetaLabel4 || "Custom note 4";
+  const label5 = course?.weekMetaLabel5 || "Custom note 5";
 
   const set = (patch: Partial<WeekMeta>) =>
     updateWeekMeta(courseId, weekKey, patch);
@@ -39,6 +42,9 @@ export function WeekNotesDialog({ open, onOpenChange, courseId, weekKey }: Props
     { key: "weeklyNotes", label: "Weekly notes" },
     { key: "custom1", label: label1 },
     { key: "custom2", label: label2 },
+    { key: "custom3", label: label3 },
+    { key: "custom4", label: label4 },
+    { key: "custom5", label: label5 },
   ];
 
   return (
@@ -74,6 +80,9 @@ export function WeekNotesDialog({ open, onOpenChange, courseId, weekKey }: Props
                   weeklyNotes: "",
                   custom1: "",
                   custom2: "",
+                  custom3: "",
+                  custom4: "",
+                  custom5: "",
                 });
               }
             }}

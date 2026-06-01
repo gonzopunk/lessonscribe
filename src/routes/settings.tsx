@@ -448,6 +448,36 @@ function SettingsPage() {
                       }
                     />
                   </div>
+                  <div className="space-y-1.5">
+                    <Label>Weekly notes — custom label 3</Label>
+                    <Input
+                      value={c.weekMetaLabel3 ?? ""}
+                      placeholder="Custom note 3"
+                      onChange={(e) =>
+                        updateCourse(c.id, { weekMetaLabel3: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Weekly notes — custom label 4</Label>
+                    <Input
+                      value={c.weekMetaLabel4 ?? ""}
+                      placeholder="Custom note 4"
+                      onChange={(e) =>
+                        updateCourse(c.id, { weekMetaLabel4: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Weekly notes — custom label 5</Label>
+                    <Input
+                      value={c.weekMetaLabel5 ?? ""}
+                      placeholder="Custom note 5"
+                      onChange={(e) =>
+                        updateCourse(c.id, { weekMetaLabel5: e.target.value })
+                      }
+                    />
+                  </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
                   These labels appear in the Weekly notes dialog for this course.
