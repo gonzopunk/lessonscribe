@@ -1,41 +1,27 @@
-## Add DOCX template support to the worksheet generator
+## Add DOCX preview step to worksheet generator
 
-Add a parallel Word-document path alongside the existing PDF/AcroForm flow. Existing PDF templates keep working unchanged via a migration that stamps `type: "pdf-fill"`.
+Adds a full-screen preview overlay for DOCX templates only. PDF path is untouched.
 
-### 1. Dependencies
-- `bun add docxtemplater pizzip`
+### 1. Dependency
+- `bun add docx-preview`
 
-### 2. Types (`src/lib/planbook/types.ts`)
-- `WorksheetTemplate`: add `type: "pdf-fill" | "docx-fill"`, make `pdfBase64` optional, add optional `docxBase64`, `loopFields`.
-- `FieldSource` `element-titles` variant: add optional `asArray?: boolean`.
+### 2. New component — `src/components/planbook/WorksheetPreviewModal.tsx`
+Fixed `inset-0 z-50` overlay rendering a filled DOCX via `docx-preview`'s `renderAsync`.
+- Props: `open`, `onClose`, `bytes: Uint8Array | null`, `filename`.
+- Effect: on open + bytes, clear container `innerHTML`, call `renderAsync(bytes.buffer, container, undefined, { className: "docx-preview", breakPages: true, inWrapper: true, ignoreWidth: false, ignoreHeight: false })`, toggle `rendering` flag.
+- Top bar: Back button (calls `onClose`), filename label, Print button, Download .docx button (uses existing `triggerDocxDownload`).
+- Print: opens new window, writes minimal print stylesheet + `containerRef.innerHTML`, calls `window.print()` after 600ms.
+- Loading state shows a `Loader2` spinner while `rendering` is true.
 
-### 3. Store (`src/lib/planbook/store.ts`)
-- In merge, map `worksheetTemplates` to default `type: "pdf-fill"` for legacy records.
-
-### 4. Resolver (`src/lib/planbook/worksheetResolver.ts`)
-- Add `resolveFieldValueForDocx` that returns `string[]` for `element-titles` with `asArray`, otherwise delegates to `resolveFieldValue`.
-
-### 5. Generator (`src/lib/planbook/worksheetGenerator.ts`)
-- Static imports for `Docxtemplater`, `PizZip`, `resolveFieldValueForDocx`, `PlanBookState`.
-- Add `fillDocxTemplate(template, courseId, weekMonday, state)` using `{{ }}` delimiters, `paragraphLoop: true`, `linebreaks: true`.
-- Add `triggerDocxDownload`.
-- Tighten `fillWorksheetPdf` to use `template.pdfBase64!`.
-
-### 6. Template Settings UI (`src/components/planbook/WorksheetTemplateSettings.tsx`)
-- Split "Add template" into "Add PDF template" and "Add Word template"; `startNew(type)` seeds `type`, and `loopFields: []` when docx.
-- Add `onDocxFile`: dynamic `import("pizzip")`, read `word/document.xml`, strip XML tags, regex-detect `{{field}}` and `{{#field}}`; default loop fields to `element-titles` + `asArray: true`, others to `static`.
-- Render PDF upload UI for `pdf-fill`, DOCX upload UI for `docx-fill` (drop zone, detected fields summary, loop-field callout).
-- `SourceEditor`: add "As list (for loop syntax)" checkbox after the separator input for `element-titles`.
-- Bug fix: extend week-custom Select to include custom3–custom5.
-- Update list-view description to mention both PDF AcroForm and `{{field_name}}` Word templates.
-
-### 7. Generate Dialog (`src/components/planbook/WorksheetGenerateDialog.tsx`)
-- Import `fillDocxTemplate`, `triggerDocxDownload`.
-- `onGenerate` branches on `template.type`: docx path generates `.docx` from full state; pdf path unchanged.
-- Hide Output mode toggle when `template.type === "docx-fill"`.
-- Button label: "Generate .docx" vs "Generate PDF".
+### 3. `src/components/planbook/WorksheetGenerateDialog.tsx`
+- New imports: `fillDocxTemplate` already imported; add `WorksheetPreviewModal`.
+- New state: `previewOpen: boolean`, `previewBytes: Uint8Array | null`.
+- New `onPreview` handler for DOCX: calls `fillDocxTemplate(template, courseId, weekMonday, fullState)`, stores bytes, opens preview; toast on error; toggles `generating`.
+- Button: when `template?.type === "docx-fill"`, render "Preview document" calling `onPreview`; otherwise keep existing "Generate PDF" calling `onGenerate`.
+- Output mode toggle already conditional on `template.type === "pdf-fill"` — keep as is (equivalent to spec's wrap).
+- Render `<WorksheetPreviewModal>` outside the `<Dialog>` (inside a fragment wrapper at the top of return) so the generate Dialog stays mounted and state is preserved when user clicks Back.
 
 ### Notes
-- Dynamic `import("pizzip")` in the settings upload handler keeps initial bundle lean; static import in the generator is fine since it's only loaded at generation time.
-- No route, calendar, planner, or lesson-plan-modal changes.
-- Migration only adds `type` to existing template records — `pdfBase64`/`fieldMappings` preserved.
+- `bytes.buffer as ArrayBuffer` for `renderAsync` input.
+- Generate Dialog is not unmounted while preview is open; Back returns user exactly where they left off.
+- No changes to PDF path, template settings UI, planner workspace, resolver, or generator.

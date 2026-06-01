@@ -53,6 +53,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.3.0",
+    "docx-preview": "^0.3.7",
     "docxtemplater": "^3.68.7",
     "embla-carousel-react": "^8.6.0",
     "ical.js": "^2.2.1",
