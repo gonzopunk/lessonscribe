@@ -613,6 +613,22 @@ function SourceEditor({
         </div>
       )}
 
+      {source.type === "day-date" && (
+        <div className="space-y-1">
+          <Input
+            value={source.format}
+            onChange={(e) =>
+              onSourceChange({ ...source, format: e.target.value })
+            }
+            className="h-8 w-[180px]"
+            placeholder="MMMM d"
+          />
+          <p className="text-[10px] text-muted-foreground">
+            Example: {format(new Date(), source.format || "MMMM d")}
+          </p>
+        </div>
+      )}
+
       {source.type === "static" && (
         <Input
           value={source.text}
