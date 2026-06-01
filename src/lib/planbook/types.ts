@@ -139,7 +139,7 @@ export type DayOffset = 0 | 1 | 2 | 3 | 4; // 0=Mon 1=Tue 2=Wed 3=Thu 4=Fri
 
 export type FieldSource =
   | { type: "element-content"; dayOffset: DayOffset; tagId: string }
-  | { type: "element-titles"; dayOffset: DayOffset; tagId?: string; separator: string }
+  | { type: "element-titles"; dayOffset: DayOffset; tagId?: string; separator: string; asArray?: boolean }
   | { type: "day-notes"; dayOffset: DayOffset }
   | { type: "day-objectives"; dayOffset: DayOffset }
   | { type: "day-differentiation"; dayOffset: DayOffset }
@@ -163,7 +163,10 @@ export interface WorksheetTemplate {
   id: string;
   courseId: string;
   name: string;
-  pdfBase64: string;
+  type: "pdf-fill" | "docx-fill";
+  pdfBase64?: string;
+  docxBase64?: string;
+  loopFields?: string[];
   detectedFields: string[];
   fieldMappings: FieldMapping[];
 }

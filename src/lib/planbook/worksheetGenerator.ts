@@ -1,5 +1,8 @@
 import { PDFDocument } from "pdf-lib";
-import type { WorksheetTemplate } from "./types";
+import Docxtemplater from "docxtemplater";
+import PizZip from "pizzip";
+import { resolveFieldValueForDocx } from "./worksheetResolver";
+import type { PlanBookState, WorksheetTemplate } from "./types";
 
 function base64ToBytes(b64: string): Uint8Array {
   const clean = b64.includes(",") ? b64.split(",")[1] : b64;
@@ -14,7 +17,7 @@ export async function fillWorksheetPdf(
   resolvedValues: Record<string, string>,
   flatten: boolean,
 ): Promise<Uint8Array> {
-  const doc = await PDFDocument.load(base64ToBytes(template.pdfBase64));
+  const doc = await PDFDocument.load(base64ToBytes(template.pdfBase64!));
   const form = doc.getForm();
   for (const mapping of template.fieldMappings) {
     try {
@@ -36,6 +39,46 @@ export async function fillWorksheetPdf(
 
 export function triggerPdfDownload(bytes: Uint8Array, filename: string): void {
   const blob = new Blob([bytes as BlobPart], { type: "application/pdf" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+export async function fillDocxTemplate(
+  template: WorksheetTemplate,
+  courseId: string,
+  weekMonday: Date,
+  state: PlanBookState,
+): Promise<Uint8Array> {
+  const bytes = base64ToBytes(template.docxBase64!);
+  const zip = new PizZip(bytes);
+  const doc = new Docxtemplater(zip, {
+    delimiters: { start: "{{", end: "}}" },
+    paragraphLoop: true,
+    linebreaks: true,
+  });
+  const data: Record<string, string | string[]> = {};
+  for (const mapping of template.fieldMappings) {
+    data[mapping.fieldName] = resolveFieldValueForDocx(
+      mapping.source,
+      courseId,
+      weekMonday,
+      state,
+    );
+  }
+  doc.render(data);
+  return doc.getZip().generate({ type: "uint8array" });
+}
+
+export function triggerDocxDownload(bytes: Uint8Array, filename: string): void {
+  const blob = new Blob([bytes as BlobPart], {
+    type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;

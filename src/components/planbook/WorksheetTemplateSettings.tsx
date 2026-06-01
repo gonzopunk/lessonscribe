@@ -98,16 +98,17 @@ export function WorksheetTemplateSettings() {
 
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const startNew = () => {
+  const startNew = (type: "pdf-fill" | "docx-fill") => {
     if (courses.length === 0) {
       toast.error("Add a course first.");
       return;
     }
     const id = addWorksheetTemplate({
+      type,
       courseId: courses[0].id,
       name: "Untitled worksheet",
-      pdfBase64: "",
       detectedFields: [],
+      loopFields: type === "docx-fill" ? [] : undefined,
       fieldMappings: [],
     });
     setEditingId(id);
@@ -130,15 +131,22 @@ export function WorksheetTemplateSettings() {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">
-          Upload a fillable PDF with named AcroForm fields, then map each field
-          to a piece of weekly plan data.
+          Add a PDF form template (AcroForm fields) or a Word document template
+          ({"{{field_name}}"} placeholders), then map each field to weekly plan
+          data.
         </p>
-        <Button variant="outline" size="sm" onClick={startNew}>
-          <Plus className="mr-1 size-4" />
-          Add template
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => startNew("pdf-fill")}>
+            <Plus className="mr-1 size-4" />
+            Add PDF template
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => startNew("docx-fill")}>
+            <Plus className="mr-1 size-4" />
+            Add Word template
+          </Button>
+        </div>
       </div>
 
       {worksheetTemplates.length === 0 ? (
@@ -264,6 +272,67 @@ function TemplateEditor({ template, onClose, onChange }: TemplateEditorProps) {
     }
   };
 
+  const onDocxFile = async (file: File) => {
+    try {
+      const buf = await file.arrayBuffer();
+      const PizZipMod = (await import("pizzip")).default;
+      const zip = new PizZipMod(buf);
+      const xmlContent = zip.files["word/document.xml"]?.asText() ?? "";
+      const textContent = xmlContent.replace(/<[^>]+>/g, "");
+      const simpleFields = [
+        ...textContent.matchAll(/\{\{([^#/.][^}]*?)\}\}/g),
+      ].map((m) => m[1].trim());
+      const loopFields = [
+        ...textContent.matchAll(/\{\{#([^}]+?)\}\}/g),
+      ].map((m) => m[1].trim());
+      const allFields = [...new Set([...simpleFields, ...loopFields])];
+      const base64 = await fileToBase64(file);
+      const keptMappings = template.fieldMappings.filter((m) =>
+        allFields.includes(m.fieldName),
+      );
+      const newMappings: FieldMapping[] = allFields.map(
+        (name) =>
+          keptMappings.find((m) => m.fieldName === name) ?? {
+            fieldName: name,
+            source: loopFields.includes(name)
+              ? {
+                  type: "element-titles" as const,
+                  dayOffset: 0 as DayOffset,
+                  separator: "\\n",
+                  asArray: true,
+                }
+              : { type: "static" as const, text: "" },
+          },
+      );
+      onChange({
+        docxBase64: base64,
+        detectedFields: allFields,
+        loopFields,
+        fieldMappings: newMappings,
+      });
+      const loopNote =
+        loopFields.length > 0
+          ? ` (${loopFields.length} loop field${loopFields.length === 1 ? "" : "s"})`
+          : "";
+      if (allFields.length === 0) {
+        toast.warning(
+          "No template fields detected. Make sure your document contains {{field_name}} placeholders.",
+        );
+      } else {
+        toast.success(
+          `Detected ${allFields.length} field${allFields.length === 1 ? "" : "s"}${loopNote}.`,
+        );
+      }
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? `Could not read DOCX: ${err.message}`
+          : "Could not read DOCX file.",
+      );
+      onChange({ docxBase64: "", detectedFields: [], loopFields: [], fieldMappings: [] });
+    }
+  };
+
   const updateMapping = (idx: number, patch: Partial<FieldMapping>) => {
     const next = template.fieldMappings.map((m, i) =>
       i === idx ? { ...m, ...patch } : m,
@@ -306,44 +375,93 @@ function TemplateEditor({ template, onClose, onChange }: TemplateEditorProps) {
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label>PDF file</Label>
-          <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-surface/40 p-6 text-sm text-muted-foreground hover:border-primary/50 hover:bg-surface">
-            <Upload className="size-5" />
-            <span>
-              {template.pdfBase64
-                ? "Replace PDF (drag or click)"
-                : "Drop a PDF here, or click to upload"}
-            </span>
-            <input
-              type="file"
-              accept=".pdf,application/pdf"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) void onPdfFile(f);
-                e.target.value = "";
-              }}
-            />
-          </label>
-          {template.pdfBase64 && template.detectedFields.length === 0 && (
-            <p className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-300">
-              <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
-              No fillable fields found. Make sure your PDF has named AcroForm
-              text fields added in a PDF editor such as PDF24 or Adobe Acrobat.
-            </p>
-          )}
-          {template.detectedFields.length > 0 && (
-            <p className="text-xs text-muted-foreground">
-              <span className="font-semibold text-foreground">
-                {template.detectedFields.length} fields detected:
-              </span>{" "}
-              <span className="font-mono">
-                {template.detectedFields.join(", ")}
+        {template.type === "pdf-fill" ? (
+          <div className="space-y-2">
+            <Label>PDF file</Label>
+            <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-surface/40 p-6 text-sm text-muted-foreground hover:border-primary/50 hover:bg-surface">
+              <Upload className="size-5" />
+              <span>
+                {template.pdfBase64
+                  ? "Replace PDF (drag or click)"
+                  : "Drop a PDF here, or click to upload"}
               </span>
-            </p>
-          )}
-        </div>
+              <input
+                type="file"
+                accept=".pdf,application/pdf"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) void onPdfFile(f);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+            {template.pdfBase64 && template.detectedFields.length === 0 && (
+              <p className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-300">
+                <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+                No fillable fields found. Make sure your PDF has named AcroForm
+                text fields added in a PDF editor such as PDF24 or Adobe Acrobat.
+              </p>
+            )}
+            {template.detectedFields.length > 0 && (
+              <p className="text-xs text-muted-foreground">
+                <span className="font-semibold text-foreground">
+                  {template.detectedFields.length} fields detected:
+                </span>{" "}
+                <span className="font-mono">
+                  {template.detectedFields.join(", ")}
+                </span>
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <Label>Word document (.docx)</Label>
+            <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-surface/40 p-6 text-sm text-muted-foreground hover:border-primary/50 hover:bg-surface">
+              <Upload className="size-5" />
+              <span>
+                {template.docxBase64
+                  ? "Replace document (drag or click)"
+                  : "Drop a .docx file here, or click to upload"}
+              </span>
+              <input
+                type="file"
+                accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) void onDocxFile(f);
+                  e.target.value = "";
+                }}
+              />
+            </label>
+            {template.docxBase64 && template.detectedFields.length === 0 && (
+              <p className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-300">
+                <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+                No {"{{field_name}}"} placeholders detected. Make sure your document
+                contains template fields in double curly braces.
+              </p>
+            )}
+            {template.detectedFields.length > 0 && (
+              <p className="text-xs text-muted-foreground">
+                <span className="font-semibold text-foreground">
+                  {template.detectedFields.length} fields detected:
+                </span>{" "}
+                <span className="font-mono">
+                  {template.detectedFields.join(", ")}
+                </span>
+                {template.loopFields && template.loopFields.length > 0 && (
+                  <span>
+                    {" "}· Loop fields:{" "}
+                    <span className="font-mono">
+                      {template.loopFields.join(", ")}
+                    </span>
+                  </span>
+                )}
+              </p>
+            )}
+          </div>
+        )}
 
         {template.fieldMappings.length > 0 && (
           <div className="space-y-2">
@@ -594,6 +712,17 @@ function SourceEditor({
             placeholder="\n"
           />
           <p className="text-[10px] text-muted-foreground">Use \n for line breaks</p>
+          <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <input
+              type="checkbox"
+              checked={source.type === "element-titles" && !!source.asArray}
+              onChange={(e) =>
+                onSourceChange({ ...source, asArray: e.target.checked })
+              }
+              className="h-3 w-3"
+            />
+            As list (for loop syntax)
+          </label>
         </div>
       )}
 
@@ -642,7 +771,10 @@ function SourceEditor({
         <Select
           value={source.fieldKey}
           onValueChange={(v) =>
-            onSourceChange({ ...source, fieldKey: v as "custom1" | "custom2" })
+            onSourceChange({
+              ...source,
+              fieldKey: v as "custom1" | "custom2" | "custom3" | "custom4" | "custom5",
+            })
           }
         >
           <SelectTrigger className="h-8 w-[160px]">
@@ -651,6 +783,9 @@ function SourceEditor({
           <SelectContent>
             <SelectItem value="custom1">Custom note 1</SelectItem>
             <SelectItem value="custom2">Custom note 2</SelectItem>
+            <SelectItem value="custom3">Custom note 3</SelectItem>
+            <SelectItem value="custom4">Custom note 4</SelectItem>
+            <SelectItem value="custom5">Custom note 5</SelectItem>
           </SelectContent>
         </Select>
       )}
