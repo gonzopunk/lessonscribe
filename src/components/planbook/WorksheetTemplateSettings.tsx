@@ -712,6 +712,17 @@ function SourceEditor({
             placeholder="\n"
           />
           <p className="text-[10px] text-muted-foreground">Use \n for line breaks</p>
+          <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <input
+              type="checkbox"
+              checked={source.type === "element-titles" && !!source.asArray}
+              onChange={(e) =>
+                onSourceChange({ ...source, asArray: e.target.checked })
+              }
+              className="h-3 w-3"
+            />
+            As list (for loop syntax)
+          </label>
         </div>
       )}
 
@@ -760,7 +771,10 @@ function SourceEditor({
         <Select
           value={source.fieldKey}
           onValueChange={(v) =>
-            onSourceChange({ ...source, fieldKey: v as "custom1" | "custom2" })
+            onSourceChange({
+              ...source,
+              fieldKey: v as "custom1" | "custom2" | "custom3" | "custom4" | "custom5",
+            })
           }
         >
           <SelectTrigger className="h-8 w-[160px]">
@@ -769,6 +783,9 @@ function SourceEditor({
           <SelectContent>
             <SelectItem value="custom1">Custom note 1</SelectItem>
             <SelectItem value="custom2">Custom note 2</SelectItem>
+            <SelectItem value="custom3">Custom note 3</SelectItem>
+            <SelectItem value="custom4">Custom note 4</SelectItem>
+            <SelectItem value="custom5">Custom note 5</SelectItem>
           </SelectContent>
         </Select>
       )}
