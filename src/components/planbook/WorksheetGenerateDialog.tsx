@@ -88,20 +88,35 @@ export function WorksheetGenerateDialog({
     if (!template || !course) return;
     setGenerating(true);
     try {
-      const resolved: Record<string, string> = {};
-      for (const r of rows) {
-        resolved[r.mapping.fieldName] = r.value;
+      const isDocx = template.type === "docx-fill";
+      if (isDocx) {
+        const bytes = await fillDocxTemplate(
+          template,
+          courseId,
+          weekMonday,
+          fullState,
+        );
+        const filename = `${course.name.replace(/[^\w\-]+/g, "_")}-worksheet-${format(
+          weekMonday,
+          "yyyy-MM-dd",
+        )}.docx`;
+        triggerDocxDownload(bytes, filename);
+      } else {
+        const resolved: Record<string, string> = {};
+        for (const r of rows) {
+          resolved[r.mapping.fieldName] = r.value;
+        }
+        const bytes = await fillWorksheetPdf(
+          template,
+          resolved,
+          mode === "print-ready",
+        );
+        const filename = `${course.name.replace(/[^\w\-]+/g, "_")}-worksheet-${format(
+          weekMonday,
+          "yyyy-MM-dd",
+        )}.pdf`;
+        triggerPdfDownload(bytes, filename);
       }
-      const bytes = await fillWorksheetPdf(
-        template,
-        resolved,
-        mode === "print-ready",
-      );
-      const filename = `${course.name.replace(/[^\w\-]+/g, "_")}-worksheet-${format(
-        weekMonday,
-        "yyyy-MM-dd",
-      )}.pdf`;
-      triggerPdfDownload(bytes, filename);
       toast.success("Worksheet downloaded");
       onOpenChange(false);
     } catch (err) {
