@@ -56,6 +56,11 @@ export function resolveFieldValue(
       }
       case "week-of-date":
         return format(weekMonday, source.format || "MMMM d, yyyy");
+      case "day-date":
+        return format(
+          addDays(weekMonday, source.dayOffset),
+          source.format || "MMMM d",
+        );
       case "static":
         return source.text ?? "";
       case "week-objectives": {

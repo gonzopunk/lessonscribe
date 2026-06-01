@@ -63,6 +63,8 @@ function defaultSourceForKind(kind: SourceKind): FieldSource {
       return { type: "day-materials", dayOffset: 0 };
     case "week-of-date":
       return { type: "week-of-date", format: "MMMM d, yyyy" };
+    case "day-date":
+      return { type: "day-date", dayOffset: 0, format: "MMMM d" };
     case "static":
       return { type: "static", text: "" };
     case "week-objectives":
@@ -486,6 +488,7 @@ function SourceEditor({
     "day-behavior": "Day behavior notes",
     "day-materials": "Day materials",
     "week-of-date": "Week-of date",
+    "day-date": "Day date",
     static: "Static text",
     "week-objectives": "Weekly objectives",
     "week-essential-question": "Essential question",
@@ -500,7 +503,8 @@ function SourceEditor({
     source.type === "day-objectives" ||
     source.type === "day-differentiation" ||
     source.type === "day-behavior" ||
-    source.type === "day-materials";
+    source.type === "day-materials" ||
+    source.type === "day-date";
 
   const dayOffset =
     hasDay && "dayOffset" in source ? source.dayOffset : 0;
@@ -605,6 +609,22 @@ function SourceEditor({
           />
           <p className="text-[10px] text-muted-foreground">
             Example: {format(new Date(), source.format || "MMMM d, yyyy")}
+          </p>
+        </div>
+      )}
+
+      {source.type === "day-date" && (
+        <div className="space-y-1">
+          <Input
+            value={source.format}
+            onChange={(e) =>
+              onSourceChange({ ...source, format: e.target.value })
+            }
+            className="h-8 w-[180px]"
+            placeholder="MMMM d"
+          />
+          <p className="text-[10px] text-muted-foreground">
+            Example: {format(new Date(), source.format || "MMMM d")}
           </p>
         </div>
       )}
