@@ -16,6 +16,9 @@ export interface Course {
   subDefaults: string;          // free-text class management context
   weekMetaLabel1?: string;      // defaults to "Custom note 1" when absent
   weekMetaLabel2?: string;      // defaults to "Custom note 2" when absent
+  weekMetaLabel3?: string;      // defaults to "Custom note 3" when absent
+  weekMetaLabel4?: string;      // defaults to "Custom note 4" when absent
+  weekMetaLabel5?: string;      // defaults to "Custom note 5" when absent
   createdAt: number;
 }
 
