@@ -1,5 +1,4 @@
 import { useRef, useEffect, useState } from "react";
-import { renderAsync } from "docx-preview";
 import { ArrowLeft, Download, Loader2, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { triggerDocxDownload } from "@/lib/planbook/worksheetGenerator";
