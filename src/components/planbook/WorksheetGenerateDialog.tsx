@@ -223,41 +223,43 @@ export function WorksheetGenerateDialog({
                 </div>
               )}
 
-              <div className="space-y-2">
-                <Label>Output mode</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setMode("editable")}
-                    className={cn(
-                      "rounded-md border p-3 text-left text-xs transition-colors",
-                      mode === "editable"
-                        ? "border-primary bg-primary/10"
-                        : "border-border bg-card hover:bg-secondary",
-                    )}
-                  >
-                    <div className="text-sm font-semibold">Editable</div>
-                    <p className="mt-0.5 text-muted-foreground">
-                      Fields stay live — adjust in any PDF viewer before printing.
-                    </p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setMode("print-ready")}
-                    className={cn(
-                      "rounded-md border p-3 text-left text-xs transition-colors",
-                      mode === "print-ready"
-                        ? "border-primary bg-primary/10"
-                        : "border-border bg-card hover:bg-secondary",
-                    )}
-                  >
-                    <div className="text-sm font-semibold">Print-ready</div>
-                    <p className="mt-0.5 text-muted-foreground">
-                      Fields baked in — opens straight to print.
-                    </p>
-                  </button>
+              {(!template || template.type === "pdf-fill") && (
+                <div className="space-y-2">
+                  <Label>Output mode</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setMode("editable")}
+                      className={cn(
+                        "rounded-md border p-3 text-left text-xs transition-colors",
+                        mode === "editable"
+                          ? "border-primary bg-primary/10"
+                          : "border-border bg-card hover:bg-secondary",
+                      )}
+                    >
+                      <div className="text-sm font-semibold">Editable</div>
+                      <p className="mt-0.5 text-muted-foreground">
+                        Fields stay live — adjust in any PDF viewer before printing.
+                      </p>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMode("print-ready")}
+                      className={cn(
+                        "rounded-md border p-3 text-left text-xs transition-colors",
+                        mode === "print-ready"
+                          ? "border-primary bg-primary/10"
+                          : "border-border bg-card hover:bg-secondary",
+                      )}
+                    >
+                      <div className="text-sm font-semibold">Print-ready</div>
+                      <p className="mt-0.5 text-muted-foreground">
+                        Fields baked in — opens straight to print.
+                      </p>
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {hasOverflow && !bannerDismissed && (
                 <div className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-700 dark:text-amber-300">
@@ -283,7 +285,7 @@ export function WorksheetGenerateDialog({
                 className="w-full"
               >
                 {generating && <Loader2 className="mr-2 size-4 animate-spin" />}
-                Generate PDF
+                {template?.type === "docx-fill" ? "Generate .docx" : "Generate PDF"}
               </Button>
             </div>
           </TooltipProvider>
