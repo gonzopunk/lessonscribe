@@ -136,7 +136,36 @@ export function WorksheetGenerateDialog({
     }
   };
 
+  const onPreview = async () => {
+    if (!template || !course) return;
+    setGenerating(true);
+    try {
+      const bytes = await fillDocxTemplate(
+        template,
+        courseId,
+        weekMonday,
+        fullState,
+      );
+      setPreviewBytes(bytes);
+      setPreviewOpen(true);
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? `Failed to generate preview: ${err.message}`
+          : "Failed to generate preview",
+      );
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const previewFilename = `${course?.name.replace(/[^\w\-]+/g, "_") ?? "worksheet"}-${format(
+    weekMonday,
+    "yyyy-MM-dd",
+  )}.docx`;
+
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
