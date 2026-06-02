@@ -347,6 +347,7 @@ export function WorksheetGenerateDialog({
       onClose={() => setPreviewOpen(false)}
       bytes={previewBytes}
       filename={previewFilename}
+      unsupportedLayout={previewUnsupported}
     />
     </>
   );
