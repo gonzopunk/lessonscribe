@@ -213,8 +213,9 @@ async function handleSignIn(userId: string) {
     const remote = await loadSnapshot();
     if (remote && remote.data) {
       remoteHasSnapshot = true;
-      const snap = (remote.data as { data?: Partial<PlanBookState> }).data;
-      if (snap) applyCloudShape(snap);
+      const snap = remote.data as Partial<PlanBookState>;
+      applyCloudShape(snap);
+      hydratedAt = Date.now();
       setState({
         status: "saved",
         lastSavedAt: new Date(remote.updatedAt as string).getTime(),
