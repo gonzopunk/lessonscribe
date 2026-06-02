@@ -99,7 +99,7 @@ export function WorksheetGenerateDialog({
     try {
       const isDocx = template.type === "docx-fill";
       if (isDocx) {
-        const bytes = await fillDocxTemplate(
+        const { bytes } = await fillDocxTemplate(
           template,
           courseId,
           weekMonday,
