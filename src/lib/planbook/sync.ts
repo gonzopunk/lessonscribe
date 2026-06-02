@@ -39,7 +39,7 @@ export const saveSnapshot = createServerFn({ method: "POST" })
     const now = new Date().toISOString();
     const row = {
       user_id: userId,
-      data: data.data,
+      data: snapshot,
       updated_at: now,
       ...(current
         ? {
