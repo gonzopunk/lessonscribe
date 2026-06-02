@@ -277,8 +277,9 @@ export async function restorePrevious(): Promise<boolean> {
       setState({ status: "saved", error: null });
       return false;
     }
-    const snap = (restored.data as { data?: Partial<PlanBookState> }).data;
-    if (snap) applyCloudShape(snap);
+    const snap = restored.data as Partial<PlanBookState>;
+    applyCloudShape(snap);
+    hydratedAt = Date.now();
     remoteHasSnapshot = true;
     setState({
       status: "saved",
