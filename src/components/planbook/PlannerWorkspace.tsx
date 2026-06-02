@@ -238,7 +238,7 @@ export function PlannerWorkspace() {
     return (
       <div className="flex h-dvh items-center justify-center bg-background px-4">
         <div className="w-full max-w-md rounded-xl border border-border bg-card p-8 text-center shadow-sm">
-          <h1 className="text-2xl font-bold tracking-tight font-serif">Welcome to {APP_NAME}</h1>
+          <h1 className="tracking-tight font-serif font-semibold text-3xl">Welcome to {APP_NAME}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             A calm, color-coded lesson planner. Sign in to sync across devices,
             or get started fresh.
