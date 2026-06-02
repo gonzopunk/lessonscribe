@@ -87,8 +87,18 @@ function pickCloudShape(s: Store): Partial<PlanBookState> {
     overrides: s.overrides,
     dayMeta: s.dayMeta,
     worksheetTemplates: s.worksheetTemplates,
+    weekMeta: s.weekMeta,
     // device-local: anchorDate, selectedFilterTagIds intentionally omitted
   };
+}
+
+function snapshotSize(s: Partial<PlanBookState>): number {
+  return (
+    (s.courses?.length ?? 0) +
+    (s.templates?.length ?? 0) +
+    (s.instances?.length ?? 0) +
+    (s.worksheetTemplates?.length ?? 0)
+  );
 }
 
 function applyCloudShape(snapshot: Partial<PlanBookState>) {
