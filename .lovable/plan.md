@@ -1,46 +1,48 @@
-## What we know
+## Diagnosis
 
-- In the Generate Worksheet dialog, the Field / Value table shows the correct Weekly Objective text for the field.
-- That same field is missing in the DOCX preview overlay.
-- The mapping source is "Weekly objectives", which `resolveFieldValueForDocx` handles via `state.weekMeta[weekMetaKey(courseId, dayKey(weekMonday))].weeklyObjectives` — and it's clearly returning the right string, since the dialog table renders it.
+The generated DOCX is correct: after downloading and opening in Word, the Weekly Objective appears.
 
-So data resolution is fine. The value is being handed to `docxtemplater` in `fillDocxTemplate` (worksheetGenerator.ts) keyed on `mapping.fieldName`, but the rendered .docx does not show it. That isolates the problem to one of:
-
-1. **Placeholder name mismatch** between `mapping.fieldName` and the `{{...}}` tag actually typed in the .docx file (docxtemplater tag names are case-sensitive — `{{WeeklyObjective}}` ≠ `weeklyObjective`).
-2. **Split-run placeholder in the .docx** — when the user typed `{{WeeklyObjective}}` in Word and any character inside it has different formatting (bold/italic/color/spellcheck mark), Word splits the placeholder across multiple `<w:r>` runs in the underlying XML. Docxtemplater then fails to recognize the tag and silently leaves it (or the surrounding paragraph) untouched. This is the single most common cause of "one field doesn't render but the others do."
-3. **Silent docxtemplater error** — we currently call `doc.render(data)` with no `errorLogging` and no try/catch around it, so any per-tag error is swallowed.
+The missing field only happens in the in-app preview because the placeholder sits inside a Word text box / header / footer / callout area. `docx-preview` does not fully support all Word drawing/textbox layouts, so it can render the rest of the document while dropping or mis-rendering that area.
 
 ## Plan
 
-### Step 1 — surface the real error
+### 1. Stop treating this as a data/mapping problem
 
-In `src/lib/planbook/worksheetGenerator.ts`, wrap `doc.render(data)` in a try/catch. On failure, walk `error.properties.errors` (docxtemplater's standard shape) and `console.warn` each one with `tag`, `id`, `explanation`, then re-throw a single human-readable error that bubbles into the existing `toast.error` in `WorksheetGenerateDialog.onPreview`. This alone tells us in one click whether it's a split-run tag, an unknown tag, or a name mismatch.
+Remove or narrow the temporary worksheet warnings that report mappings like `activities_mon` not found. Those are false positives for loop section tags like `{{#activities_mon}}...{{/activities_mon}}` and are creating noise.
 
-### Step 2 — auto-heal split-run placeholders
+### 2. Change the DOCX preview strategy
 
-Add a small pre-processing step in `fillDocxTemplate` before constructing the `Docxtemplater`:
+For DOCX templates, generate the filled `.docx` exactly as we do now, but preview it using a browser-native document frame instead of `docx-preview` when the document contains Word drawing/textbox/callout markup.
 
-- Read `word/document.xml` (and any header/footer parts that contain placeholders) from the PizZip instance.
-- For each paragraph, detect any `{{...}}` that spans multiple `<w:r>` runs and collapse the runs that make up the tag into a single run, preserving the formatting of the first run in the span.
-- Write the cleaned XML back into the zip before `new Docxtemplater(zip, ...)`.
+Implementation:
 
-This is the canonical fix for the "one placeholder mysteriously doesn't fill" symptom and is safe for the other fields (they're already in single runs, so the pre-processor is a no-op for them).
+- Add a lightweight detector in `worksheetGenerator.ts` / preview flow for Word text box/drawing markup such as `w:txbxContent`, `wps:txbx`, `v:textbox`, or `word/header*.xml`/`word/footer*.xml` parts containing placeholders.
+- Pass a preview mode flag into `WorksheetPreviewModal`.
+- If the filled DOCX contains those structures, show a full-screen fallback preview state:
+  - clear message that the file is generated correctly but this template uses Word layout features that cannot be rendered faithfully in-browser
+  - primary actions: Download DOCX, Print after opening in Word/Google Docs, Back to settings
+  - no misleading rendered preview that omits fields
+- If the document does not contain those structures, continue using `docx-preview` as today.
 
-### Step 3 — verify against the user's actual template
+### 3. Keep downloads and Word output unchanged
 
-After Steps 1–2 ship, the user re-runs Preview:
+No changes to `fillDocxTemplate` data resolution or DOCX generation. The generated file already contains Weekly Objective correctly.
 
-- If Weekly Objective now appears → done, split-run was the cause.
-- If Step 1's toast/console shows `unknown tag` or a name like `WeeklyObjective` vs mapping `weeklyObjective` → it's a name-mismatch issue and the fix is to either rename the placeholder in the .docx or rename the mapping in Settings → Worksheet Templates. We'll surface this guidance in the toast message.
+### 4. Optional guardrail in Settings
 
-### Step 4 — small UX touch (optional, only if Step 3 shows a name mismatch)
+In Worksheet Template Settings, when an uploaded DOCX contains Word text boxes/callouts, show a small warning near the template upload/mapping area:
 
-In `WorksheetTemplateSettings`, when a field name in the mapping list does not appear as a `{{...}}` placeholder anywhere in the uploaded .docx, show an inline warning chip on that row (we already parse the .docx on upload — same parser can return the placeholder set). This prevents the same class of bug from recurring with future templates.
+> This template uses Word text boxes/callouts. Downloads will work, but in-app preview may not exactly match Word.
 
-## Technical notes
+This prevents future confusion without blocking the template.
 
-- Files touched: `src/lib/planbook/worksheetGenerator.ts` (Steps 1 + 2), optionally `src/components/planbook/WorksheetTemplateSettings.tsx` (Step 4). No DB, no schema, no auth changes.
-- Docxtemplater error shape: `error.properties.errors[].properties.{ id, explanation, xtag, offset }`.
-- The split-run repair only needs to operate on text inside `<w:p>` → `<w:r>` → `<w:t>` chains; we don't need a full XML parser, a scoped regex pass per paragraph is sufficient and is the standard approach docxtemplater itself recommends.
-- No changes to the PDF path, the data resolver, the weekly notes dialog, or cloud sync.
+## Files to update
 
+- `src/lib/planbook/worksheetGenerator.ts`
+- `src/components/planbook/WorksheetGenerateDialog.tsx`
+- `src/components/planbook/WorksheetPreviewModal.tsx`
+- optionally `src/components/planbook/WorksheetTemplateSettings.tsx` for the settings warning
+
+## Expected result
+
+The preview flow will no longer show a misleading blank Weekly Objective. For templates using Word text boxes/callouts, the app will tell the user the DOCX is generated correctly and direct them to download/open it for faithful viewing/printing. Normal DOCX templates continue to render in the in-app preview overlay.
