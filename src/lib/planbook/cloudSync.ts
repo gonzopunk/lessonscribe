@@ -49,6 +49,7 @@ let pendingSave = false;
 let saving = false;
 let suppressNextChange = false;
 let remoteHasSnapshot = false; // true once we confirm cloud row exists
+let hydratedAt = 0;
 
 function setState(patch: Partial<SyncState>) {
   state = { ...state, ...patch };
