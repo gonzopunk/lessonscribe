@@ -136,23 +136,26 @@ async function flushSave() {
     return;
   }
 
-  // Guard: never let an empty local state overwrite a non-empty cloud
-  // snapshot. This is the safety net for the onboarding-clobber race.
+  // Guard: never let an empty (or strictly-smaller) local state overwrite a
+  // non-empty cloud snapshot. Safety net for the post-signin clobber race.
   const cur = usePlanBook.getState();
-  if (remoteHasSnapshot && isEmptySnapshot(cur)) {
-    console.warn("[sync] refusing to overwrite cloud snapshot with empty local state");
-    // Re-hydrate from cloud so the UI matches reality.
+  if (remoteHasSnapshot && (isEmptySnapshot(cur) || Date.now() - hydratedAt < 1500)) {
     try {
       const remote = await loadSnapshot();
-      if (remote && remote.data) {
-        const snap = (remote.data as { data?: Partial<PlanBookState> }).data;
-        if (snap) applyCloudShape(snap);
+      const snap = remote?.data as Partial<PlanBookState> | undefined;
+      if (snap) {
+        const remoteSize = snapshotSize(snap);
+        const localSize = snapshotSize(pickCloudShape(cur));
+        if (isEmptySnapshot(cur) || localSize < remoteSize) {
+          console.warn("[sync] refusing to overwrite cloud snapshot with smaller local state");
+          applyCloudShape(snap);
+          setState({ status: "saved", error: null });
+          return;
+        }
       }
     } catch {
       /* noop */
     }
-    setState({ status: "saved", error: null });
-    return;
   }
 
   saving = true;
