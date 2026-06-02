@@ -49,6 +49,42 @@ export function triggerPdfDownload(bytes: Uint8Array, filename: string): void {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/**
+ * Repair `{{ ... }}` placeholders that Word split across multiple `<w:r>` runs
+ * (typically because of inline formatting changes inside the tag). Without this,
+ * docxtemplater can't see the tag and silently leaves the field blank.
+ *
+ * Operates per `<w:p>` paragraph: for every `{{...}}` span, strip any
+ * `</w:t>...<w:t...>` sequences that fall inside the span so the tag ends up
+ * living in a single `<w:t>` run, inheriting the first run's formatting.
+ */
+function repairSplitTags(xml: string): string {
+  return xml.replace(/<w:p\b[^>]*>[\s\S]*?<\/w:p>/g, (para) => {
+    let result = "";
+    let i = 0;
+    while (i < para.length) {
+      const open = para.indexOf("{{", i);
+      if (open === -1) {
+        result += para.slice(i);
+        break;
+      }
+      result += para.slice(i, open);
+      const close = para.indexOf("}}", open + 2);
+      if (close === -1) {
+        result += para.slice(open);
+        break;
+      }
+      const segment = para.slice(open, close + 2);
+      const cleaned = segment.replace(/<\/w:t>[\s\S]*?<w:t[^>]*>/g, "");
+      result += cleaned;
+      i = close + 2;
+    }
+    return result;
+  });
+}
+
+const REPAIRABLE_PARTS = /^word\/(document|header\d*|footer\d*)\.xml$/;
+
 export async function fillDocxTemplate(
   template: WorksheetTemplate,
   courseId: string,
@@ -57,6 +93,17 @@ export async function fillDocxTemplate(
 ): Promise<Uint8Array> {
   const bytes = base64ToBytes(template.docxBase64!);
   const zip = new PizZip(bytes);
+
+  // Pre-process: heal split-run placeholders so docxtemplater can find every tag.
+  for (const path of Object.keys(zip.files)) {
+    if (!REPAIRABLE_PARTS.test(path)) continue;
+    const file = zip.file(path);
+    if (!file) continue;
+    const original = file.asText();
+    const repaired = repairSplitTags(original);
+    if (repaired !== original) zip.file(path, repaired);
+  }
+
   const doc = new Docxtemplater(zip, {
     delimiters: { start: "{{", end: "}}" },
     paragraphLoop: true,
@@ -71,7 +118,27 @@ export async function fillDocxTemplate(
       state,
     );
   }
-  doc.render(data);
+  try {
+    doc.render(data);
+  } catch (e: unknown) {
+    const err = e as { properties?: { errors?: Array<{ properties?: { id?: string; explanation?: string; xtag?: string } }> }; message?: string };
+    const errors = err?.properties?.errors;
+    if (errors && errors.length) {
+      for (const sub of errors) {
+        console.warn(
+          "[docxtemplater]",
+          sub.properties?.id,
+          sub.properties?.xtag,
+          sub.properties?.explanation,
+        );
+      }
+      const first = errors[0]?.properties;
+      throw new Error(
+        `Template error on tag "${first?.xtag ?? "?"}": ${first?.explanation ?? err.message ?? "unknown"}`,
+      );
+    }
+    throw e;
+  }
   return doc.getZip().generate({ type: "uint8array" });
 }
 
