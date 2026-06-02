@@ -70,6 +70,7 @@ export function WorksheetGenerateDialog({
   const [generating, setGenerating] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewBytes, setPreviewBytes] = useState<Uint8Array | null>(null);
+  const [previewUnsupported, setPreviewUnsupported] = useState(false);
 
   const template = templates.find((t) => t.id === templateId) ?? null;
 
@@ -98,7 +99,7 @@ export function WorksheetGenerateDialog({
     try {
       const isDocx = template.type === "docx-fill";
       if (isDocx) {
-        const bytes = await fillDocxTemplate(
+        const { bytes } = await fillDocxTemplate(
           template,
           courseId,
           weekMonday,
@@ -140,13 +141,14 @@ export function WorksheetGenerateDialog({
     if (!template || !course) return;
     setGenerating(true);
     try {
-      const bytes = await fillDocxTemplate(
+      const { bytes, hasUnsupportedLayout } = await fillDocxTemplate(
         template,
         courseId,
         weekMonday,
         fullState,
       );
       setPreviewBytes(bytes);
+      setPreviewUnsupported(hasUnsupportedLayout);
       setPreviewOpen(true);
     } catch (err) {
       toast.error(
@@ -345,6 +347,7 @@ export function WorksheetGenerateDialog({
       onClose={() => setPreviewOpen(false)}
       bytes={previewBytes}
       filename={previewFilename}
+      unsupportedLayout={previewUnsupported}
     />
     </>
   );

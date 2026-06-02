@@ -85,12 +85,40 @@ function repairSplitTags(xml: string): string {
 
 const REPAIRABLE_PARTS = /^word\/(document|header\d*|footer\d*)\.xml$/;
 
+// Word markup that docx-preview does not render faithfully — Word text boxes,
+// callouts, drawing shapes with embedded text. When present, the in-app
+// preview will silently drop the field even though the downloaded DOCX is
+// correct, so we detect this and surface a warning to the user.
+const UNSUPPORTED_LAYOUT_MARKERS = [
+  "<w:txbxContent",
+  "<wps:txbx",
+  "<v:textbox",
+];
+
+function detectUnsupportedLayout(zip: PizZip): boolean {
+  for (const path of Object.keys(zip.files)) {
+    if (!REPAIRABLE_PARTS.test(path)) continue;
+    const txt = zip.file(path)?.asText() ?? "";
+    for (const marker of UNSUPPORTED_LAYOUT_MARKERS) {
+      if (txt.includes(marker)) return true;
+    }
+  }
+  return false;
+}
+
+export interface FilledDocxResult {
+  bytes: Uint8Array;
+  /** True when the .docx uses Word text boxes/callouts that the in-app
+   *  preview cannot render reliably. Download still works. */
+  hasUnsupportedLayout: boolean;
+}
+
 export async function fillDocxTemplate(
   template: WorksheetTemplate,
   courseId: string,
   weekMonday: Date,
   state: PlanBookState,
-): Promise<Uint8Array> {
+): Promise<FilledDocxResult> {
   const bytes = base64ToBytes(template.docxBase64!);
   const zip = new PizZip(bytes);
 
@@ -104,28 +132,13 @@ export async function fillDocxTemplate(
     if (repaired !== original) zip.file(path, repaired);
   }
 
-  // Collect every {{tag}} actually present in the document parts so we can
-  // detect name mismatches between the mapping and the placeholder the user
-  // typed in Word.
-  const presentTags = new Set<string>();
-  for (const path of Object.keys(zip.files)) {
-    if (!REPAIRABLE_PARTS.test(path)) continue;
-    const txt = zip.file(path)?.asText() ?? "";
-    for (const m of txt.matchAll(/\{\{\s*([^{}\s]+)\s*\}\}/g)) {
-      presentTags.add(m[1]);
-    }
-  }
+  const hasUnsupportedLayout = detectUnsupportedLayout(zip);
 
   const doc = new Docxtemplater(zip, {
     delimiters: { start: "{{", end: "}}" },
     paragraphLoop: true,
     linebreaks: true,
-    nullGetter: (part: { value?: string }) => {
-      console.warn(
-        `[docxtemplater] placeholder "{{${part?.value ?? "?"}}}" has no matching field mapping — rendering empty`,
-      );
-      return "";
-    },
+    nullGetter: () => "",
   });
   const data: Record<string, string | string[]> = {};
   for (const mapping of template.fieldMappings) {
@@ -135,22 +148,18 @@ export async function fillDocxTemplate(
       weekMonday,
       state,
     );
-    if (!presentTags.has(mapping.fieldName)) {
-      const suggestion = [...presentTags].find(
-        (t) => t.toLowerCase() === mapping.fieldName.toLowerCase(),
-      );
-      console.warn(
-        `[worksheet] mapping "${mapping.fieldName}" not found as {{${mapping.fieldName}}} in the .docx` +
-          (suggestion
-            ? ` — found "${suggestion}" with different casing. Tags are case-sensitive.`
-            : ` — placeholders present: ${[...presentTags].join(", ") || "(none)"}.`),
-      );
-    }
   }
   try {
     doc.render(data);
   } catch (e: unknown) {
-    const err = e as { properties?: { errors?: Array<{ properties?: { id?: string; explanation?: string; xtag?: string } }> }; message?: string };
+    const err = e as {
+      properties?: {
+        errors?: Array<{
+          properties?: { id?: string; explanation?: string; xtag?: string };
+        }>;
+      };
+      message?: string;
+    };
     const errors = err?.properties?.errors;
     if (errors && errors.length) {
       for (const sub of errors) {
@@ -168,7 +177,10 @@ export async function fillDocxTemplate(
     }
     throw e;
   }
-  return doc.getZip().generate({ type: "uint8array" });
+  return {
+    bytes: doc.getZip().generate({ type: "uint8array" }),
+    hasUnsupportedLayout,
+  };
 }
 
 export function triggerDocxDownload(bytes: Uint8Array, filename: string): void {
