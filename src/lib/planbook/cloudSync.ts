@@ -49,6 +49,7 @@ let pendingSave = false;
 let saving = false;
 let suppressNextChange = false;
 let remoteHasSnapshot = false; // true once we confirm cloud row exists
+let hydratedAt = 0;
 
 function setState(patch: Partial<SyncState>) {
   state = { ...state, ...patch };
@@ -87,8 +88,18 @@ function pickCloudShape(s: Store): Partial<PlanBookState> {
     overrides: s.overrides,
     dayMeta: s.dayMeta,
     worksheetTemplates: s.worksheetTemplates,
+    weekMeta: s.weekMeta,
     // device-local: anchorDate, selectedFilterTagIds intentionally omitted
   };
+}
+
+function snapshotSize(s: Partial<PlanBookState>): number {
+  return (
+    (s.courses?.length ?? 0) +
+    (s.templates?.length ?? 0) +
+    (s.instances?.length ?? 0) +
+    (s.worksheetTemplates?.length ?? 0)
+  );
 }
 
 function applyCloudShape(snapshot: Partial<PlanBookState>) {
@@ -126,30 +137,33 @@ async function flushSave() {
     return;
   }
 
-  // Guard: never let an empty local state overwrite a non-empty cloud
-  // snapshot. This is the safety net for the onboarding-clobber race.
+  // Guard: never let an empty (or strictly-smaller) local state overwrite a
+  // non-empty cloud snapshot. Safety net for the post-signin clobber race.
   const cur = usePlanBook.getState();
-  if (remoteHasSnapshot && isEmptySnapshot(cur)) {
-    console.warn("[sync] refusing to overwrite cloud snapshot with empty local state");
-    // Re-hydrate from cloud so the UI matches reality.
+  if (remoteHasSnapshot && (isEmptySnapshot(cur) || Date.now() - hydratedAt < 1500)) {
     try {
       const remote = await loadSnapshot();
-      if (remote && remote.data) {
-        const snap = (remote.data as { data?: Partial<PlanBookState> }).data;
-        if (snap) applyCloudShape(snap);
+      const snap = remote?.data as Partial<PlanBookState> | undefined;
+      if (snap) {
+        const remoteSize = snapshotSize(snap);
+        const localSize = snapshotSize(pickCloudShape(cur));
+        if (isEmptySnapshot(cur) || localSize < remoteSize) {
+          console.warn("[sync] refusing to overwrite cloud snapshot with smaller local state");
+          applyCloudShape(snap);
+          setState({ status: "saved", error: null });
+          return;
+        }
       }
     } catch {
       /* noop */
     }
-    setState({ status: "saved", error: null });
-    return;
   }
 
   saving = true;
   setState({ status: "saving", error: null });
   try {
     const snap = pickCloudShape(usePlanBook.getState());
-    await saveSnapshot({ data: { data: snap } });
+    await saveSnapshot({ data: snap as Record<string, any> });
     remoteHasSnapshot = true;
     setState({ status: "saved", lastSavedAt: Date.now(), error: null });
     void refreshMeta();
@@ -199,8 +213,9 @@ async function handleSignIn(userId: string) {
     const remote = await loadSnapshot();
     if (remote && remote.data) {
       remoteHasSnapshot = true;
-      const snap = (remote.data as { data?: Partial<PlanBookState> }).data;
-      if (snap) applyCloudShape(snap);
+      const snap = remote.data as Partial<PlanBookState>;
+      applyCloudShape(snap);
+      hydratedAt = Date.now();
       setState({
         status: "saved",
         lastSavedAt: new Date(remote.updatedAt as string).getTime(),
@@ -262,8 +277,9 @@ export async function restorePrevious(): Promise<boolean> {
       setState({ status: "saved", error: null });
       return false;
     }
-    const snap = (restored.data as { data?: Partial<PlanBookState> }).data;
-    if (snap) applyCloudShape(snap);
+    const snap = restored.data as Partial<PlanBookState>;
+    applyCloudShape(snap);
+    hydratedAt = Date.now();
     remoteHasSnapshot = true;
     setState({
       status: "saved",
