@@ -22,8 +22,9 @@ export const loadSnapshot = createServerFn({ method: "GET" })
 
 export const saveSnapshot = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ data: z.record(z.any()) }).parse(input))
+  .inputValidator((input) => z.record(z.any()).parse(input))
   .handler(async ({ data, context }) => {
+    const snapshot = data as Snapshot;
     const { supabase, userId } = context;
     // Read the current row so we can roll the existing `data` into
     // `previous_data` — gives users a one-step cloud undo if a save
