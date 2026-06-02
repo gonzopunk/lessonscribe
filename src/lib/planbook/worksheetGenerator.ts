@@ -104,10 +104,28 @@ export async function fillDocxTemplate(
     if (repaired !== original) zip.file(path, repaired);
   }
 
+  // Collect every {{tag}} actually present in the document parts so we can
+  // detect name mismatches between the mapping and the placeholder the user
+  // typed in Word.
+  const presentTags = new Set<string>();
+  for (const path of Object.keys(zip.files)) {
+    if (!REPAIRABLE_PARTS.test(path)) continue;
+    const txt = zip.file(path)?.asText() ?? "";
+    for (const m of txt.matchAll(/\{\{\s*([^{}\s]+)\s*\}\}/g)) {
+      presentTags.add(m[1]);
+    }
+  }
+
   const doc = new Docxtemplater(zip, {
     delimiters: { start: "{{", end: "}}" },
     paragraphLoop: true,
     linebreaks: true,
+    nullGetter: (part: { value?: string }) => {
+      console.warn(
+        `[docxtemplater] placeholder "{{${part?.value ?? "?"}}}" has no matching field mapping — rendering empty`,
+      );
+      return "";
+    },
   });
   const data: Record<string, string | string[]> = {};
   for (const mapping of template.fieldMappings) {
@@ -117,6 +135,17 @@ export async function fillDocxTemplate(
       weekMonday,
       state,
     );
+    if (!presentTags.has(mapping.fieldName)) {
+      const suggestion = [...presentTags].find(
+        (t) => t.toLowerCase() === mapping.fieldName.toLowerCase(),
+      );
+      console.warn(
+        `[worksheet] mapping "${mapping.fieldName}" not found as {{${mapping.fieldName}}} in the .docx` +
+          (suggestion
+            ? ` — found "${suggestion}" with different casing. Tags are case-sensitive.`
+            : ` — placeholders present: ${[...presentTags].join(", ") || "(none)"}.`),
+      );
+    }
   }
   try {
     doc.render(data);
