@@ -163,7 +163,7 @@ async function flushSave() {
   setState({ status: "saving", error: null });
   try {
     const snap = pickCloudShape(usePlanBook.getState());
-    await saveSnapshot({ data: { data: snap } });
+    await saveSnapshot({ data: snap as Record<string, any> });
     remoteHasSnapshot = true;
     setState({ status: "saved", lastSavedAt: Date.now(), error: null });
     void refreshMeta();
