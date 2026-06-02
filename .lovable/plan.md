@@ -1,46 +1,46 @@
-# Fix cloud sync data loss
+## What we know
 
-## Root cause (confirmed against your database)
+- In the Generate Worksheet dialog, the Field / Value table shows the correct Weekly Objective text for the field.
+- That same field is missing in the DOCX preview overlay.
+- The mapping source is "Weekly objectives", which `resolveFieldValueForDocx` handles via `state.weekMeta[weekMetaKey(courseId, dayKey(weekMonday))].weeklyObjectives` — and it's clearly returning the right string, since the dialog table renders it.
 
-Your cloud row currently holds **0 instances, 1 template** (a near-fresh state from after you logged back in), while `previous_data` still has the real work: **17 instances, 5 templates, your full course setup**. So nothing is permanently lost — it's sitting in the rollback slot — but the bug that overwrote it must be fixed before the same thing happens again.
+So data resolution is fine. The value is being handed to `docxtemplater` in `fillDocxTemplate` (worksheetGenerator.ts) keyed on `mapping.fieldName`, but the rendered .docx does not show it. That isolates the problem to one of:
 
-The cause is a one-level shape mismatch between save and load in `src/lib/planbook/cloudSync.ts` / `src/lib/planbook/sync.ts`:
-
-- `saveSnapshot` is called as `saveSnapshot({ data: { data: snap } })`.
-- In a `createServerFn` handler, the validated input is already destructured as `data`, so inside the handler `data.data` equals `snap` (the flat snapshot).
-- The DB row therefore stores the snapshot **flat** (`{ courses, instances, templates, ... }` at the top level of `data`). Verified: `jsonb_object_keys(data)` returns `tags, courses, instances, ...` — no nested `data` key.
-- But on load, `cloudSync.handleSignIn` does `const snap = (remote.data as { data?: ... }).data` — i.e. it unwraps one extra level that doesn't exist. So `snap` is `undefined`, `applyCloudShape` is never called, and the UI shows nothing.
-- You then start re-entering data, the debounced save fires, and the now-near-empty local state overwrites the cloud. The previous (real) snapshot is rolled into `previous_data` — exactly what we see in the DB.
-
-Two smaller related issues:
-
-1. `pickCloudShape` omits `weekMeta`, so your weekly-notes data is never synced to the cloud at all (`data ? 'weekMeta'` is `false` in both current and previous rows).
-2. The empty-snapshot guard inside `flushSave` re-reads `remote.data.data` the same broken way, so even its "refuse to overwrite" recovery hydrates with nothing.
+1. **Placeholder name mismatch** between `mapping.fieldName` and the `{{...}}` tag actually typed in the .docx file (docxtemplater tag names are case-sensitive — `{{WeeklyObjective}}` ≠ `weeklyObjective`).
+2. **Split-run placeholder in the .docx** — when the user typed `{{WeeklyObjective}}` in Word and any character inside it has different formatting (bold/italic/color/spellcheck mark), Word splits the placeholder across multiple `<w:r>` runs in the underlying XML. Docxtemplater then fails to recognize the tag and silently leaves it (or the surrounding paragraph) untouched. This is the single most common cause of "one field doesn't render but the others do."
+3. **Silent docxtemplater error** — we currently call `doc.render(data)` with no `errorLogging` and no try/catch around it, so any per-tag error is swallowed.
 
 ## Plan
 
-### 1. Recover your lost data first (one click)
-Before changing code, use the existing in-app **"Restore previous"** action (already wired to `restorePreviousSnapshot`) to bring back the 17-instance snapshot. After the fix below ships, do this once and your real plan is back.
+### Step 1 — surface the real error
 
-If the UI doesn't currently expose that button on the home screen, I'll surface it on the sync-status chip in the header so you can click Restore.
+In `src/lib/planbook/worksheetGenerator.ts`, wrap `doc.render(data)` in a try/catch. On failure, walk `error.properties.errors` (docxtemplater's standard shape) and `console.warn` each one with `tag`, `id`, `explanation`, then re-throw a single human-readable error that bubbles into the existing `toast.error` in `WorksheetGenerateDialog.onPreview`. This alone tells us in one click whether it's a split-run tag, an unknown tag, or a name mismatch.
 
-### 2. Fix `src/lib/planbook/cloudSync.ts`
-- In `handleSignIn`: replace `const snap = (remote.data as { data?: ... }).data; if (snap) applyCloudShape(snap);` with `applyCloudShape(remote.data as Partial<PlanBookState>)`.
-- In `flushSave`'s re-hydrate guard: same fix — call `applyCloudShape(remote.data as Partial<PlanBookState>)` directly.
-- In `restorePrevious`: use `restored.data` directly instead of `restored.data.data`.
+### Step 2 — auto-heal split-run placeholders
 
-### 3. Fix `src/lib/planbook/sync.ts` (defensive)
-Keep storing snapshots flat (matches existing rows, no migration needed), but tighten the call site by changing `saveSnapshot({ data: { data: snap } })` to `saveSnapshot({ data: snap })`. The serverFn already does `row.data = data.data`, so this stays correct and reads/writes are symmetric.
+Add a small pre-processing step in `fillDocxTemplate` before constructing the `Docxtemplater`:
 
-### 4. Include `weekMeta` in the cloud shape
-Add `weekMeta: s.weekMeta` to `pickCloudShape` so weekly notes stop being device-local.
+- Read `word/document.xml` (and any header/footer parts that contain placeholders) from the PizZip instance.
+- For each paragraph, detect any `{{...}}` that spans multiple `<w:r>` runs and collapse the runs that make up the tag into a single run, preserving the formatting of the first run in the span.
+- Write the cleaned XML back into the zip before `new Docxtemplater(zip, ...)`.
 
-### 5. Stronger anti-clobber guard
-Tighten `isEmptySnapshot` to also consider it "empty" when local has **fewer** instances/templates than `remoteHasSnapshot` implies, OR — simpler — never overwrite the cloud during the first save after sign-in unless the user has explicitly edited something post-hydration. Concretely: track a `hydratedAt` timestamp inside cloudSync, and in `flushSave` if `Date.now() - hydratedAt < 1500ms` and local is shallower than what we just loaded, skip the save and log a warning. This prevents the exact race that just hit you.
+This is the canonical fix for the "one placeholder mysteriously doesn't fill" symptom and is safe for the other fields (they're already in single runs, so the pre-processor is a no-op for them).
 
-### 6. Smoke-test
-- Sign in fresh on a clean browser profile → verify Network shows `loadSnapshot` returning the flat snapshot and the UI populates.
-- Edit one element → verify `saveSnapshot` round-trips and the cloud row keeps all 11 top-level keys including `weekMeta`.
-- Sign out / sign in again → verify nothing is clobbered.
+### Step 3 — verify against the user's actual template
 
-No changes to auth flow, routes, worksheet generator, or any other feature.
+After Steps 1–2 ship, the user re-runs Preview:
+
+- If Weekly Objective now appears → done, split-run was the cause.
+- If Step 1's toast/console shows `unknown tag` or a name like `WeeklyObjective` vs mapping `weeklyObjective` → it's a name-mismatch issue and the fix is to either rename the placeholder in the .docx or rename the mapping in Settings → Worksheet Templates. We'll surface this guidance in the toast message.
+
+### Step 4 — small UX touch (optional, only if Step 3 shows a name mismatch)
+
+In `WorksheetTemplateSettings`, when a field name in the mapping list does not appear as a `{{...}}` placeholder anywhere in the uploaded .docx, show an inline warning chip on that row (we already parse the .docx on upload — same parser can return the placeholder set). This prevents the same class of bug from recurring with future templates.
+
+## Technical notes
+
+- Files touched: `src/lib/planbook/worksheetGenerator.ts` (Steps 1 + 2), optionally `src/components/planbook/WorksheetTemplateSettings.tsx` (Step 4). No DB, no schema, no auth changes.
+- Docxtemplater error shape: `error.properties.errors[].properties.{ id, explanation, xtag, offset }`.
+- The split-run repair only needs to operate on text inside `<w:p>` → `<w:r>` → `<w:t>` chains; we don't need a full XML parser, a scoped regex pass per paragraph is sufficient and is the standard approach docxtemplater itself recommends.
+- No changes to the PDF path, the data resolver, the weekly notes dialog, or cloud sync.
+
