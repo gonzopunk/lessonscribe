@@ -141,13 +141,14 @@ export function WorksheetGenerateDialog({
     if (!template || !course) return;
     setGenerating(true);
     try {
-      const bytes = await fillDocxTemplate(
+      const { bytes, hasUnsupportedLayout } = await fillDocxTemplate(
         template,
         courseId,
         weekMonday,
         fullState,
       );
       setPreviewBytes(bytes);
+      setPreviewUnsupported(hasUnsupportedLayout);
       setPreviewOpen(true);
     } catch (err) {
       toast.error(
