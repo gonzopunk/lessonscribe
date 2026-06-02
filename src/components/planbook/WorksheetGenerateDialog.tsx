@@ -70,6 +70,7 @@ export function WorksheetGenerateDialog({
   const [generating, setGenerating] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewBytes, setPreviewBytes] = useState<Uint8Array | null>(null);
+  const [previewUnsupported, setPreviewUnsupported] = useState(false);
 
   const template = templates.find((t) => t.id === templateId) ?? null;
 
