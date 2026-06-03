@@ -172,10 +172,12 @@ export function InstanceCard({ instance, compact }: Props) {
                 <Textarea
                   id={`n-${instance.id}`}
                   rows={2}
-                  value={instance.instanceNotes}
-                  onChange={(e) =>
-                    updateInstance(instance.id, { instanceNotes: e.target.value })
-                  }
+                  value={instanceNotes}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setInstanceNotes(v);
+                    debouncedSaveNotes(v);
+                  }}
                 />
               </div>
             </div>
