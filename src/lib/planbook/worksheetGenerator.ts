@@ -135,7 +135,8 @@ export async function fillDocxTemplate(
   weekMonday: Date,
   state: PlanBookState,
 ): Promise<FilledDocxResult> {
-  const bytes = base64ToBytes(template.docxBase64!);
+  const b64 = await getTemplateDocxBase64(template);
+  const bytes = base64ToBytes(b64);
   const zip = new PizZip(bytes);
 
   // Pre-process: heal split-run placeholders so docxtemplater can find every tag.
