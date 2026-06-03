@@ -164,8 +164,16 @@ export interface WorksheetTemplate {
   courseId: string;
   name: string;
   type: "pdf-fill" | "docx-fill";
+  /**
+   * Legacy fields — base64 file payloads. As of schema v2 these are no longer
+   * stored in localStorage; the blob lives in IndexedDB (see worksheetBlobs.ts)
+   * and `hasFile` is the durable presence flag. Kept optional on the type so
+   * pre-migration data still parses.
+   */
   pdfBase64?: string;
   docxBase64?: string;
+  /** True once a file has been uploaded for this template (blob lives in IndexedDB). */
+  hasFile?: boolean;
   loopFields?: string[];
   detectedFields: string[];
   fieldMappings: FieldMapping[];
