@@ -63,10 +63,36 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
   
   const [dupDayOpen, setDupDayOpen] = useState(false);
 
+  const blankMeta: DayMeta = {
+    status: "draft",
+    notes: "",
+    sectionNotes: {},
+    objectives: "",
+    standards: "",
+    reflection: "",
+    differentiationNotes: "",
+    behaviorNotes: "",
+    materialsNotes: "",
+  };
+  const [localMeta, setLocalMeta] = useState<DayMeta>(meta ?? blankMeta);
+
   // Sync to incoming mode whenever the modal is (re)opened with a new day or mode.
   useEffect(() => {
     if (open) setCurrentMode(mode);
   }, [open, mode, dayKey]);
+
+  // Reseed local meta when the day changes (not on every store update, so typing isn't clobbered).
+  useEffect(() => {
+    if (meta) setLocalMeta(meta);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dayKey]);
+
+  const debouncedUpdateDayMeta = useDebouncedCallback(
+    (patch: Partial<DayMeta>) => {
+      if (courseId && dayKey) updateDayMeta(courseId, dayKey, patch);
+    },
+    300,
+  );
 
   const instances = useMemo(
     () =>
