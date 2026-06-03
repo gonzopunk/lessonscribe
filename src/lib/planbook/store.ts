@@ -552,13 +552,25 @@ export const usePlanBook = create<Store>()(
                 lastSyncAt: ps.lastIcalSyncAt ?? null,
               }]
             : []);
+        // Migrate worksheet template blobs from localStorage → IndexedDB.
+        // Any persisted template that still carries pdfBase64/docxBase64 gets
+        // its blob fire-and-forget written to IDB and stripped from state.
+        const migratedTemplates = (p.worksheetTemplates ?? []).map((t: any) => {
+          const { pdfBase64, docxBase64, ...rest } = t ?? {};
+          const hasBlob = !!(pdfBase64 || docxBase64);
+          if (hasBlob && t?.id) {
+            void saveWorksheetBlob(t.id, { pdfBase64, docxBase64 });
+          }
+          return {
+            type: "pdf-fill" as const,
+            ...rest,
+            hasFile: hasBlob || !!rest.hasFile,
+          };
+        });
         return {
           ...current,
           ...p,
-          worksheetTemplates: (p.worksheetTemplates ?? []).map((t: any) => ({
-            type: "pdf-fill" as const,
-            ...t,
-          })),
+          worksheetTemplates: migratedTemplates,
           weekMeta: p.weekMeta ?? {},
           settings: {
             ...current.settings,
@@ -575,6 +587,14 @@ export const usePlanBook = create<Store>()(
           },
         };
       },
+      partialize: (state) => ({
+        ...state,
+        // Never write blob payloads to localStorage — they live in IndexedDB.
+        worksheetTemplates: state.worksheetTemplates.map((t) => {
+          const { pdfBase64: _p, docxBase64: _d, ...rest } = t as WorksheetTemplate;
+          return rest;
+        }),
+      }),
     },
   ),
 );
