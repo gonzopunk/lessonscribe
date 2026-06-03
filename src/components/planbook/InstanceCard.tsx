@@ -138,10 +138,12 @@ export function InstanceCard({ instance, compact }: Props) {
                 <Input
                   id={`c-${instance.id}`}
                   autoFocus
-                  value={instance.content}
-                  onChange={(e) =>
-                    updateInstance(instance.id, { content: e.target.value })
-                  }
+                  value={content}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setContent(v);
+                    debouncedSaveContent(v);
+                  }}
                   placeholder="e.g. the actual Word of the Day"
                 />
               </div>
