@@ -1,48 +1,49 @@
-## Diagnosis
+## Goal
 
-The generated DOCX is correct: after downloading and opening in Word, the Weekly Objective appears.
+Eliminate input lag in InstanceCard, PlanModal, and WeekNotesDialog. Today every keystroke runs through the Zustand store, which triggers the persist middleware to synchronously `JSON.stringify` and write the entire planner state to localStorage. We'll keep the UI on local state and debounce store updates to 300ms.
 
-The missing field only happens in the in-app preview because the placeholder sits inside a Word text box / header / footer / callout area. `docx-preview` does not fully support all Word drawing/textbox layouts, so it can render the rest of the document while dropping or mis-rendering that area.
+## Step 1 — New file: `src/lib/planbook/hooks.ts`
 
-## Plan
+Export one hook:
 
-### 1. Stop treating this as a data/mapping problem
+```ts
+useDebouncedCallback<T extends (...args: any[]) => void>(fn: T, delay: number): T
+```
 
-Remove or narrow the temporary worksheet warnings that report mappings like `activities_mon` not found. Those are false positives for loop section tags like `{{#activities_mon}}...{{/activities_mon}}` and are creating noise.
+- Holds the current timeout in a `useRef`.
+- Holds the latest `fn` in a `useRef` updated each render (so the stable returned function always calls the freshest closure).
+- Returns a `useCallback`-memoized function (stable identity) that clears the pending timeout and schedules a new one calling `fnRef.current(...args)` after `delay`.
+- Cleans up the timeout on unmount via `useEffect`.
 
-### 2. Change the DOCX preview strategy
+## Step 2 — `src/components/planbook/InstanceCard.tsx`
 
-For DOCX templates, generate the filled `.docx` exactly as we do now, but preview it using a browser-native document frame instead of `docx-preview` when the document contains Word drawing/textbox/callout markup.
+- Add `useState` for `content` and `instanceNotes` (initialized from `instance.content` / `instance.instanceNotes`). `durationOverride` stays as-is.
+- Add `useEffect` keyed on `[open, instance.id]` that, when `open` is true, resets both local values from the current `instance` props.
+- Create two debounced callbacks (300ms) via `useDebouncedCallback`, one for content and one for notes, each calling `updateInstance(instance.id, { ... })`.
+- Wire the content `Input` and notes `Textarea` so `onChange` sets local state immediately and schedules the debounced store update. `value` reads from local state.
+- Leave the duration `Input` untouched.
 
-Implementation:
+## Step 3 — `src/components/planbook/PlanModal.tsx`
 
-- Add a lightweight detector in `worksheetGenerator.ts` / preview flow for Word text box/drawing markup such as `w:txbxContent`, `wps:txbx`, `v:textbox`, or `word/header*.xml`/`word/footer*.xml` parts containing placeholders.
-- Pass a preview mode flag into `WorksheetPreviewModal`.
-- If the filled DOCX contains those structures, show a full-screen fallback preview state:
-  - clear message that the file is generated correctly but this template uses Word layout features that cannot be rendered faithfully in-browser
-  - primary actions: Download DOCX, Print after opening in Word/Google Docs, Back to settings
-  - no misleading rendered preview that omits fields
-- If the document does not contain those structures, continue using `docx-preview` as today.
+- Add `localMeta` state typed as `DayMeta`, initialized from `meta` (fall back to a safe default when `meta` is null at first render — guarded by the existing `if (!course || !dayKey || !meta) return null` for actual use).
+- Add `useEffect` keyed on `[dayKey]` (and `meta` identity is not the dep — we want to re-seed only on day change) that resets `localMeta` from `meta`. Use a ref or check `meta` inside to avoid resetting mid-typing.
+- Single `debouncedUpdateDayMeta = useDebouncedCallback((patch: Partial<DayMeta>) => updateDayMeta(course.id, dayKey, patch), 300)`.
+- Update every text field (`objectives`, `standards`, `notes`, each `sectionNotes[secId]`, `differentiationNotes`, `behaviorNotes`, `materialsNotes`, `reflection`) to:
+  - `onChange`: `setLocalMeta(prev => ({ ...prev, <field>: value }))` and `debouncedUpdateDayMeta({ <field>: value })`.
+  - For `sectionNotes`, both the local merge and the patch include the merged `sectionNotes` object.
+  - `value` reads from `localMeta`.
+- Replace `meta` reads in the JSX text fields with `localMeta`. Non-input reads (e.g. computing `hasContent` for the extras chevron) also read `localMeta` for consistency.
 
-### 3. Keep downloads and Word output unchanged
+## Step 4 — `src/components/planbook/WeekNotesDialog.tsx`
 
-No changes to `fillDocxTemplate` data resolution or DOCX generation. The generated file already contains Weekly Objective correctly.
+- Add `localWm` state typed as `WeekMeta`, initialized from `wm`.
+- `useEffect` keyed on `[weekKey]` resets `localWm` from the current `wm`.
+- `debouncedUpdateWeekMeta = useDebouncedCallback((patch: Partial<WeekMeta>) => updateWeekMeta(courseId, weekKey, patch), 300)`.
+- For each `Textarea` in the `fields` map: `onChange` updates `localWm` immediately and schedules `debouncedUpdateWeekMeta({ [key]: value })`. `value` reads from `localWm[f.key]`.
+- "Clear week notes" button: build the cleared patch, call `updateWeekMeta(courseId, weekKey, patch)` directly (no debounce), and `setLocalWm(blankWeekMeta())` immediately.
 
-### 4. Optional guardrail in Settings
+## Out of scope
 
-In Worksheet Template Settings, when an uploaded DOCX contains Word text boxes/callouts, show a small warning near the template upload/mapping area:
-
-> This template uses Word text boxes/callouts. Downloads will work, but in-app preview may not exactly match Word.
-
-This prevents future confusion without blocking the template.
-
-## Files to update
-
-- `src/lib/planbook/worksheetGenerator.ts`
-- `src/components/planbook/WorksheetGenerateDialog.tsx`
-- `src/components/planbook/WorksheetPreviewModal.tsx`
-- optionally `src/components/planbook/WorksheetTemplateSettings.tsx` for the settings warning
-
-## Expected result
-
-The preview flow will no longer show a misleading blank Weekly Objective. For templates using Word text boxes/callouts, the app will tell the user the DOCX is generated correctly and direct them to download/open it for faithful viewing/printing. Normal DOCX templates continue to render in the in-app preview overlay.
+- No changes to the zustand store, persist middleware, cloud sync, or any other component.
+- No visual / styling / layout changes.
+- `durationOverride` in InstanceCard is unchanged.

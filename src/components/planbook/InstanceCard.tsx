@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { X, GripVertical } from "lucide-react";
@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { colorToken, colorTokenSoft } from "@/lib/planbook/constants";
 import { usePlanBook } from "@/lib/planbook/store";
+import { useDebouncedCallback } from "@/lib/planbook/hooks";
 import type { ElementInstance } from "@/lib/planbook/types";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +22,25 @@ export function InstanceCard({ instance, compact }: Props) {
   const updateInstance = usePlanBook((s) => s.updateInstance);
   const removeInstance = usePlanBook((s) => s.removeInstance);
   const [open, setOpen] = useState(false);
+  const [content, setContent] = useState(instance.content);
+  const [instanceNotes, setInstanceNotes] = useState(instance.instanceNotes);
+
+  useEffect(() => {
+    if (open) {
+      setContent(instance.content);
+      setInstanceNotes(instance.instanceNotes);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, instance.id]);
+
+  const debouncedSaveContent = useDebouncedCallback(
+    (value: string) => updateInstance(instance.id, { content: value }),
+    300,
+  );
+  const debouncedSaveNotes = useDebouncedCallback(
+    (value: string) => updateInstance(instance.id, { instanceNotes: value }),
+    300,
+  );
   const minutes = instance.durationOverride ?? instance.defaultMinutes;
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -118,10 +138,12 @@ export function InstanceCard({ instance, compact }: Props) {
                 <Input
                   id={`c-${instance.id}`}
                   autoFocus
-                  value={instance.content}
-                  onChange={(e) =>
-                    updateInstance(instance.id, { content: e.target.value })
-                  }
+                  value={content}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setContent(v);
+                    debouncedSaveContent(v);
+                  }}
                   placeholder="e.g. the actual Word of the Day"
                 />
               </div>
@@ -150,10 +172,12 @@ export function InstanceCard({ instance, compact }: Props) {
                 <Textarea
                   id={`n-${instance.id}`}
                   rows={2}
-                  value={instance.instanceNotes}
-                  onChange={(e) =>
-                    updateInstance(instance.id, { instanceNotes: e.target.value })
-                  }
+                  value={instanceNotes}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setInstanceNotes(v);
+                    debouncedSaveNotes(v);
+                  }}
                 />
               </div>
             </div>
