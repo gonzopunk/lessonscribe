@@ -283,10 +283,12 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
               <Textarea
                 id="notes"
                 rows={2}
-                value={meta.notes}
-                onChange={(e) =>
-                  updateDayMeta(course.id, dayKey, { notes: e.target.value })
-                }
+                value={localMeta.notes}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setLocalMeta((prev) => ({ ...prev, notes: v }));
+                  debouncedUpdateDayMeta({ notes: v });
+                }}
               />
             </section>
 
