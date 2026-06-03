@@ -328,9 +328,9 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
             )}
 
             {!isSub && (() => {
-              const diff = meta.differentiationNotes ?? "";
-              const beh = meta.behaviorNotes ?? "";
-              const mat = meta.materialsNotes ?? "";
+              const diff = localMeta.differentiationNotes ?? "";
+              const beh = localMeta.behaviorNotes ?? "";
+              const mat = localMeta.materialsNotes ?? "";
               const hasContent = !!(diff || beh || mat);
               return (
                 <section className="space-y-2">
@@ -360,9 +360,11 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
                           rows={3}
                           placeholder="Note any accommodations or modifications for this lesson…"
                           value={diff}
-                          onChange={(e) =>
-                            updateDayMeta(course.id, dayKey, { differentiationNotes: e.target.value })
-                          }
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            setLocalMeta((prev) => ({ ...prev, differentiationNotes: v }));
+                            debouncedUpdateDayMeta({ differentiationNotes: v });
+                          }}
                         />
                       </div>
                       <div className="space-y-1.5">
@@ -372,9 +374,11 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
                           rows={3}
                           placeholder="Behavior management notes for this lesson…"
                           value={beh}
-                          onChange={(e) =>
-                            updateDayMeta(course.id, dayKey, { behaviorNotes: e.target.value })
-                          }
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            setLocalMeta((prev) => ({ ...prev, behaviorNotes: v }));
+                            debouncedUpdateDayMeta({ behaviorNotes: v });
+                          }}
                         />
                       </div>
                       <div className="space-y-1.5">
@@ -384,9 +388,11 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
                           rows={3}
                           placeholder="List materials, handouts, or resources needed…"
                           value={mat}
-                          onChange={(e) =>
-                            updateDayMeta(course.id, dayKey, { materialsNotes: e.target.value })
-                          }
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            setLocalMeta((prev) => ({ ...prev, materialsNotes: v }));
+                            debouncedUpdateDayMeta({ materialsNotes: v });
+                          }}
                         />
                       </div>
                     </div>
