@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import {
   Dialog,
@@ -11,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { usePlanBook } from "@/lib/planbook/store";
 import { parseDayKey, weekMetaKey } from "@/lib/planbook/dates";
 import { blankWeekMeta, type WeekMeta } from "@/lib/planbook/types";
+import { useDebouncedCallback } from "@/lib/planbook/hooks";
 
 interface Props {
   open: boolean;
@@ -27,14 +29,23 @@ export function WeekNotesDialog({ open, onOpenChange, courseId, weekKey }: Props
   const course = usePlanBook((s) => s.courses.find((c) => c.id === courseId));
   const updateWeekMeta = usePlanBook((s) => s.updateWeekMeta);
 
+  const [localWm, setLocalWm] = useState<WeekMeta>(wm);
+
+  useEffect(() => {
+    setLocalWm(stored ?? blankWeekMeta());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [weekKey]);
+
+  const debouncedUpdate = useDebouncedCallback(
+    (patch: Partial<WeekMeta>) => updateWeekMeta(courseId, weekKey, patch),
+    300,
+  );
+
   const label1 = course?.weekMetaLabel1 || "Custom note 1";
   const label2 = course?.weekMetaLabel2 || "Custom note 2";
   const label3 = course?.weekMetaLabel3 || "Custom note 3";
   const label4 = course?.weekMetaLabel4 || "Custom note 4";
   const label5 = course?.weekMetaLabel5 || "Custom note 5";
-
-  const set = (patch: Partial<WeekMeta>) =>
-    updateWeekMeta(courseId, weekKey, patch);
 
   const fields: { key: keyof WeekMeta; label: string }[] = [
     { key: "weeklyObjectives", label: "Weekly objectives" },
@@ -61,8 +72,12 @@ export function WeekNotesDialog({ open, onOpenChange, courseId, weekKey }: Props
               <Label>{f.label}</Label>
               <Textarea
                 rows={3}
-                value={wm[f.key]}
-                onChange={(e) => set({ [f.key]: e.target.value } as Partial<WeekMeta>)}
+                value={localWm[f.key]}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setLocalWm((prev) => ({ ...prev, [f.key]: v }));
+                  debouncedUpdate({ [f.key]: v } as Partial<WeekMeta>);
+                }}
               />
             </div>
           ))}
@@ -74,7 +89,7 @@ export function WeekNotesDialog({ open, onOpenChange, courseId, weekKey }: Props
             className="text-muted-foreground"
             onClick={() => {
               if (window.confirm("Clear all weekly notes for this week?")) {
-                set({
+                const cleared: Partial<WeekMeta> = {
                   weeklyObjectives: "",
                   essentialQuestion: "",
                   weeklyNotes: "",
@@ -83,7 +98,9 @@ export function WeekNotesDialog({ open, onOpenChange, courseId, weekKey }: Props
                   custom3: "",
                   custom4: "",
                   custom5: "",
-                });
+                };
+                setLocalWm(blankWeekMeta());
+                updateWeekMeta(courseId, weekKey, cleared);
               }
             }}
           >
