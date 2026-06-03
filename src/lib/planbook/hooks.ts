@@ -6,7 +6,7 @@ export function useDebouncedCallback<T extends (...args: any[]) => void>(
 ): T {
   const fnRef = useRef(fn);
   fnRef.current = fn;
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   return useCallback((...args: Parameters<T>) => {
     clearTimeout(timerRef.current);
