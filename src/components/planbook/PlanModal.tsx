@@ -19,6 +19,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { usePlanBook, getDayMeta } from "@/lib/planbook/store";
+import { useDebouncedCallback } from "@/lib/planbook/hooks";
+import type { DayMeta } from "@/lib/planbook/types";
 import {
   formatDayLong,
   isWednesday,
