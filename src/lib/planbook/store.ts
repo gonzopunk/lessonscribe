@@ -19,9 +19,10 @@ import type {
 import { blankWeekMeta } from "./types";
 
 import { dayKey, metaKey, mondayOf, parseDayKey, weekMetaKey } from "./dates";
+import { saveWorksheetBlob, deleteWorksheetBlob } from "./worksheetBlobs";
 
 const STORAGE_KEY = "planbook:v1";
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
 const defaultSettings: AppSettings = {
   theme: "dark",
@@ -320,19 +321,50 @@ export const usePlanBook = create<Store>()(
 
       addWorksheetTemplate: (t) => {
         const id = nanoid(8);
-        set((s) => ({ worksheetTemplates: [...s.worksheetTemplates, { ...t, id }] }));
+        const { pdfBase64, docxBase64, ...rest } = t as WorksheetTemplate;
+        const hasBlob = !!(pdfBase64 || docxBase64);
+        if (hasBlob) void saveWorksheetBlob(id, { pdfBase64, docxBase64 });
+        set((s) => ({
+          worksheetTemplates: [
+            ...s.worksheetTemplates,
+            { ...rest, id, hasFile: hasBlob || !!(rest as WorksheetTemplate).hasFile },
+          ],
+        }));
         return id;
       },
-      updateWorksheetTemplate: (id, patch) =>
-        set((s) => ({
-          worksheetTemplates: s.worksheetTemplates.map((t) =>
-            t.id === id ? { ...t, ...patch } : t,
-          ),
-        })),
-      removeWorksheetTemplate: (id) =>
+      updateWorksheetTemplate: (id, patch) => {
+        const { pdfBase64, docxBase64, ...rest } = patch as Partial<WorksheetTemplate>;
+        const hasBlob = pdfBase64 !== undefined || docxBase64 !== undefined;
+        if (hasBlob) {
+          const blob: { pdfBase64?: string; docxBase64?: string } = {};
+          if (pdfBase64 !== undefined) blob.pdfBase64 = pdfBase64;
+          if (docxBase64 !== undefined) blob.docxBase64 = docxBase64;
+          const hasContent = !!(pdfBase64 || docxBase64);
+          if (hasContent) {
+            void saveWorksheetBlob(id, blob);
+          } else {
+            // Empty string = cleared file
+            void deleteWorksheetBlob(id);
+          }
+          set((s) => ({
+            worksheetTemplates: s.worksheetTemplates.map((t) =>
+              t.id === id ? { ...t, ...rest, hasFile: hasContent } : t,
+            ),
+          }));
+        } else {
+          set((s) => ({
+            worksheetTemplates: s.worksheetTemplates.map((t) =>
+              t.id === id ? { ...t, ...rest } : t,
+            ),
+          }));
+        }
+      },
+      removeWorksheetTemplate: (id) => {
+        void deleteWorksheetBlob(id);
         set((s) => ({
           worksheetTemplates: s.worksheetTemplates.filter((t) => t.id !== id),
-        })),
+        }));
+      },
 
 
 
