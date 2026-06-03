@@ -381,7 +381,7 @@ function TemplateEditor({ template, onClose, onChange }: TemplateEditorProps) {
             <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-surface/40 p-6 text-sm text-muted-foreground hover:border-primary/50 hover:bg-surface">
               <Upload className="size-5" />
               <span>
-                {template.pdfBase64
+                {template.hasFile
                   ? "Replace PDF (drag or click)"
                   : "Drop a PDF here, or click to upload"}
               </span>
@@ -396,7 +396,7 @@ function TemplateEditor({ template, onClose, onChange }: TemplateEditorProps) {
                 }}
               />
             </label>
-            {template.pdfBase64 && template.detectedFields.length === 0 && (
+            {template.hasFile && template.detectedFields.length === 0 && (
               <p className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-300">
                 <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
                 No fillable fields found. Make sure your PDF has named AcroForm
@@ -420,7 +420,7 @@ function TemplateEditor({ template, onClose, onChange }: TemplateEditorProps) {
             <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-surface/40 p-6 text-sm text-muted-foreground hover:border-primary/50 hover:bg-surface">
               <Upload className="size-5" />
               <span>
-                {template.docxBase64
+                {template.hasFile
                   ? "Replace document (drag or click)"
                   : "Drop a .docx file here, or click to upload"}
               </span>
@@ -435,7 +435,7 @@ function TemplateEditor({ template, onClose, onChange }: TemplateEditorProps) {
                 }}
               />
             </label>
-            {template.docxBase64 && template.detectedFields.length === 0 && (
+            {template.hasFile && template.detectedFields.length === 0 && (
               <p className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-xs text-amber-700 dark:text-amber-300">
                 <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
                 No {"{{field_name}}"} placeholders detected. Make sure your document
