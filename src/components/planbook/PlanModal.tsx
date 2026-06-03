@@ -307,15 +307,19 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
                       <Textarea
                         id={`secnote-${sec.id}`}
                         rows={2}
-                        value={meta.sectionNotes?.[sec.id] ?? ""}
-                        onChange={(e) =>
-                          updateDayMeta(course.id, dayKey, {
-                            sectionNotes: {
-                              ...meta.sectionNotes,
-                              [sec.id]: e.target.value,
-                            },
-                          })
-                        }
+                        value={localMeta.sectionNotes?.[sec.id] ?? ""}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          const nextSectionNotes = {
+                            ...localMeta.sectionNotes,
+                            [sec.id]: v,
+                          };
+                          setLocalMeta((prev) => ({
+                            ...prev,
+                            sectionNotes: nextSectionNotes,
+                          }));
+                          debouncedUpdateDayMeta({ sectionNotes: nextSectionNotes });
+                        }}
                       />
                     </div>
                   ))}
