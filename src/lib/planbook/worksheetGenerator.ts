@@ -2,6 +2,7 @@ import { PDFDocument } from "pdf-lib";
 import Docxtemplater from "docxtemplater";
 import PizZip from "pizzip";
 import { resolveFieldValueForDocx } from "./worksheetResolver";
+import { loadWorksheetBlob } from "./worksheetBlobs";
 import type { PlanBookState, WorksheetTemplate } from "./types";
 
 function base64ToBytes(b64: string): Uint8Array {
@@ -12,12 +13,27 @@ function base64ToBytes(b64: string): Uint8Array {
   return bytes;
 }
 
+async function getTemplatePdfBase64(template: WorksheetTemplate): Promise<string> {
+  if (template.pdfBase64) return template.pdfBase64;
+  const blob = await loadWorksheetBlob(template.id);
+  if (!blob?.pdfBase64) throw new Error("Template file not found. Re-upload the PDF in Settings.");
+  return blob.pdfBase64;
+}
+
+async function getTemplateDocxBase64(template: WorksheetTemplate): Promise<string> {
+  if (template.docxBase64) return template.docxBase64;
+  const blob = await loadWorksheetBlob(template.id);
+  if (!blob?.docxBase64) throw new Error("Template file not found. Re-upload the document in Settings.");
+  return blob.docxBase64;
+}
+
 export async function fillWorksheetPdf(
   template: WorksheetTemplate,
   resolvedValues: Record<string, string>,
   flatten: boolean,
 ): Promise<Uint8Array> {
-  const doc = await PDFDocument.load(base64ToBytes(template.pdfBase64!));
+  const b64 = await getTemplatePdfBase64(template);
+  const doc = await PDFDocument.load(base64ToBytes(b64));
   const form = doc.getForm();
   for (const mapping of template.fieldMappings) {
     try {
