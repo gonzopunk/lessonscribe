@@ -222,20 +222,24 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
                   <Textarea
                     id="obj"
                     rows={2}
-                    value={meta.objectives}
-                    onChange={(e) =>
-                      updateDayMeta(course.id, dayKey, { objectives: e.target.value })
-                    }
+                    value={localMeta.objectives}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setLocalMeta((prev) => ({ ...prev, objectives: v }));
+                      debouncedUpdateDayMeta({ objectives: v });
+                    }}
                   />
                 </section>
                 <section className="space-y-1.5">
                   <Label htmlFor="std">Standards alignment</Label>
                   <Input
                     id="std"
-                    value={meta.standards}
-                    onChange={(e) =>
-                      updateDayMeta(course.id, dayKey, { standards: e.target.value })
-                    }
+                    value={localMeta.standards}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setLocalMeta((prev) => ({ ...prev, standards: v }));
+                      debouncedUpdateDayMeta({ standards: v });
+                    }}
                   />
                 </section>
               </>
