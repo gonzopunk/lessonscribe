@@ -12,6 +12,7 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { Header } from "./Header";
+import { ErrorBoundary } from "./ErrorBoundary";
 
 import { ElementBank } from "./ElementBank";
 import { DayCell } from "./DayCell";
