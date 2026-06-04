@@ -246,7 +246,7 @@ export function DayCell({
       )}
 
       {isNoSchool && (
-        <div className="flex flex-1 items-center justify-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        <div className="flex flex-1 items-center justify-center font-bold uppercase tracking-widest text-muted-foreground text-lg">
           {override?.label || "No school"}
         </div>
       )}
