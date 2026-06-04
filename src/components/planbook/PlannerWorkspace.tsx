@@ -462,10 +462,12 @@ export function PlannerWorkspace() {
               </div>
             </div>
 
-            <ElementBank
-              collapsed={bankCollapsed}
-              onToggle={() => setBankCollapsed((v) => !v)}
-            />
+            <ErrorBoundary label="the element bank">
+              <ElementBank
+                collapsed={bankCollapsed}
+                onToggle={() => setBankCollapsed((v) => !v)}
+              />
+            </ErrorBoundary>
           </main>
 
           <DragOverlay>
