@@ -118,7 +118,7 @@ export function initHistory() {
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => {
       const snap = pick(usePlanBook.getState());
-      if (last && JSON.stringify(last) === JSON.stringify(snap)) return;
+      if (last && !hasChanges(last, snap)) return;
       if (last) {
         undoStack.push(last);
         if (undoStack.length > MAX) undoStack.shift();
