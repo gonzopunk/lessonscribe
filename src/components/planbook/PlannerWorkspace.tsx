@@ -490,49 +490,62 @@ export function PlannerWorkspace() {
             )}
           </DragOverlay>
         </DndContext>
+        </ErrorBoundary>
       )}
 
-      <PlanModal
-        open={planModal.open}
-        onOpenChange={(v) => setPlanModal((p) => ({ ...p, open: v }))}
-        courseId={course.id}
-        dayKey={planModal.dayKey}
-        mode={planModal.mode}
-      />
-      <CalendarOverrideDialog
-        open={overrideDialog.open}
-        onOpenChange={(v) => setOverrideDialog((p) => ({ ...p, open: v }))}
-        dayKey={overrideDialog.key}
-      />
-      {dupDialog.key && (
-        <DuplicateDayDialog
-          open={dupDialog.open}
-          onOpenChange={(v) => setDupDialog((p) => ({ ...p, open: v }))}
+      <ErrorBoundary label="the lesson plan">
+        <PlanModal
+          open={planModal.open}
+          onOpenChange={(v) => setPlanModal((p) => ({ ...p, open: v }))}
           courseId={course.id}
-          sourceDay={dupDialog.key}
+          dayKey={planModal.dayKey}
+          mode={planModal.mode}
         />
+      </ErrorBoundary>
+      <ErrorBoundary label="the calendar override">
+        <CalendarOverrideDialog
+          open={overrideDialog.open}
+          onOpenChange={(v) => setOverrideDialog((p) => ({ ...p, open: v }))}
+          dayKey={overrideDialog.key}
+        />
+      </ErrorBoundary>
+      {dupDialog.key && (
+        <ErrorBoundary label="the duplicate day dialog">
+          <DuplicateDayDialog
+            open={dupDialog.open}
+            onOpenChange={(v) => setDupDialog((p) => ({ ...p, open: v }))}
+            courseId={course.id}
+            sourceDay={dupDialog.key}
+          />
+        </ErrorBoundary>
       )}
-      <QuickAddDialog
-        open={quickAdd.open}
-        onOpenChange={(v) => setQuickAdd((p) => ({ ...p, open: v }))}
-        courseId={course.id}
-        dayKey={quickAdd.key}
-      />
-      {worksheetDialog.weekMonday && (
-        <WorksheetGenerateDialog
-          open={worksheetDialog.open}
-          onOpenChange={(v) => setWorksheetDialog((p) => ({ ...p, open: v }))}
-          courseId={activeCourseId!}
-          weekMonday={worksheetDialog.weekMonday}
+      <ErrorBoundary label="the quick add">
+        <QuickAddDialog
+          open={quickAdd.open}
+          onOpenChange={(v) => setQuickAdd((p) => ({ ...p, open: v }))}
+          courseId={course.id}
+          dayKey={quickAdd.key}
         />
+      </ErrorBoundary>
+      {worksheetDialog.weekMonday && (
+        <ErrorBoundary label="the worksheet generator">
+          <WorksheetGenerateDialog
+            open={worksheetDialog.open}
+            onOpenChange={(v) => setWorksheetDialog((p) => ({ ...p, open: v }))}
+            courseId={activeCourseId!}
+            weekMonday={worksheetDialog.weekMonday}
+          />
+        </ErrorBoundary>
       )}
       {weekNotesDialog.weekKey && (
-        <WeekNotesDialog
-          open={weekNotesDialog.open}
-          onOpenChange={(v) => setWeekNotesDialog((p) => ({ ...p, open: v }))}
-          courseId={activeCourseId!}
-          weekKey={weekNotesDialog.weekKey}
-        />
+        <ErrorBoundary label="the weekly notes">
+          <WeekNotesDialog
+            open={weekNotesDialog.open}
+            onOpenChange={(v) => setWeekNotesDialog((p) => ({ ...p, open: v }))}
+            courseId={activeCourseId!}
+            weekKey={weekNotesDialog.weekKey}
+          />
+        </ErrorBoundary>
       )}
     </div>
   );
