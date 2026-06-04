@@ -26,7 +26,7 @@ function pick(s: Store): Snapshot {
   return {
     version: s.version,
     onboarded: s.onboarded,
-    settings: { ...s.settings },
+    settings: s.settings,
     courses: s.courses,
     activeCourseId: s.activeCourseId,
     tags: s.tags,
@@ -34,7 +34,23 @@ function pick(s: Store): Snapshot {
     instances: s.instances,
     overrides: s.overrides,
     dayMeta: s.dayMeta,
+    worksheetTemplates: s.worksheetTemplates,
+    weekMeta: s.weekMeta,
   };
+}
+
+function hasChanges(a: Snapshot, b: Snapshot): boolean {
+  return (
+    a.instances !== b.instances ||
+    a.dayMeta !== b.dayMeta ||
+    a.weekMeta !== b.weekMeta ||
+    a.courses !== b.courses ||
+    a.tags !== b.tags ||
+    a.templates !== b.templates ||
+    a.overrides !== b.overrides ||
+    a.worksheetTemplates !== b.worksheetTemplates ||
+    a.settings !== b.settings
+  );
 }
 
 function notify() {
