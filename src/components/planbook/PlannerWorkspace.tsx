@@ -321,15 +321,18 @@ export function PlannerWorkspace() {
       )}
 
       {viewMode === "month" ? (
-        <MonthView
-          monthAnchor={parseDayKey(anchor)}
-          onOpenPlan={(cid, dk) => {
-            if (cid !== activeCourseId) usePlanBook.getState().setActiveCourse(cid);
-            setPlanModal({ open: true, mode: "lesson", dayKey: dk });
-          }}
-          onOpenOverride={(dk) => setOverrideDialog({ open: true, key: dk })}
-        />
+        <ErrorBoundary label="the month view">
+          <MonthView
+            monthAnchor={parseDayKey(anchor)}
+            onOpenPlan={(cid, dk) => {
+              if (cid !== activeCourseId) usePlanBook.getState().setActiveCourse(cid);
+              setPlanModal({ open: true, mode: "lesson", dayKey: dk });
+            }}
+            onOpenOverride={(dk) => setOverrideDialog({ open: true, key: dk })}
+          />
+        </ErrorBoundary>
       ) : (
+        <ErrorBoundary label="the planner grid">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
