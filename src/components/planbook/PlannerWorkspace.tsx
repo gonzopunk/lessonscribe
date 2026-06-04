@@ -12,6 +12,7 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { Header } from "./Header";
+import { ErrorBoundary } from "./ErrorBoundary";
 
 import { ElementBank } from "./ElementBank";
 import { DayCell } from "./DayCell";
@@ -320,15 +321,18 @@ export function PlannerWorkspace() {
       )}
 
       {viewMode === "month" ? (
-        <MonthView
-          monthAnchor={parseDayKey(anchor)}
-          onOpenPlan={(cid, dk) => {
-            if (cid !== activeCourseId) usePlanBook.getState().setActiveCourse(cid);
-            setPlanModal({ open: true, mode: "lesson", dayKey: dk });
-          }}
-          onOpenOverride={(dk) => setOverrideDialog({ open: true, key: dk })}
-        />
+        <ErrorBoundary label="the month view">
+          <MonthView
+            monthAnchor={parseDayKey(anchor)}
+            onOpenPlan={(cid, dk) => {
+              if (cid !== activeCourseId) usePlanBook.getState().setActiveCourse(cid);
+              setPlanModal({ open: true, mode: "lesson", dayKey: dk });
+            }}
+            onOpenOverride={(dk) => setOverrideDialog({ open: true, key: dk })}
+          />
+        </ErrorBoundary>
       ) : (
+        <ErrorBoundary label="the planner grid">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -458,10 +462,12 @@ export function PlannerWorkspace() {
               </div>
             </div>
 
-            <ElementBank
-              collapsed={bankCollapsed}
-              onToggle={() => setBankCollapsed((v) => !v)}
-            />
+            <ErrorBoundary label="the element bank">
+              <ElementBank
+                collapsed={bankCollapsed}
+                onToggle={() => setBankCollapsed((v) => !v)}
+              />
+            </ErrorBoundary>
           </main>
 
           <DragOverlay>
@@ -484,49 +490,62 @@ export function PlannerWorkspace() {
             )}
           </DragOverlay>
         </DndContext>
+        </ErrorBoundary>
       )}
 
-      <PlanModal
-        open={planModal.open}
-        onOpenChange={(v) => setPlanModal((p) => ({ ...p, open: v }))}
-        courseId={course.id}
-        dayKey={planModal.dayKey}
-        mode={planModal.mode}
-      />
-      <CalendarOverrideDialog
-        open={overrideDialog.open}
-        onOpenChange={(v) => setOverrideDialog((p) => ({ ...p, open: v }))}
-        dayKey={overrideDialog.key}
-      />
-      {dupDialog.key && (
-        <DuplicateDayDialog
-          open={dupDialog.open}
-          onOpenChange={(v) => setDupDialog((p) => ({ ...p, open: v }))}
+      <ErrorBoundary label="the lesson plan">
+        <PlanModal
+          open={planModal.open}
+          onOpenChange={(v) => setPlanModal((p) => ({ ...p, open: v }))}
           courseId={course.id}
-          sourceDay={dupDialog.key}
+          dayKey={planModal.dayKey}
+          mode={planModal.mode}
         />
+      </ErrorBoundary>
+      <ErrorBoundary label="the calendar override">
+        <CalendarOverrideDialog
+          open={overrideDialog.open}
+          onOpenChange={(v) => setOverrideDialog((p) => ({ ...p, open: v }))}
+          dayKey={overrideDialog.key}
+        />
+      </ErrorBoundary>
+      {dupDialog.key && (
+        <ErrorBoundary label="the duplicate day dialog">
+          <DuplicateDayDialog
+            open={dupDialog.open}
+            onOpenChange={(v) => setDupDialog((p) => ({ ...p, open: v }))}
+            courseId={course.id}
+            sourceDay={dupDialog.key}
+          />
+        </ErrorBoundary>
       )}
-      <QuickAddDialog
-        open={quickAdd.open}
-        onOpenChange={(v) => setQuickAdd((p) => ({ ...p, open: v }))}
-        courseId={course.id}
-        dayKey={quickAdd.key}
-      />
-      {worksheetDialog.weekMonday && (
-        <WorksheetGenerateDialog
-          open={worksheetDialog.open}
-          onOpenChange={(v) => setWorksheetDialog((p) => ({ ...p, open: v }))}
-          courseId={activeCourseId!}
-          weekMonday={worksheetDialog.weekMonday}
+      <ErrorBoundary label="the quick add">
+        <QuickAddDialog
+          open={quickAdd.open}
+          onOpenChange={(v) => setQuickAdd((p) => ({ ...p, open: v }))}
+          courseId={course.id}
+          dayKey={quickAdd.key}
         />
+      </ErrorBoundary>
+      {worksheetDialog.weekMonday && (
+        <ErrorBoundary label="the worksheet generator">
+          <WorksheetGenerateDialog
+            open={worksheetDialog.open}
+            onOpenChange={(v) => setWorksheetDialog((p) => ({ ...p, open: v }))}
+            courseId={activeCourseId!}
+            weekMonday={worksheetDialog.weekMonday}
+          />
+        </ErrorBoundary>
       )}
       {weekNotesDialog.weekKey && (
-        <WeekNotesDialog
-          open={weekNotesDialog.open}
-          onOpenChange={(v) => setWeekNotesDialog((p) => ({ ...p, open: v }))}
-          courseId={activeCourseId!}
-          weekKey={weekNotesDialog.weekKey}
-        />
+        <ErrorBoundary label="the weekly notes">
+          <WeekNotesDialog
+            open={weekNotesDialog.open}
+            onOpenChange={(v) => setWeekNotesDialog((p) => ({ ...p, open: v }))}
+            courseId={activeCourseId!}
+            weekKey={weekNotesDialog.weekKey}
+          />
+        </ErrorBoundary>
       )}
     </div>
   );
