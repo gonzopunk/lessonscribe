@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { usePlanBook } from "@/lib/planbook/store";
 import { APP_NAME } from "@/lib/planbook/constants";
 import { ColorPicker } from "./ColorPicker";
+import { seedWeeklyAgendaPreset } from "@/lib/planbook/presets";
 
 
 export function OnboardingDialog({
@@ -24,6 +25,7 @@ export function OnboardingDialog({
   onDismiss?: () => void;
 }) {
   const completeOnboarding = usePlanBook((s) => s.completeOnboarding);
+  const [step, setStep] = useState<"course" | "preset">("course");
   const [start, setStart] = useState(() => `${new Date().getFullYear()}-08-15`);
   const [end, setEnd] = useState(() => `${new Date().getFullYear() + 1}-06-15`);
   const [ical, setIcal] = useState("");
@@ -38,8 +40,56 @@ export function OnboardingDialog({
     "Seating chart in red folder on desk. Bathroom: one student at a time, sign out on whiteboard. Class roster + emergency procedures in blue binder.",
   );
 
+  const handleOpenChange = (v: boolean) => {
+    if (v) return;
+    if (step === "preset") return; // disable close during preset step
+    onDismiss?.();
+  };
+
+  if (step === "preset") {
+    return (
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent
+          className="max-w-lg"
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          onInteractOutside={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>Your worksheet is ready to set up</DialogTitle>
+            <DialogDescription>
+              We've prepared a "Weekly Agenda with Word of the Day" template that fills
+              in automatically from your lesson plan — no setup required after this step.
+            </DialogDescription>
+          </DialogHeader>
+
+          <ul className="space-y-2 py-2 text-sm">
+            <li>• Three lesson tags: Word of the Day, Main Activity, Exit Ticket</li>
+            <li>• Two element templates pre-tagged and ready to drag into your planner</li>
+            <li>• A worksheet template with all fields pre-mapped — generates in one click</li>
+          </ul>
+
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="outline" onClick={() => onDismiss?.()}>
+              Skip for now
+            </Button>
+            <Button
+              onClick={() => {
+                const cid = usePlanBook.getState().activeCourseId;
+                if (cid) seedWeeklyAgendaPreset(cid);
+                onDismiss?.();
+              }}
+            >
+              Set it up
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onDismiss?.()}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Welcome to {APP_NAME}</DialogTitle>
@@ -146,7 +196,7 @@ export function OnboardingDialog({
 
         <DialogFooter>
           <Button
-            onClick={() =>
+            onClick={() => {
               completeOnboarding({
                 schoolYearStart: start,
                 schoolYearEnd: end,
@@ -163,8 +213,9 @@ export function OnboardingDialog({
                   wednesdayMinutes: wed,
                   subDefaults: subs,
                 },
-              })
-            }
+              });
+              setStep("preset");
+            }}
             disabled={!name || !start || !end}
           >
             Start planning
