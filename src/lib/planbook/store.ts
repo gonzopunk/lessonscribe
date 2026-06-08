@@ -167,6 +167,7 @@ export const usePlanBook = create<Store>()(
       ...initialState,
 
       completeOnboarding: ({ schoolYearStart, schoolYearEnd, icalUrl, course }) => {
+        console.log("[store.completeOnboarding] called", { schoolYearStart, schoolYearEnd, hasIcalUrl: !!icalUrl, courseName: course?.name });
         const courseId = nanoid(8);
         const newCourse: Course = { ...course, id: courseId, createdAt: Date.now() };
         const defaultTags: CategoryTag[] = [
