@@ -295,7 +295,7 @@ export function WorksheetGenerateDialog({
                 </div>
               )}
 
-              {(!template || template.type === "pdf-fill") && (
+              {(!template || template.type === "pdf-fill") && template?.type !== "preset" && (
                 <div className="space-y-2">
                   <Label>Output mode</Label>
                   <div className="grid grid-cols-2 gap-2">
@@ -351,7 +351,16 @@ export function WorksheetGenerateDialog({
                 </div>
               )}
 
-              {template?.type === "docx-fill" ? (
+              {template?.type === "preset" ? (
+                <Button
+                  onClick={onGeneratePreset}
+                  disabled={!template || generating}
+                  className="w-full"
+                >
+                  {generating && <Loader2 className="mr-2 size-4 animate-spin" />}
+                  Download PDF
+                </Button>
+              ) : template?.type === "docx-fill" ? (
                 <Button
                   onClick={onPreview}
                   disabled={!template || generating}
