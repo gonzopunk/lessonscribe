@@ -538,6 +538,7 @@ export const usePlanBook = create<Store>()(
       storage: createJSONStorage(() => localStorage),
       version: SCHEMA_VERSION,
       merge: (persisted, current) => {
+        console.log("[store.persist.merge] persisted =", persisted);
         const p = (persisted ?? {}) as Partial<PlanBookState>;
         const ps = (p.settings ?? {}) as Partial<AppSettings> & {
           fontId?: string;
