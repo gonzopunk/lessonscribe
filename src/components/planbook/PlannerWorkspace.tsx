@@ -227,7 +227,17 @@ export function PlannerWorkspace() {
     return subscribeSync((s) => setSyncStatus(s.status));
   }, []);
 
+  console.log("[PlannerWorkspace] render", {
+    onboarded,
+    activeCourseId,
+    hasSession,
+    newUserIntent,
+    syncStatus,
+    authChecked,
+  });
+
   if (!authChecked) {
+    console.log("[PlannerWorkspace] -> auth check loader (authChecked=false)");
     return (
       <div className="flex h-dvh items-center justify-center bg-background">
         <Loader2 className="size-5 animate-spin text-muted-foreground" />
@@ -239,6 +249,7 @@ export function PlannerWorkspace() {
   // Never auto-show onboarding for an anonymous visitor — that path is what
   // overwrites real cloud data when the user later signs in.
   if (!hasSession && !newUserIntent) {
+    console.log("[PlannerWorkspace] -> welcome card (signed-out, no newUserIntent)");
     return (
       <div className="flex h-dvh items-center justify-center bg-background px-4">
         <div className="w-full max-w-md rounded-xl border border-border bg-card p-8 text-center shadow-sm">
@@ -273,6 +284,7 @@ export function PlannerWorkspace() {
   // Signed-in but cloud snapshot is still loading — don't render the
   // onboarding dialog yet (would race with cloud hydrate).
   if (hasSession && (syncStatus === "loading" || syncStatus === "idle")) {
+    console.log("[PlannerWorkspace] -> cloud loading gate", { syncStatus });
     return (
       <div className="flex h-dvh items-center justify-center bg-background">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -284,6 +296,7 @@ export function PlannerWorkspace() {
   }
 
   if (!onboarded || !course) {
+    console.log("[PlannerWorkspace] -> OnboardingDialog", { onboarded, hasCourse: !!course });
     return (
       <OnboardingDialog
         open={true}
@@ -299,6 +312,8 @@ export function PlannerWorkspace() {
       />
     );
   }
+
+  console.log("[PlannerWorkspace] -> planner (onboarded + course present)");
 
   const activeTemplate = draggingTemplateId
     ? templates.find((t) => t.id === draggingTemplateId)
