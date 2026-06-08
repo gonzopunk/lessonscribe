@@ -164,7 +164,6 @@ export function OnboardingDialog({
                   subDefaults: subs,
                 },
               });
-              onDismiss?.();
             }}
             disabled={!name || !start || !end}
           >
