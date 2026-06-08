@@ -163,7 +163,8 @@ export interface WorksheetTemplate {
   id: string;
   courseId: string;
   name: string;
-  type: "pdf-fill" | "docx-fill";
+  type: "pdf-fill" | "docx-fill" | "preset";
+  presetId?: string;
   /**
    * Legacy fields — base64 file payloads. As of schema v2 these are no longer
    * stored in localStorage; the blob lives in IndexedDB (see worksheetBlobs.ts)
