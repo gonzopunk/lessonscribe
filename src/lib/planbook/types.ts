@@ -119,6 +119,7 @@ export interface AppSettings {
 export interface PlanBookState {
   version: number;
   onboarded: boolean;
+  presetOfferPending: boolean;
   settings: AppSettings;
   courses: Course[];
   activeCourseId: string | null;

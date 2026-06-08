@@ -21,6 +21,7 @@ import { MonthView } from "./MonthView";
 import { CalendarOverrideDialog } from "./CalendarOverrideDialog";
 import { DuplicateDayDialog } from "./DuplicateDayDialog";
 import { OnboardingDialog } from "./OnboardingDialog";
+import { PresetOfferDialog } from "./PresetOfferDialog";
 import { QuickAddDialog } from "./QuickAddDialog";
 import { WorksheetGenerateDialog } from "./WorksheetGenerateDialog";
 import { WeekNotesDialog } from "./WeekNotesDialog";
@@ -45,6 +46,8 @@ import { Loader2, ChevronLeft, ChevronRight, FileDown, Notebook } from "lucide-r
 export function PlannerWorkspace() {
   const onboarded = usePlanBook((s) => s.onboarded);
   const activeCourseId = usePlanBook((s) => s.activeCourseId);
+  const presetOfferPending = usePlanBook((s) => s.presetOfferPending);
+  const dismissPresetOffer = usePlanBook((s) => s.dismissPresetOffer);
   const course = usePlanBook((s) => s.courses.find((c) => c.id === activeCourseId));
   const weeksInView = usePlanBook((s) => s.settings.weeksInView);
   const viewMode = usePlanBook((s) => s.settings.viewMode);
@@ -547,6 +550,7 @@ export function PlannerWorkspace() {
           />
         </ErrorBoundary>
       )}
+      <PresetOfferDialog open={presetOfferPending} onClose={dismissPresetOffer} />
     </div>
   );
 }

@@ -65,6 +65,7 @@ interface Actions {
     course: Omit<Course, "id" | "createdAt">;
   }) => void;
   resetAll: () => void;
+  dismissPresetOffer: () => void;
 
   // settings
   updateSettings: (patch: Partial<AppSettings>) => void;
@@ -144,6 +145,7 @@ export type Store = PlanBookState & Actions;
 const initialState: PlanBookState = {
   version: SCHEMA_VERSION,
   onboarded: false,
+  presetOfferPending: false,
   settings: defaultSettings,
   courses: [],
   activeCourseId: null,
@@ -185,6 +187,7 @@ export const usePlanBook = create<Store>()(
           : [];
         set({
           onboarded: true,
+          presetOfferPending: true,
           courses: [newCourse],
           activeCourseId: courseId,
           tags: defaultTags,
@@ -196,6 +199,9 @@ export const usePlanBook = create<Store>()(
           },
         });
       },
+
+      dismissPresetOffer: () => set({ presetOfferPending: false }),
+
 
       resetAll: () => set({ ...initialState, anchorDate: dayKey(mondayOf(new Date())) }),
 
