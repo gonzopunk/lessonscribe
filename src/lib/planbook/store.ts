@@ -186,6 +186,7 @@ export const usePlanBook = create<Store>()(
           : [];
         set({
           onboarded: true,
+          presetOfferPending: true,
           courses: [newCourse],
           activeCourseId: courseId,
           tags: defaultTags,
@@ -197,6 +198,9 @@ export const usePlanBook = create<Store>()(
           },
         });
       },
+
+      dismissPresetOffer: () => set({ presetOfferPending: false }),
+
 
       resetAll: () => set({ ...initialState, anchorDate: dayKey(mondayOf(new Date())) }),
 
