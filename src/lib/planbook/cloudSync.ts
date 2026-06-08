@@ -253,6 +253,7 @@ async function handleSignIn(userId: string) {
 }
 
 function handleSignOut() {
+  console.log("[cloudSync.handleSignOut] called (prior userId =", state.userId, ")");
   detachStoreListener();
   remoteHasSnapshot = false;
   setState({
