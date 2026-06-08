@@ -21,6 +21,7 @@ import { MonthView } from "./MonthView";
 import { CalendarOverrideDialog } from "./CalendarOverrideDialog";
 import { DuplicateDayDialog } from "./DuplicateDayDialog";
 import { OnboardingDialog } from "./OnboardingDialog";
+import { PresetOfferDialog } from "./PresetOfferDialog";
 import { QuickAddDialog } from "./QuickAddDialog";
 import { WorksheetGenerateDialog } from "./WorksheetGenerateDialog";
 import { WeekNotesDialog } from "./WeekNotesDialog";
