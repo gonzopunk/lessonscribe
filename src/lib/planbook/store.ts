@@ -167,6 +167,7 @@ export const usePlanBook = create<Store>()(
       ...initialState,
 
       completeOnboarding: ({ schoolYearStart, schoolYearEnd, icalUrl, course }) => {
+        console.log("[store.completeOnboarding] called", { schoolYearStart, schoolYearEnd, hasIcalUrl: !!icalUrl, courseName: course?.name });
         const courseId = nanoid(8);
         const newCourse: Course = { ...course, id: courseId, createdAt: Date.now() };
         const defaultTags: CategoryTag[] = [
@@ -538,6 +539,7 @@ export const usePlanBook = create<Store>()(
       storage: createJSONStorage(() => localStorage),
       version: SCHEMA_VERSION,
       merge: (persisted, current) => {
+        console.log("[store.persist.merge] persisted =", persisted);
         const p = (persisted ?? {}) as Partial<PlanBookState>;
         const ps = (p.settings ?? {}) as Partial<AppSettings> & {
           fontId?: string;

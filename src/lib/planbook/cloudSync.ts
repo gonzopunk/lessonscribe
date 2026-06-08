@@ -208,6 +208,7 @@ function detachStoreListener() {
 }
 
 async function handleSignIn(userId: string) {
+  console.log("[cloudSync.handleSignIn] called with userId =", userId);
   setState({ userId, status: "loading", error: null });
   try {
     const remote = await loadSnapshot();
@@ -252,6 +253,7 @@ async function handleSignIn(userId: string) {
 }
 
 function handleSignOut() {
+  console.log("[cloudSync.handleSignOut] called (prior userId =", state.userId, ")");
   detachStoreListener();
   remoteHasSnapshot = false;
   setState({
