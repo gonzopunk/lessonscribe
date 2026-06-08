@@ -144,6 +144,7 @@ export type Store = PlanBookState & Actions;
 const initialState: PlanBookState = {
   version: SCHEMA_VERSION,
   onboarded: false,
+  presetOfferPending: false,
   settings: defaultSettings,
   courses: [],
   activeCourseId: null,
