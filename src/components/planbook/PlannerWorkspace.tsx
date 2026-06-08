@@ -550,6 +550,7 @@ export function PlannerWorkspace() {
           />
         </ErrorBoundary>
       )}
+      <PresetOfferDialog open={presetOfferPending} onClose={dismissPresetOffer} />
     </div>
   );
 }
