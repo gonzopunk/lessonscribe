@@ -562,8 +562,10 @@ export const usePlanBook = create<Store>()(
             void saveWorksheetBlob(t.id, { pdfBase64, docxBase64 });
           }
           return {
-            type: "pdf-fill" as const,
             ...rest,
+            type: ((rest.type as string) === "preset" ? "preset"
+                 : (rest.type as string) === "docx-fill" ? "docx-fill"
+                 : "pdf-fill") as WorksheetTemplate["type"],
             hasFile: hasBlob || !!rest.hasFile,
           };
         });

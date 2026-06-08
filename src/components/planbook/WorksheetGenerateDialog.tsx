@@ -166,6 +166,39 @@ export function WorksheetGenerateDialog({
     "yyyy-MM-dd",
   )}.docx`;
 
+  const onGeneratePreset = async () => {
+    if (!template || !course) return;
+    setGenerating(true);
+    try {
+      const resolvedFields: Record<string, string> = {};
+      for (const r of rows) resolvedFields[r.mapping.fieldName] = r.value;
+      const [{ pdf }, { WeeklyAgendaPreset }] = await Promise.all([
+        import("@react-pdf/renderer"),
+        import("@/components/planbook/presets/WeeklyAgendaPreset"),
+      ]);
+      const blob = await pdf(
+        <WeeklyAgendaPreset weekMonday={weekMonday} fields={resolvedFields} />,
+      ).toBlob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${course.name.replace(/[^\w\-]+/g, "_")}-agenda-${format(weekMonday, "yyyy-MM-dd")}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success("Worksheet downloaded");
+      onOpenChange(false);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? `Failed to generate: ${err.message}` : "Failed to generate worksheet",
+      );
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+
   return (
     <>
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -262,7 +295,7 @@ export function WorksheetGenerateDialog({
                 </div>
               )}
 
-              {(!template || template.type === "pdf-fill") && (
+              {(!template || template.type === "pdf-fill") && template?.type !== "preset" && (
                 <div className="space-y-2">
                   <Label>Output mode</Label>
                   <div className="grid grid-cols-2 gap-2">
@@ -318,7 +351,16 @@ export function WorksheetGenerateDialog({
                 </div>
               )}
 
-              {template?.type === "docx-fill" ? (
+              {template?.type === "preset" ? (
+                <Button
+                  onClick={onGeneratePreset}
+                  disabled={!template || generating}
+                  className="w-full"
+                >
+                  {generating && <Loader2 className="mr-2 size-4 animate-spin" />}
+                  Download PDF
+                </Button>
+              ) : template?.type === "docx-fill" ? (
                 <Button
                   onClick={onPreview}
                   disabled={!template || generating}
