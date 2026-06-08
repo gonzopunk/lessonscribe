@@ -208,6 +208,7 @@ function detachStoreListener() {
 }
 
 async function handleSignIn(userId: string) {
+  console.log("[cloudSync.handleSignIn] called with userId =", userId);
   setState({ userId, status: "loading", error: null });
   try {
     const remote = await loadSnapshot();
