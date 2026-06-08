@@ -65,6 +65,7 @@ interface Actions {
     course: Omit<Course, "id" | "createdAt">;
   }) => void;
   resetAll: () => void;
+  dismissPresetOffer: () => void;
 
   // settings
   updateSettings: (patch: Partial<AppSettings>) => void;
