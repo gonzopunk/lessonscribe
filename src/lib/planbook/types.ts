@@ -176,6 +176,7 @@ export interface WorksheetTemplate {
   docxBase64?: string;
   /** True once a file has been uploaded for this template (blob lives in IndexedDB). */
   hasFile?: boolean;
+  bundledTemplateUrl?: string;
   loopFields?: string[];
   detectedFields: string[];
   fieldMappings: FieldMapping[];

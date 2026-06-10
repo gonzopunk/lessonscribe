@@ -21,6 +21,15 @@ async function getTemplatePdfBase64(template: WorksheetTemplate): Promise<string
 }
 
 async function getTemplateDocxBase64(template: WorksheetTemplate): Promise<string> {
+  if (template.bundledTemplateUrl) {
+    const response = await fetch(template.bundledTemplateUrl);
+    if (!response.ok) throw new Error(`Failed to load bundled template: ${response.statusText}`);
+    const buffer = await response.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    let binary = "";
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return btoa(binary);
+  }
   if (template.docxBase64) return template.docxBase64;
   const blob = await loadWorksheetBlob(template.id);
   if (!blob?.docxBase64) throw new Error("Template file not found. Re-upload the document in Settings.");

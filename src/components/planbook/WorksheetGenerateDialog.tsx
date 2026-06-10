@@ -351,7 +351,7 @@ export function WorksheetGenerateDialog({
                 </div>
               )}
 
-              {template?.type === "preset" ? (
+              {template?.type === "preset" && !template.bundledTemplateUrl ? (
                 <Button
                   onClick={onGeneratePreset}
                   disabled={!template || generating}
@@ -360,7 +360,7 @@ export function WorksheetGenerateDialog({
                   {generating && <Loader2 className="mr-2 size-4 animate-spin" />}
                   Download PDF
                 </Button>
-              ) : template?.type === "docx-fill" ? (
+              ) : template?.type === "docx-fill" || (template?.type === "preset" && !!template.bundledTemplateUrl) ? (
                 <Button
                   onClick={onPreview}
                   disabled={!template || generating}

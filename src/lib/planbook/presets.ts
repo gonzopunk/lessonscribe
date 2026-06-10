@@ -29,6 +29,33 @@ export function seedWeeklyAgendaPreset(courseId: string): void {
     notes: "Add today's exit ticket question in the content field below",
     links: [],
   });
+  addTemplate({
+    courseId,
+    title: "7-min Quick Write",
+    tagIds: [activityTagId],
+    defaultMinutes: 7,
+    color: "blue",
+    notes: "",
+    links: [],
+  });
+  addTemplate({
+    courseId,
+    title: "Turn in Agenda and Word of the Day",
+    tagIds: [activityTagId],
+    defaultMinutes: 2,
+    color: "blue",
+    notes: "",
+    links: [],
+  });
+  addTemplate({
+    courseId,
+    title: "Weekly Reflection",
+    tagIds: [activityTagId],
+    defaultMinutes: 10,
+    color: "blue",
+    notes: "Place on Fridays only",
+    links: [],
+  });
 
   // Step C — week meta labels
   updateCourse(courseId, {
@@ -51,7 +78,7 @@ export function seedWeeklyAgendaPreset(courseId: string): void {
   const dayFields: FieldMapping[] = dayOffsets.flatMap(({ off, sfx }) => [
     { fieldName: `date_${sfx}`, source: { type: "day-date", dayOffset: off, format: "EEE, MMM d" } },
     { fieldName: `word_${sfx}`, source: { type: "element-content", dayOffset: off, tagId: wordTagId } },
-    { fieldName: `activities_${sfx}`, source: { type: "element-titles", dayOffset: off, tagId: activityTagId, separator: "\n" } },
+    { fieldName: `activities_${sfx}`, source: { type: "element-titles", dayOffset: off, tagId: activityTagId, separator: "\n", asArray: true } },
     { fieldName: `exit_${sfx}`, source: { type: "element-content", dayOffset: off, tagId: exitTagId } },
   ]);
 
@@ -71,8 +98,9 @@ export function seedWeeklyAgendaPreset(courseId: string): void {
     type: "preset",
     presetId: "weekly-agenda-word-of-day",
     hasFile: false,
+    bundledTemplateUrl: "/presets/weekly-agenda-ela.docx",
     detectedFields: [],
-    loopFields: [],
+    loopFields: ["activities_mon", "activities_tue", "activities_wed", "activities_thu", "activities_fri"],
     fieldMappings,
   });
 }
