@@ -29,6 +29,33 @@ export function seedWeeklyAgendaPreset(courseId: string): void {
     notes: "Add today's exit ticket question in the content field below",
     links: [],
   });
+  addTemplate({
+    courseId,
+    title: "7-min Quick Write",
+    tagIds: [activityTagId],
+    defaultMinutes: 7,
+    color: "blue",
+    notes: "",
+    links: [],
+  });
+  addTemplate({
+    courseId,
+    title: "Turn in Agenda and Word of the Day",
+    tagIds: [activityTagId],
+    defaultMinutes: 2,
+    color: "blue",
+    notes: "",
+    links: [],
+  });
+  addTemplate({
+    courseId,
+    title: "Weekly Reflection",
+    tagIds: [activityTagId],
+    defaultMinutes: 10,
+    color: "blue",
+    notes: "Place on Fridays only",
+    links: [],
+  });
 
   // Step C — week meta labels
   updateCourse(courseId, {
