@@ -98,8 +98,9 @@ export function seedWeeklyAgendaPreset(courseId: string): void {
     type: "preset",
     presetId: "weekly-agenda-word-of-day",
     hasFile: false,
+    bundledTemplateUrl: "/presets/weekly-agenda-ela.docx",
     detectedFields: [],
-    loopFields: [],
+    loopFields: ["activities_mon", "activities_tue", "activities_wed", "activities_thu", "activities_fri"],
     fieldMappings,
   });
 }
