@@ -78,7 +78,7 @@ export function seedWeeklyAgendaPreset(courseId: string): void {
   const dayFields: FieldMapping[] = dayOffsets.flatMap(({ off, sfx }) => [
     { fieldName: `date_${sfx}`, source: { type: "day-date", dayOffset: off, format: "EEE, MMM d" } },
     { fieldName: `word_${sfx}`, source: { type: "element-content", dayOffset: off, tagId: wordTagId } },
-    { fieldName: `activities_${sfx}`, source: { type: "element-titles", dayOffset: off, tagId: activityTagId, separator: "\n" } },
+    { fieldName: `activities_${sfx}`, source: { type: "element-titles", dayOffset: off, tagId: activityTagId, separator: "\n", asArray: true } },
     { fieldName: `exit_${sfx}`, source: { type: "element-content", dayOffset: off, tagId: exitTagId } },
   ]);
 
