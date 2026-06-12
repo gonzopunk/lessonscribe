@@ -97,6 +97,13 @@ export function WorksheetTemplateSettings() {
   const updateWorksheetTemplate = usePlanBook((s) => s.updateWorksheetTemplate);
   const removeWorksheetTemplate = usePlanBook((s) => s.removeWorksheetTemplate);
 
+  const unseededCourses = courses.filter(
+    (c) =>
+      !worksheetTemplates.some(
+        (t) => t.presetId === "weekly-agenda-word-of-day" && t.courseId === c.id,
+      ),
+  );
+
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const startNew = (type: "pdf-fill" | "docx-fill") => {
