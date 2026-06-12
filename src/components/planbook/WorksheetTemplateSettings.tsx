@@ -139,6 +139,39 @@ export function WorksheetTemplateSettings() {
 
   return (
     <div className="space-y-3">
+      {unseededCourses.length > 0 && (
+        <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 rounded-lg bg-primary/10 p-2">
+              <Sparkles className="size-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold">Weekly Agenda starter</h3>
+              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                Seeds Word of the Day, Main Activity, and Exit Ticket tags, five
+                element templates, and a pre-mapped worksheet ready to generate —
+                no manual setup required.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {unseededCourses.map((c) => (
+              <Button
+                key={c.id}
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  seedWeeklyAgendaPreset(c.id);
+                  toast.success(`Weekly Agenda starter set up for ${c.name}.`);
+                }}
+              >
+                Set up for {c.name}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">
           Add a PDF form template (AcroForm fields) or a Word document template
