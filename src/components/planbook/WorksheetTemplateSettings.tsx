@@ -3,8 +3,9 @@ import { nanoid } from "nanoid";
 import { toast } from "sonner";
 import { PDFDocument } from "pdf-lib";
 import { format } from "date-fns";
-import { AlertTriangle, FileText, Plus, Trash2, Upload } from "lucide-react";
+import { AlertTriangle, FileText, Plus, Sparkles, Trash2, Upload } from "lucide-react";
 import { usePlanBook } from "@/lib/planbook/store";
+import { seedWeeklyAgendaPreset } from "@/lib/planbook/presets";
 import {
   colorToken,
   colorTokenSoft,
