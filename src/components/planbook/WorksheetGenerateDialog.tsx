@@ -63,7 +63,7 @@ export function WorksheetGenerateDialog({
   );
 
   const [templateId, setTemplateId] = useState<string | null>(
-    templates[0]?.id ?? null,
+    templates.length === 1 ? (templates[0]?.id ?? null) : null,
   );
   const [mode, setMode] = useState<"editable" | "print-ready">("editable");
   const [bannerDismissed, setBannerDismissed] = useState(false);
@@ -150,6 +150,7 @@ export function WorksheetGenerateDialog({
       setPreviewBytes(bytes);
       setPreviewUnsupported(hasUnsupportedLayout);
       setPreviewOpen(true);
+      onOpenChange(false);
     } catch (err) {
       toast.error(
         err instanceof Error
@@ -234,7 +235,7 @@ export function WorksheetGenerateDialog({
                   onValueChange={(v) => setTemplateId(v)}
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                  <SelectValue placeholder="Select a template…" />
                   </SelectTrigger>
                   <SelectContent>
                     {templates.map((t) => (
