@@ -1,29 +1,13 @@
-# Wire Weekly Agenda preset to bundled DOCX
+## Plan: Tag deduplication guard and settings validation
 
-Route the Weekly Agenda preset through the existing docxtemplater pipeline using a static DOCX bundled at `/presets/weekly-agenda-ela.docx`, and seed three additional daily-routine element templates. The react-pdf path stays intact for future pure-PDF presets.
-
-## Changes
-
-### 1. `src/lib/planbook/types.ts`
-Add `bundledTemplateUrl?: string` to `WorksheetTemplate`, immediately after `hasFile`.
-
-### 2. `src/lib/planbook/worksheetGenerator.ts`
-Update `getTemplateDocxBase64` to fetch and base64-encode the file when `template.bundledTemplateUrl` is set, before falling back to the existing `docxBase64` / IndexedDB blob lookups.
-
-### 3. `src/lib/planbook/presets.ts`
+### File 1 — `src/lib/planbook/presets.ts`
 Inside `seedWeeklyAgendaPreset`:
-- **3A**: Add three new `addTemplate` calls (all tagged `activityTagId`): "7-min Quick Write" (7 min), "Turn in Agenda and Word of the Day" (2 min), "Weekly Reflection" (10 min, notes "Place on Fridays only").
-- **3B**: Add `asArray: true` to each `activities_${sfx}` field source so docxtemplater loops receive a string array.
-- **3C**: On the `addWorksheetTemplate` call, set `bundledTemplateUrl: "/presets/weekly-agenda-ela.docx"` and `loopFields: ["activities_mon", "activities_tue", "activities_wed", "activities_thu", "activities_fri"]`.
+1. Destructure `tags` from store state and add a `findOrCreateTag` helper that reuses existing tags by name+course instead of creating duplicates.
+2. Replace Step A tag creation: use `findOrCreateTag` for "Word of the Day" (violet), "Student Agenda" (amber), and "Exit Ticket" (green). Remove "Main Activity".
+3. Update the three routine element templates (7-min Quick Write, Turn in Agenda and Word of the Day, Weekly Reflection) to use the new `agendaTagId` and color `amber`.
+4. Update the `activities_${sfx}` field mapping to use `agendaTagId`, and rename the worksheet template to "Weekly Agenda and Accountability Tracker". Keep `presetId` unchanged.
 
-### 4. `src/components/planbook/WorksheetGenerateDialog.tsx`
-Update the bottom button block so:
-- `preset` + no `bundledTemplateUrl` → Download PDF (`onGeneratePreset`)
-- `docx-fill` OR `preset` + `bundledTemplateUrl` → Preview document (`onPreview`)
-- otherwise → Generate PDF (`onGenerate`)
+### File 2 — `src/routes/settings.tsx`
+In the Category tags section, add an `onBlur` validator to each tag name `Input`. If the trimmed name is non-empty and matches another tag in the same course (case-insensitive), show a `toast.error` telling the user to rename or delete the duplicate.
 
-## Out of scope
-No changes to `WeeklyAgendaPreset.tsx`, `worksheetResolver.ts`, `store.ts`, or settings UI.
-
-## Manual follow-up (user)
-After build, add `public/presets/weekly-agenda-ela.docx` to the repo and push. The preset will 404 until that file exists.
+No other files will be touched.

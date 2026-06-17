@@ -532,6 +532,20 @@ function SettingsPage() {
                       <Input
                         value={t.name}
                         onChange={(e) => updateTag(t.id, { name: e.target.value })}
+                        onBlur={(e) => {
+                          const newName = e.target.value.trim();
+                          if (!newName) return;
+                          const isDuplicate = courseTags.some(
+                            (other) =>
+                              other.id !== t.id &&
+                              other.name.trim().toLowerCase() === newName.toLowerCase(),
+                          );
+                          if (isDuplicate) {
+                            toast.error(
+                              `A tag named "${newName}" already exists for ${c.name}. Rename or delete the duplicate.`,
+                            );
+                          }
+                        }}
                         className="max-w-xs"
                       />
                       <ColorPicker
