@@ -26,17 +26,26 @@ export function PresetOfferDialog({
         onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>Your worksheet is ready to set up</DialogTitle>
+          <DialogTitle>Generate student worksheets from your lesson plans</DialogTitle>
           <DialogDescription>
-            We've prepared a "Weekly Agenda with Word of the Day" template that fills in
-            automatically from your lesson plan — no setup required after this step.
+            One-time setup adds the tags and templates you need. After that,
+            plan your week as usual and download a completed student handout
+            in one click from the week column header.
           </DialogDescription>
         </DialogHeader>
 
-        <ul className="space-y-2 py-2 text-sm">
-          <li>• Three lesson tags: Word of the Day, Main Activity, Exit Ticket</li>
-          <li>• Two element templates pre-tagged and ready to drag into your planner</li>
-          <li>• A worksheet template with all fields pre-mapped</li>
+        <div className="overflow-hidden rounded-lg border border-border">
+          <img
+            src="/presets/weekly-agenda-preview.png"
+            alt="Weekly Agenda and Accountability Tracker preview"
+            className="w-full"
+          />
+        </div>
+
+        <ul className="space-y-2 py-1 text-sm">
+          <li>• Two-page weekly handout: activity checklist, Word of the Day, exit tickets, tip of the week, and reflection prompts</li>
+          <li>• Five ready-to-use element templates — drag onto any day and they appear on the student sheet automatically</li>
+          <li>• Tag any lesson element "Student Agenda" to include it on the student copy; leave the tag off to keep it teacher-facing only</li>
         </ul>
 
         <DialogFooter className="gap-2 sm:gap-2">

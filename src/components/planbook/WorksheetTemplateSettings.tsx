@@ -141,18 +141,27 @@ export function WorksheetTemplateSettings() {
     <div className="space-y-3">
       {unseededCourses.length > 0 && (
         <div className="rounded-xl border border-border bg-card p-5 space-y-3">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 rounded-lg bg-primary/10 p-2">
-              <Sparkles className="size-5 text-primary" />
+          <div className="flex items-start gap-4">
+            <div className="flex items-start gap-3 flex-1 min-w-0">
+              <div className="mt-0.5 rounded-lg bg-primary/10 p-2 shrink-0">
+                <Sparkles className="size-5 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-sm font-semibold">Weekly Agenda starter</h3>
+                <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                  A two-page weekly student handout that fills automatically from
+                  your lesson plans — activity checklists, Word of the Day
+                  vocabulary, exit tickets, tip of the week, and reflection
+                  prompts. Tag any lesson element "Student Agenda" to include it
+                  on the student copy. Generates as an editable Word document.
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-sm font-semibold">Weekly Agenda starter</h3>
-              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                Seeds Word of the Day, Main Activity, and Exit Ticket tags, five
-                element templates, and a pre-mapped worksheet ready to generate —
-                no manual setup required.
-              </p>
-            </div>
+            <img
+              src="/presets/weekly-agenda-preview.png"
+              alt="Weekly Agenda worksheet preview"
+              className="hidden sm:block w-28 shrink-0 rounded border border-border object-cover object-top"
+            />
           </div>
           <div className="flex flex-wrap gap-2">
             {unseededCourses.map((c) => (
