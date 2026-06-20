@@ -102,7 +102,7 @@ interface Actions {
 
 
   // instances
-  addInstanceFromTemplate: (templateId: string, dKey: string) => void;
+  addInstanceFromTemplate: (templateId: string, dKey: string, insertOrder?: number) => void;
   addInstanceToMany: (templateId: string, dayKeys: string[]) => void;
   addAdHocInstance: (
     courseId: string,
@@ -383,18 +383,20 @@ export const usePlanBook = create<Store>()(
 
 
 
-      addInstanceFromTemplate: (templateId, dKey) => {
+      addInstanceFromTemplate: (templateId, dKey, insertOrder) => {
         const tpl = get().templates.find((t) => t.id === templateId);
         if (!tpl) return;
         const existing = get().instances.filter(
           (i) => i.courseId === tpl.courseId && i.dayKey === dKey,
         );
+        const appendOrder =
+          existing.length === 0 ? 0 : Math.max(...existing.map((i) => i.order)) + 1;
         const inst: ElementInstance = {
           id: nanoid(10),
           templateId: tpl.id,
           courseId: tpl.courseId,
           dayKey: dKey,
-          order: existing.length === 0 ? 0 : Math.max(...existing.map((i) => i.order)) + 1,
+          order: insertOrder ?? appendOrder,
           title: tpl.title,
           tagIds: [...tpl.tagIds],
           color: tpl.color,
