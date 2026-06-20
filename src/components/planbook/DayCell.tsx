@@ -166,6 +166,23 @@ export function DayCell({
                 <Copy className="mr-2 size-3.5" />
                 Duplicate to…
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setMoveOpen(true)} disabled={instances.length === 0}>
+                <ArrowRightLeft className="mr-2 size-3.5" />
+                Move to…
+              </DropdownMenuItem>
+              {instances.length > 0 && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (window.confirm("Remove all elements from this day?")) {
+                      clearDay(course.id, dKey);
+                    }
+                  }}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="mr-2 size-3.5" />
+                  Clear all elements
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={onOpenOverride}>
                 <CalendarOff className="mr-2 size-3.5" />
                 Mark as no school / event
