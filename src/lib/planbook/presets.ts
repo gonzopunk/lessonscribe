@@ -2,7 +2,7 @@ import { usePlanBook } from "./store";
 import type { FieldMapping } from "./types";
 
 export function seedWeeklyAgendaPreset(courseId: string): void {
-  const { addTag, addTemplate, updateCourse, addWorksheetTemplate, tags } =
+  const { addTag, addTemplate, updateCourse, addWorksheetTemplate, tags, templates } =
     usePlanBook.getState();
 
   const findOrCreateTag = (name: string, color: string): string => {
@@ -13,13 +13,24 @@ export function seedWeeklyAgendaPreset(courseId: string): void {
     return addTag({ courseId, name, color });
   };
 
+  const norm = (s: string) => s.trim().toLowerCase();
+  const findOrCreateTemplate = (
+    t: Parameters<typeof addTemplate>[0],
+  ): void => {
+    const exists = templates.some(
+      (e) => e.courseId === t.courseId && norm(e.title) === norm(t.title),
+    );
+    if (exists) return;
+    addTemplate(t);
+  };
+
   // Step A — tags
   const wordTagId = findOrCreateTag("Word of the Day", "violet");
   const agendaTagId = findOrCreateTag("Student Agenda", "amber");
   const exitTagId = findOrCreateTag("Exit Ticket", "green");
 
   // Step B — element templates
-  addTemplate({
+  findOrCreateTemplate({
     courseId,
     title: "Word of the Day",
     tagIds: [wordTagId],
@@ -28,7 +39,7 @@ export function seedWeeklyAgendaPreset(courseId: string): void {
     notes: "Add today's word in the content field below",
     links: [],
   });
-  addTemplate({
+  findOrCreateTemplate({
     courseId,
     title: "Exit Ticket",
     tagIds: [exitTagId],
@@ -37,7 +48,7 @@ export function seedWeeklyAgendaPreset(courseId: string): void {
     notes: "Add today's exit ticket question in the content field below",
     links: [],
   });
-  addTemplate({
+  findOrCreateTemplate({
     courseId,
     title: "7-min Quick Write",
     tagIds: [agendaTagId],
@@ -46,7 +57,7 @@ export function seedWeeklyAgendaPreset(courseId: string): void {
     notes: "",
     links: [],
   });
-  addTemplate({
+  findOrCreateTemplate({
     courseId,
     title: "Turn in Agenda and Word of the Day",
     tagIds: [agendaTagId],
@@ -55,7 +66,7 @@ export function seedWeeklyAgendaPreset(courseId: string): void {
     notes: "",
     links: [],
   });
-  addTemplate({
+  findOrCreateTemplate({
     courseId,
     title: "Weekly Reflection",
     tagIds: [agendaTagId],

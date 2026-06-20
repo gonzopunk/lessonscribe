@@ -1,42 +1,25 @@
-# Fix: allow inserting at the bottom of a day's list
+# Prevent duplicate elements when re-running the Weekly Agenda preset
 
-## Problem
+## Root cause
 
-With `closestCenter` collision detection, dragging a template near the bottom of a populated day still resolves `over` to the last instance card, not the day droppable. The current logic only treats that as "insert before", so there is no way to append to the end of a non-empty day.
+In `src/lib/planbook/presets.ts`, `seedWeeklyAgendaPreset` already dedupes tags via `findOrCreateTag`, but the five `addTemplate(...)` calls below run unconditionally. When a user deletes the preset worksheet and uses the "Set up for {course}" button again, the tags are reused (good), but five new element templates are appended next to the previous ones (the duplicates the user sees).
 
-## Fix — position-aware insertion (before/after the hovered card)
+The worksheet template itself is already protected: `WorksheetTemplateSettings.tsx` only shows the "Set up" button for courses in `unseededCourses`, computed by checking for an existing `presetId === "weekly-agenda-word-of-day"` worksheet template on that course. So no change is needed for the worksheet template — only for the element templates.
 
-All changes stay within the same three files; no new droppables, no collision-strategy change.
+## Fix (single file: `src/lib/planbook/presets.ts`)
 
-### `src/components/planbook/PlannerWorkspace.tsx`
+Add a `findOrCreateTemplate` helper inside `seedWeeklyAgendaPreset`, parallel to `findOrCreateTag`. It reads the current `templates` array from the store and looks for an existing template with the same `courseId` and same `title` (case-insensitive, trimmed comparison to be safe). If found, do nothing. If not, call `addTemplate(...)`.
 
-- Replace `dragOverInstanceId` / `dragOverInstanceRef` with a structured value carrying both id and side:
-  - `type DragOverPos = { id: string; side: "before" | "after" } | null`
-  - `dragOverPosRef = useRef<DragOverPos>(null)`
-  - `const [dragOverPos, setDragOverPos] = useState<DragOverPos>(null)`
-- In `onDragOver` (template drags only), when `over.id` matches an instance, compute side from rects:
-  - `const overRect = over.rect; const activeRect = active.rect.current.translated;`
-  - If `activeRect` exists, compare `activeRect.top + activeRect.height/2` vs `overRect.top + overRect.height/2`. Pointer-center below → `side: "after"`, else `"before"`.
-  - Fallback to `"before"` if rects are unavailable.
-  - When `over.data.current?.kind === "day"`, clear to `null` (handled by the bottom-of-list indicator branch in DayCell when `isOver` is true).
-- In `onDragEnd`, read `dragOverPosRef.current` before clearing. When the hovered instance belongs to the drop target's `dKey`:
-  - `side === "before"` → `addInstanceFromTemplate(templateId, dKey, target.order - 0.5)`
-  - `side === "after"`  → `addInstanceFromTemplate(templateId, dKey, target.order + 0.5)`
-  - No target / mismatched day → existing append call.
-- Update the DayCell prop name accordingly: pass `dragOverPos={dragOverPos}` (replaces `dragOverInstanceId`).
+Replace each of the five direct `addTemplate({...})` calls with `findOrCreateTemplate({...})`. No other behavior changes:
 
-### `src/components/planbook/DayCell.tsx`
+- Tags: unchanged (already deduped).
+- Week-meta labels: unchanged — `updateCourse` is already idempotent.
+- Worksheet template: unchanged — already gated by `unseededCourses` in the UI.
 
-- Change the prop to `dragOverPos?: { id: string; side: "before" | "after" } | null` (default `null`).
-- In the instance list render:
-  - Before each card, show the indicator when `isDraggingTemplate && dragOverPos?.id === inst.id && dragOverPos.side === "before"`.
-  - After each card, show the indicator when `isDraggingTemplate && dragOverPos?.id === inst.id && dragOverPos.side === "after"`.
-  - Keep the existing "bottom of list" indicator when `isDraggingTemplate && isOver && dragOverPos === null && instances.length > 0` (handles the case where the day droppable itself wins the hit-test).
+## Why title-based dedup is the right key
 
-### Store
-
-No changes — `addInstanceFromTemplate` already accepts the fractional `insertOrder`. `target.order + 0.5` slots correctly between the hovered card and whatever follows (or after the last card when the hovered card is last).
+Templates have no stable preset-element identifier; the only natural key per course is the title. The preset's five titles are distinct from each other ("Word of the Day", "Exit Ticket", "7-min Quick Write", "Turn in Agenda and Word of the Day", "Weekly Reflection"), so collisions across the preset's own elements aren't possible. If a user manually renamed one of those templates, it won't match and the preset will recreate that one — acceptable, because the renamed one is no longer recognizable as the preset's element. If they kept the title intact, it's correctly skipped.
 
 ## Out of scope
 
-- Instance-to-instance reorder, multi-day batch assign, month view, modals — untouched.
+No store/schema change. No migration. No changes to PresetOfferDialog, WorksheetTemplateSettings, or any other component.
