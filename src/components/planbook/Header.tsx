@@ -141,6 +141,8 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-3">
+          <SyncIndicator />
+
           <div className="flex overflow-hidden rounded-md border border-border">
             <button
               onClick={() => updateSettings({ viewMode: "weeks" })}
@@ -217,9 +219,6 @@ export function Header() {
             <Printer className="mr-1 size-4" />
             Export
           </Button>
-
-          <SyncIndicator />
-
 
           <Button
             variant="ghost"
