@@ -212,7 +212,7 @@ export function DayCell({
                 <InstanceCard
                   key={inst.id}
                   instance={inst}
-                  compact={!expanded}
+                  compact={!expanded || compactElements}
                   density={density}
                 />
               ))}
