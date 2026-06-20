@@ -253,38 +253,15 @@ export function MonthView({ monthAnchor, onOpenPlan, onOpenOverride }: Props) {
                       .filter((i) => i.courseId === cid && i.dayKey === dk)
                       .sort((a, b) => a.order - b.order);
                     return (
-                      <Popover key={cid}>
-                        <PopoverTrigger asChild>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
-                            title={`${course.name} — ${n} element${n === 1 ? "" : "s"}`}
-                            className="flex w-full items-center justify-between gap-1 overflow-hidden rounded px-1.5 py-0.5 text-left text-[11px] font-medium transition-opacity hover:opacity-80"
-                            style={{
-                              borderLeft: `3px solid ${colorToken(course.color)}`,
-                              backgroundColor: colorTokenSoft(course.color),
-                              color: colorToken(course.color),
-                            }}
-                          >
-                            <span className="truncate">{course.name}</span>
-                            <span className="shrink-0 opacity-70">{n}</span>
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent
-                          className="w-56 p-3"
-                          align="start"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <PopoverDayContent
-                            day={d}
-                            course={course}
-                            instances={dayInstances}
-                            tags={tags}
-                            onOpenPlan={() => onOpenPlan(cid, dk)}
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <DayCoursePopover
+                        key={cid}
+                        day={d}
+                        course={course}
+                        instances={dayInstances}
+                        tags={tags}
+                        count={n}
+                        onOpenPlan={() => onOpenPlan(cid, dk)}
+                      />
                     );
                   })}
                 </div>
