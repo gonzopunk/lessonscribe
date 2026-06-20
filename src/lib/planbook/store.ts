@@ -31,6 +31,7 @@ const defaultSettings: AppSettings = {
   bodyFontId: "inter",
   fontSize: "md",
   density: "comfortable",
+  compactElements: false,
   reduceMotion: false,
   schoolYearStart: null,
   schoolYearEnd: null,
