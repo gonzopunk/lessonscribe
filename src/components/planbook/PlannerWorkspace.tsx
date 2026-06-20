@@ -527,6 +527,8 @@ export function PlannerWorkspace() {
                               onOpenReflection={() =>
                                 setReflectionModal({ open: true, dayKey: k })
                               }
+                              isDraggingTemplate={!!draggingTemplateId}
+                              dragOverInstanceId={dragOverInstanceId}
                             />
                           );
                         })}
