@@ -130,6 +130,23 @@ export function InstanceCard({ instance, compact, density = "comfortable" }: Pro
                   <X className="size-3.5" />
                 </Button>
               </div>
+              {instance.tagIds.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {instance.tagIds.map((id) => {
+                    const t = allTags.find((x) => x.id === id);
+                    if (!t) return null;
+                    return (
+                      <span
+                        key={id}
+                        className="rounded-full border-l-2 bg-secondary px-2 py-0.5 text-[10px] font-medium text-foreground"
+                        style={{ borderLeftColor: colorToken(t.color) }}
+                      >
+                        {t.name}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
               <div className="space-y-1.5">
                 <Label htmlFor={`c-${instance.id}`} className="text-xs">
                   Today's content
