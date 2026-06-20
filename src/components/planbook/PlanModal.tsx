@@ -26,19 +26,14 @@ import {
   isWednesday,
   parseDayKey,
 } from "@/lib/planbook/dates";
-import { colorToHex } from "@/lib/planbook/constants";
-import { renderPlanHTML, openPrintWindow } from "@/lib/planbook/printPlan";
 import {
-  Printer,
+  FileDown,
   X,
   MoreVertical,
   UserRound,
   ArrowLeft,
   Copy,
-  ChevronDown,
-  ChevronRight,
 } from "lucide-react";
-import { Toggle } from "@/components/ui/toggle";
 import { DuplicateDayDialog } from "./DuplicateDayDialog";
 
 interface Props {
@@ -47,20 +42,18 @@ interface Props {
   courseId: string | null;
   dayKey: string | null;
   mode: "lesson" | "sub";
+  onOpenExport?: () => void;
 }
 
-export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props) {
+export function PlanModal({ open, onOpenChange, courseId, dayKey, mode, onOpenExport }: Props) {
   const course = usePlanBook((s) => s.courses.find((c) => c.id === courseId));
   const meta = usePlanBook((s) =>
     courseId && dayKey ? getDayMeta(s, courseId, dayKey) : null,
   );
   const allInstances = usePlanBook((s) => s.instances);
-  const allTags = usePlanBook((s) => s.tags);
   const updateDayMeta = usePlanBook((s) => s.updateDayMeta);
-  const [compact, setCompact] = useState(false);
   const [currentMode, setCurrentMode] = useState<"lesson" | "sub">(mode);
-  const [extrasOpen, setExtrasOpen] = useState(false);
-  
+
   const [dupDayOpen, setDupDayOpen] = useState(false);
 
   const blankMeta: DayMeta = {
@@ -112,23 +105,6 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
 
   const isSub = currentMode === "sub";
 
-  const print = () => {
-    const body = renderPlanHTML({
-      course,
-      dayKey,
-      meta,
-      instances,
-      allTags,
-      mode: currentMode,
-      compact,
-    });
-    openPrintWindow({
-      title: isSub ? "Sub Plan" : "Lesson Plan",
-      courseColorHex: colorToHex(course.color),
-      bodyHTML: body,
-    });
-  };
-
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -144,14 +120,6 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
                 </DialogDescription>
               </div>
               <div className="flex items-center gap-2">
-                <Toggle
-                  size="sm"
-                  pressed={compact}
-                  onPressedChange={setCompact}
-                  aria-label="Toggle compact"
-                >
-                  {compact ? "Expand" : "Compact"}
-                </Toggle>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" aria-label="More actions">
@@ -170,10 +138,6 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
                         View as sub plan
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem onClick={print}>
-                      <Printer className="mr-2 size-3.5" />
-                      Print / Save PDF
-                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => setDupDayOpen(true)}>
                       <Copy className="mr-2 size-3.5" />
@@ -231,6 +195,20 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
                   />
                 </section>
                 <section className="space-y-1.5">
+                  <Label htmlFor="mat">Materials needed</Label>
+                  <Textarea
+                    id="mat"
+                    rows={3}
+                    placeholder="List materials, handouts, or resources needed…"
+                    value={localMeta.materialsNotes ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setLocalMeta((prev) => ({ ...prev, materialsNotes: v }));
+                      debouncedUpdateDayMeta({ materialsNotes: v });
+                    }}
+                  />
+                </section>
+                <section className="space-y-1.5">
                   <Label htmlFor="std">Standards alignment</Label>
                   <Input
                     id="std"
@@ -264,10 +242,10 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
                           {i.durationOverride ?? i.defaultMinutes} min
                         </span>
                       </div>
-                      {i.content && !compact && (
+                      {i.content && (
                         <p className="mt-1 text-sm">{i.content}</p>
                       )}
-                      {i.instanceNotes && !compact && (
+                      {i.instanceNotes && (
                         <p className="mt-1 text-xs italic text-muted-foreground">
                           {i.instanceNotes}
                         </p>
@@ -327,95 +305,37 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
               </section>
             )}
 
-            {!isSub && (() => {
-              const diff = localMeta.differentiationNotes ?? "";
-              const beh = localMeta.behaviorNotes ?? "";
-              const mat = localMeta.materialsNotes ?? "";
-              const hasContent = !!(diff || beh || mat);
-              return (
-                <section className="space-y-2">
-                  <button
-                    type="button"
-                    onClick={() => setExtrasOpen((v) => !v)}
-                    className="flex w-full items-center gap-2 text-left text-xs"
-                  >
-                    {extrasOpen ? (
-                      <ChevronDown className="size-3.5 text-muted-foreground" />
-                    ) : (
-                      <ChevronRight className="size-3.5 text-muted-foreground" />
-                    )}
-                    {hasContent && !extrasOpen && (
-                      <span className="size-1.5 rounded-full bg-primary" />
-                    )}
-                    <span className={hasContent ? "text-foreground" : "text-muted-foreground"}>
-                      Differentiation, behavior &amp; materials
-                    </span>
-                  </button>
-                  {extrasOpen && (
-                    <div className="space-y-3 pl-5">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="diff">Differentiation / 504 &amp; IEP accommodations</Label>
-                        <Textarea
-                          id="diff"
-                          rows={3}
-                          placeholder="Note any accommodations or modifications for this lesson…"
-                          value={diff}
-                          onChange={(e) => {
-                            const v = e.target.value;
-                            setLocalMeta((prev) => ({ ...prev, differentiationNotes: v }));
-                            debouncedUpdateDayMeta({ differentiationNotes: v });
-                          }}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="beh">Behavior notes</Label>
-                        <Textarea
-                          id="beh"
-                          rows={3}
-                          placeholder="Behavior management notes for this lesson…"
-                          value={beh}
-                          onChange={(e) => {
-                            const v = e.target.value;
-                            setLocalMeta((prev) => ({ ...prev, behaviorNotes: v }));
-                            debouncedUpdateDayMeta({ behaviorNotes: v });
-                          }}
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="mat">Materials needed</Label>
-                        <Textarea
-                          id="mat"
-                          rows={3}
-                          placeholder="List materials, handouts, or resources needed…"
-                          value={mat}
-                          onChange={(e) => {
-                            const v = e.target.value;
-                            setLocalMeta((prev) => ({ ...prev, materialsNotes: v }));
-                            debouncedUpdateDayMeta({ materialsNotes: v });
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </section>
-              );
-            })()}
-
-
             {!isSub && (
-              <section className="space-y-1.5">
-                <Label htmlFor="refl">Reflection (after teaching)</Label>
-                <Textarea
-                  id="refl"
-                  rows={2}
-                  value={localMeta.reflection}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setLocalMeta((prev) => ({ ...prev, reflection: v }));
-                    debouncedUpdateDayMeta({ reflection: v });
-                  }}
-                />
-              </section>
+              <>
+                <section className="space-y-1.5">
+                  <Label htmlFor="diff">Differentiation / 504 &amp; IEP accommodations</Label>
+                  <Textarea
+                    id="diff"
+                    rows={3}
+                    placeholder="Note any accommodations or modifications for this lesson…"
+                    value={localMeta.differentiationNotes ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setLocalMeta((prev) => ({ ...prev, differentiationNotes: v }));
+                      debouncedUpdateDayMeta({ differentiationNotes: v });
+                    }}
+                  />
+                </section>
+                <section className="space-y-1.5">
+                  <Label htmlFor="beh">Behavior notes</Label>
+                  <Textarea
+                    id="beh"
+                    rows={3}
+                    placeholder="Behavior management notes for this lesson…"
+                    value={localMeta.behaviorNotes ?? ""}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setLocalMeta((prev) => ({ ...prev, behaviorNotes: v }));
+                      debouncedUpdateDayMeta({ behaviorNotes: v });
+                    }}
+                  />
+                </section>
+              </>
             )}
           </div>
 
@@ -424,9 +344,9 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
               <X className="mr-1 size-4" />
               Close
             </Button>
-            <Button onClick={print}>
-              <Printer className="mr-1 size-4" />
-              Print / Save PDF
+            <Button onClick={() => onOpenExport?.()}>
+              <FileDown className="mr-1 size-4" />
+              Export / Print
             </Button>
           </DialogFooter>
         </DialogContent>
