@@ -22,6 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { usePlanBook, getDayMeta } from "@/lib/planbook/store";
 import { InstanceCard } from "./InstanceCard";
+import { MoveDayDialog } from "./MoveDayDialog";
 import { cn } from "@/lib/utils";
 import {
   dayKey as toKey,
