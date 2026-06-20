@@ -397,7 +397,7 @@ export function PlannerWorkspace() {
                         ) : (
                           <span className="size-6 shrink-0" />
                         )}
-                        <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                           Week of {formatWeekRange(wkMonday)}
                         </h2>
                         <div className="flex items-center gap-1">
