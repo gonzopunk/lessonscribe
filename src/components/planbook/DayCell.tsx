@@ -247,6 +247,18 @@ export function DayCell({
               <FileText className="size-3" />
               Lesson plan
             </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-7 gap-1 text-xs shadow-md"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenReflection();
+              }}
+            >
+              <NotebookPen className="size-3" />
+              Reflection
+            </Button>
           </div>
         </>
       )}
