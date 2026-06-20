@@ -153,9 +153,38 @@ export function PlannerWorkspace() {
     if (data?.kind === "template") setDraggingTemplateId(data.templateId ?? null);
   };
 
+  const onDragOver = (e: DragOverEvent) => {
+    const aData = e.active.data.current as { kind?: string } | undefined;
+    if (aData?.kind !== "template") return;
+    const { over } = e;
+    if (!over) {
+      dragOverInstanceRef.current = null;
+      setDragOverInstanceId(null);
+      return;
+    }
+    const oData = over.data.current as { kind?: string } | undefined;
+    if (oData?.kind === "day") {
+      dragOverInstanceRef.current = null;
+      setDragOverInstanceId(null);
+      return;
+    }
+    const overId = String(over.id);
+    const inst = instances.find((i) => i.id === overId);
+    if (inst) {
+      dragOverInstanceRef.current = inst.id;
+      setDragOverInstanceId(inst.id);
+    } else {
+      dragOverInstanceRef.current = null;
+      setDragOverInstanceId(null);
+    }
+  };
+
   const onDragEnd = (e: DragEndEvent) => {
     setActiveDragId(null);
     setDraggingTemplateId(null);
+    const overInstanceId = dragOverInstanceRef.current;
+    dragOverInstanceRef.current = null;
+    setDragOverInstanceId(null);
     const { active, over } = e;
     if (!over) return;
     const aData = active.data.current as { kind?: string; templateId?: string; instanceId?: string; dayKey?: string };
@@ -172,7 +201,14 @@ export function PlannerWorkspace() {
       if (selectedDays.length > 1 && selectedDays.includes(dKey)) {
         addInstanceToMany(aData.templateId, selectedDays);
       } else {
-        addInstanceFromTemplate(aData.templateId, dKey);
+        const target = overInstanceId
+          ? instances.find((i) => i.id === overInstanceId)
+          : null;
+        if (target && target.dayKey === dKey) {
+          addInstanceFromTemplate(aData.templateId, dKey, target.order - 0.5);
+        } else {
+          addInstanceFromTemplate(aData.templateId, dKey);
+        }
       }
       return;
     }
@@ -372,6 +408,7 @@ export function PlannerWorkspace() {
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragStart={onDragStart}
+          onDragOver={onDragOver}
           onDragEnd={onDragEnd}
         >
           <main className="flex min-h-0 flex-1 overflow-hidden">
