@@ -232,7 +232,24 @@ export function PlannerWorkspace() {
   useEffect(() => {
     initCloudSync();
     initHistory();
-    return subscribeSync((s) => setSyncStatus(s.status));
+    let lastStatus: SyncStatus = "idle";
+    const unsub = subscribeSync((s) => {
+      setSyncStatus(s.status);
+      if (s.status === lastStatus) return;
+      lastStatus = s.status;
+      if (!s.userId) return;
+      if (s.status === "saving") {
+        toast.loading("Saving…", { id: "planbook-sync" });
+      } else if (s.status === "saved") {
+        toast.success("Saved", { id: "planbook-sync", duration: 2000 });
+      } else if (s.status === "error") {
+        toast.error(s.error ?? "Sync failed", { id: "planbook-sync", duration: Infinity });
+      }
+    });
+    return () => {
+      unsub();
+      toast.dismiss("planbook-sync");
+    };
   }, []);
 
   console.log("[PlannerWorkspace] render", {
