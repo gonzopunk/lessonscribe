@@ -39,6 +39,7 @@ interface Props {
   onOpenOverride: () => void;
   onDuplicate: () => void;
   onQuickAdd: () => void;
+  onOpenReflection: () => void;
 }
 
 const STATUS_NEXT: Record<DayStatus, DayStatus> = {
