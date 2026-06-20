@@ -156,7 +156,7 @@ export function Header() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setExportOpen(true)}
+            onClick={() => openExportDialog()}
             aria-label="Export range"
           >
             <Printer className="mr-1 size-4" />
