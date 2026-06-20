@@ -121,6 +121,8 @@ interface Actions {
   moveInstance: (id: string, dKey: string, newOrder: number) => void;
   reorderInDay: (courseId: string, dKey: string, orderedIds: string[]) => void;
   duplicateDay: (courseId: string, srcKey: string, destKeys: string[]) => void;
+  moveAllInstances: (courseId: string, fromDayKey: string, toDayKey: string) => void;
+  clearDay: (courseId: string, dayKey: string) => void;
 
   // day meta
   setDayStatus: (courseId: string, dKey: string, status: DayStatus) => void;
