@@ -112,8 +112,8 @@ export function PlannerWorkspace() {
 
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [draggingTemplateId, setDraggingTemplateId] = useState<string | null>(null);
-  const dragOverInstanceRef = useRef<string | null>(null);
-  const [dragOverInstanceId, setDragOverInstanceId] = useState<string | null>(null);
+  const dragOverPosRef = useRef<{ id: string; side: "before" | "after" } | null>(null);
+  const [dragOverPos, setDragOverPos] = useState<{ id: string; side: "before" | "after" } | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
@@ -156,35 +156,46 @@ export function PlannerWorkspace() {
   const onDragOver = (e: DragOverEvent) => {
     const aData = e.active.data.current as { kind?: string } | undefined;
     if (aData?.kind !== "template") return;
-    const { over } = e;
+    const { over, active } = e;
     if (!over) {
-      dragOverInstanceRef.current = null;
-      setDragOverInstanceId(null);
+      dragOverPosRef.current = null;
+      setDragOverPos(null);
       return;
     }
     const oData = over.data.current as { kind?: string } | undefined;
     if (oData?.kind === "day") {
-      dragOverInstanceRef.current = null;
-      setDragOverInstanceId(null);
+      dragOverPosRef.current = null;
+      setDragOverPos(null);
       return;
     }
     const overId = String(over.id);
     const inst = instances.find((i) => i.id === overId);
-    if (inst) {
-      dragOverInstanceRef.current = inst.id;
-      setDragOverInstanceId(inst.id);
-    } else {
-      dragOverInstanceRef.current = null;
-      setDragOverInstanceId(null);
+    if (!inst) {
+      dragOverPosRef.current = null;
+      setDragOverPos(null);
+      return;
     }
+    let side: "before" | "after" = "before";
+    const overRect = over.rect;
+    const activeRect = active.rect.current.translated;
+    if (overRect && activeRect) {
+      const activeCenter = activeRect.top + activeRect.height / 2;
+      const overCenter = overRect.top + overRect.height / 2;
+      side = activeCenter > overCenter ? "after" : "before";
+    }
+    const next = { id: inst.id, side };
+    dragOverPosRef.current = next;
+    setDragOverPos((prev) =>
+      prev && prev.id === next.id && prev.side === next.side ? prev : next,
+    );
   };
 
   const onDragEnd = (e: DragEndEvent) => {
     setActiveDragId(null);
     setDraggingTemplateId(null);
-    const overInstanceId = dragOverInstanceRef.current;
-    dragOverInstanceRef.current = null;
-    setDragOverInstanceId(null);
+    const overPos = dragOverPosRef.current;
+    dragOverPosRef.current = null;
+    setDragOverPos(null);
     const { active, over } = e;
     if (!over) return;
     const aData = active.data.current as { kind?: string; templateId?: string; instanceId?: string; dayKey?: string };
@@ -201,11 +212,12 @@ export function PlannerWorkspace() {
       if (selectedDays.length > 1 && selectedDays.includes(dKey)) {
         addInstanceToMany(aData.templateId, selectedDays);
       } else {
-        const target = overInstanceId
-          ? instances.find((i) => i.id === overInstanceId)
+        const target = overPos
+          ? instances.find((i) => i.id === overPos.id)
           : null;
-        if (target && target.dayKey === dKey) {
-          addInstanceFromTemplate(aData.templateId, dKey, target.order - 0.5);
+        if (target && target.dayKey === dKey && overPos) {
+          const delta = overPos.side === "after" ? 0.5 : -0.5;
+          addInstanceFromTemplate(aData.templateId, dKey, target.order + delta);
         } else {
           addInstanceFromTemplate(aData.templateId, dKey);
         }
