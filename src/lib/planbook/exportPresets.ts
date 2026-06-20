@@ -42,7 +42,7 @@ const baseSections: ExportSectionFlags = {
   sequence: true,
   dayNotes: true,
   sectionNotes: true,
-  reflection: true,
+  reflection: false,
   differentiation: false,
   behaviorNotes: false,
   materials: true,
@@ -78,7 +78,7 @@ export const EXPORT_PRESETS: Record<
     includeEmpty: false,
     orientation: "portrait",
     fontFamily: "inter",
-    sections: { ...baseSections, coverPage: false, reflection: true, subNotes: false, differentiation: true, behaviorNotes: false, materials: true },
+    sections: { ...baseSections, coverPage: false, reflection: false, subNotes: false, differentiation: true, behaviorNotes: false, materials: true },
   },
   sub: {
     mode: "sub",

@@ -223,7 +223,6 @@ export function ExportDialog({ open, onOpenChange, initialFrom, initialTo }: Pro
       runningHeader: profile.sections.runningHeader,
       runningHeaderText: doc.runningHeaderText,
     });
-    onOpenChange(false);
   };
 
   const preview = useMemo(() => {

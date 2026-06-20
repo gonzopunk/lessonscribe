@@ -70,7 +70,7 @@ export function ReflectionModal({ open, onOpenChange, courseId, dayKey }: Props)
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             <X className="mr-1 size-4" />
-            Close
+            Done
           </Button>
         </DialogFooter>
       </DialogContent>
