@@ -538,6 +538,11 @@ export const usePlanBook = create<Store>()(
         set({ anchorDate: dayKey(cur) });
       },
       setAnchor: (k) => set({ anchorDate: k }),
+
+      openExportDialog: (from, to) =>
+        set({ exportRequest: { open: true, from, to } }),
+      closeExportDialog: () =>
+        set((s) => ({ exportRequest: { ...s.exportRequest, open: false } })),
     }),
     {
       name: STORAGE_KEY,
