@@ -274,11 +274,12 @@ export function MonthView({ monthAnchor, onOpenPlan, onOpenOverride }: Props) {
   );
 }
 
-function PopoverDayContent({
+function DayCoursePopover({
   day,
   course,
   instances,
   tags,
+  count,
   onOpenPlan,
 }: {
   day: Date;
@@ -290,61 +291,92 @@ function PopoverDayContent({
     tagIds: string[];
   }>;
   tags: Array<{ id: string; name: string }>;
+  count: number;
   onOpenPlan: () => void;
 }) {
+  const [open, setOpen] = useState(false);
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-col gap-1">
-        <div className="text-xs font-bold">{format(day, "EEE, MMM d")}</div>
-        <span
-          className="self-start rounded-full px-2 py-0.5 text-[10px] font-semibold"
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+          title={`${course.name} — ${count} element${count === 1 ? "" : "s"}`}
+          className="flex w-full items-center justify-between gap-1 overflow-hidden rounded px-1.5 py-0.5 text-left text-[11px] font-medium transition-opacity hover:opacity-80"
           style={{
+            borderLeft: `3px solid ${colorToken(course.color)}`,
             backgroundColor: colorTokenSoft(course.color),
             color: colorToken(course.color),
           }}
         >
-          {course.name}
-        </span>
-      </div>
-      <div className="flex flex-col gap-1.5 border-t border-border pt-2">
-        {instances.length === 0 ? (
-          <div className="text-[11px] italic text-muted-foreground">
-            No elements planned
+          <span className="truncate">{course.name}</span>
+          <span className="shrink-0 opacity-70">{count}</span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-56 p-3"
+        align="start"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
+            <div className="text-xs font-bold">{format(day, "EEE, MMM d")}</div>
+            <span
+              className="self-start rounded-full px-2 py-0.5 text-[10px] font-semibold"
+              style={{
+                backgroundColor: colorTokenSoft(course.color),
+                color: colorToken(course.color),
+              }}
+            >
+              {course.name}
+            </span>
           </div>
-        ) : (
-          instances.map((inst) => {
-            const instTagNames = inst.tagIds
-              .map((tid) => tags.find((t) => t.id === tid)?.name)
-              .filter((n): n is string => Boolean(n));
-            return (
-              <div key={inst.id} className="flex items-start gap-1.5 text-[11px]">
-                <span
-                  className="mt-1 size-2 shrink-0 rounded-full"
-                  style={{ backgroundColor: colorToken(inst.color) }}
-                />
-                <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate font-medium">{inst.title}</span>
-                  {instTagNames.length > 0 && (
-                    <span className="truncate text-[10px] text-muted-foreground">
-                      {instTagNames.join(" · ")}
-                    </span>
-                  )}
-                </div>
+          <div className="flex flex-col gap-1.5 border-t border-border pt-2">
+            {instances.length === 0 ? (
+              <div className="text-[11px] italic text-muted-foreground">
+                No elements planned
               </div>
-            );
-          })
-        )}
-      </div>
-      <div className="border-t border-border pt-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 w-full justify-start text-xs"
-          onClick={onOpenPlan}
-        >
-          View lesson plan →
-        </Button>
-      </div>
-    </div>
+            ) : (
+              instances.map((inst) => {
+                const instTagNames = inst.tagIds
+                  .map((tid) => tags.find((t) => t.id === tid)?.name)
+                  .filter((n): n is string => Boolean(n));
+                return (
+                  <div key={inst.id} className="flex items-start gap-1.5 text-[11px]">
+                    <span
+                      className="mt-1 size-2 shrink-0 rounded-full"
+                      style={{ backgroundColor: colorToken(inst.color) }}
+                    />
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      <span className="truncate font-medium">{inst.title}</span>
+                      {instTagNames.length > 0 && (
+                        <span className="truncate text-[10px] text-muted-foreground">
+                          {instTagNames.join(" · ")}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+          <div className="border-t border-border pt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 w-full justify-start text-xs"
+              onClick={() => {
+                onOpenPlan();
+                setOpen(false);
+              }}
+            >
+              View lesson plan →
+            </Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
+
