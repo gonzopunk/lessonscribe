@@ -10,6 +10,8 @@ import {
   ChevronDown,
   ChevronUp,
   Plus,
+  ArrowRightLeft,
+  Trash2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -20,6 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { usePlanBook, getDayMeta } from "@/lib/planbook/store";
 import { InstanceCard } from "./InstanceCard";
+import { MoveDayDialog } from "./MoveDayDialog";
 import { cn } from "@/lib/utils";
 import {
   dayKey as toKey,
@@ -79,8 +82,11 @@ export function DayCell({
   const dayMeta = usePlanBook((s) => getDayMeta(s, course.id, dKey));
   const setStatus = usePlanBook((s) => s.setDayStatus);
   const density = usePlanBook((s) => s.settings.density);
+  const compactElements = usePlanBook((s) => s.settings.compactElements);
+  const clearDay = usePlanBook((s) => s.clearDay);
 
   const [expanded, setExpanded] = useState(true);
+  const [moveOpen, setMoveOpen] = useState(false);
 
   const instances = useMemo(
     () =>
@@ -160,6 +166,23 @@ export function DayCell({
                 <Copy className="mr-2 size-3.5" />
                 Duplicate to…
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setMoveOpen(true)} disabled={instances.length === 0}>
+                <ArrowRightLeft className="mr-2 size-3.5" />
+                Move to…
+              </DropdownMenuItem>
+              {instances.length > 0 && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    if (window.confirm("Remove all elements from this day?")) {
+                      clearDay(course.id, dKey);
+                    }
+                  }}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="mr-2 size-3.5" />
+                  Clear all elements
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={onOpenOverride}>
                 <CalendarOff className="mr-2 size-3.5" />
                 Mark as no school / event
@@ -189,7 +212,7 @@ export function DayCell({
                 <InstanceCard
                   key={inst.id}
                   instance={inst}
-                  compact={!expanded}
+                  compact={!expanded || compactElements}
                   density={density}
                 />
               ))}
@@ -268,6 +291,13 @@ export function DayCell({
           {override?.label || "No school"}
         </div>
       )}
+
+      <MoveDayDialog
+        open={moveOpen}
+        onOpenChange={setMoveOpen}
+        courseId={course.id}
+        sourceDay={dKey}
+      />
     </div>
   );
 }

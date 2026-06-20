@@ -8,6 +8,8 @@ import {
   Printer,
   Undo2,
   Redo2,
+  Rows3,
+  LayoutList,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePlanBook } from "@/lib/planbook/store";
@@ -39,6 +41,7 @@ export function Header() {
   const viewMode = usePlanBook((s) => s.settings.viewMode);
   const updateSettings = usePlanBook((s) => s.updateSettings);
   const theme = usePlanBook((s) => s.settings.theme);
+  const compactElements = usePlanBook((s) => s.settings.compactElements);
 
   const exportRequest = usePlanBook((s) => s.exportRequest);
   const openExportDialog = usePlanBook((s) => s.openExportDialog);
@@ -161,6 +164,16 @@ export function Header() {
           >
             <Printer className="mr-1 size-4" />
             Export
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={compactElements ? "Expand all elements" : "Compact view"}
+            title={compactElements ? "Expand all" : "Compact view"}
+            onClick={() => updateSettings({ compactElements: !compactElements })}
+          >
+            {compactElements ? <LayoutList className="size-4" /> : <Rows3 className="size-4" />}
           </Button>
 
           <Button
