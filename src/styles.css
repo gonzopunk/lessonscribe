@@ -142,21 +142,21 @@
  * Background mimics cream/manila stock, foreground a deep sepia.
  * All accents shift to warm hues so the palette feels cohesive. */
 .parchment {
-  --background: oklch(0.905 0.035 82);
+  --background: oklch(0.932 0.028 82);
   --foreground: oklch(0.28 0.035 55);
-  --surface: oklch(0.93 0.030 82);
-  --surface-2: oklch(0.88 0.035 80);
+  --surface: oklch(0.952 0.024 82);
+  --surface-2: oklch(0.908 0.028 80);
 
-  --card: oklch(0.945 0.028 84);
+  --card: oklch(0.965 0.022 84);
   --card-foreground: oklch(0.28 0.035 55);
-  --popover: oklch(0.945 0.028 84);
+  --popover: oklch(0.965 0.022 84);
   --popover-foreground: oklch(0.28 0.035 55);
 
   --primary: oklch(0.42 0.12 40);
   --primary-foreground: oklch(0.96 0.025 85);
-  --secondary: oklch(0.86 0.030 80);
+  --secondary: oklch(0.888 0.024 80);
   --secondary-foreground: oklch(0.30 0.035 55);
-  --muted: oklch(0.875 0.028 80);
+  --muted: oklch(0.902 0.022 80);
   --muted-foreground: oklch(0.48 0.030 60);
   --accent: oklch(0.83 0.055 70);
   --accent-foreground: oklch(0.28 0.035 55);

@@ -134,7 +134,7 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start justify-between gap-3 pr-10">
               <div>
                 <DialogTitle>
                   {isSub ? "Sub Plan" : "Lesson Plan"} — {course.name}
@@ -218,7 +218,7 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode }: Props)
             {!isSub && (
               <>
                 <section className="space-y-1.5">
-                  <Label htmlFor="obj">Learning Objectives</Label>
+                  <Label htmlFor="obj">Learning objectives</Label>
                   <Textarea
                     id="obj"
                     rows={2}
