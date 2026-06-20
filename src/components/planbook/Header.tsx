@@ -10,6 +10,9 @@ import {
   Redo2,
   Rows3,
   LayoutList,
+  Loader2,
+  Check,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePlanBook } from "@/lib/planbook/store";
@@ -24,6 +27,55 @@ import {
   redo,
   subscribeHistory,
 } from "@/lib/planbook/history";
+import { subscribeSync, type SyncStatus } from "@/lib/planbook/cloudSync";
+
+function SyncIndicator() {
+  const [status, setStatus] = useState<SyncStatus>("idle");
+  const [userId, setUserId] = useState<string | null>(null);
+  const [showSaved, setShowSaved] = useState(false);
+
+  useEffect(() => {
+    const unsub = subscribeSync((s) => {
+      setStatus(s.status);
+      setUserId(s.userId);
+      if (s.status === "saved") {
+        setShowSaved(true);
+      }
+    });
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    if (!showSaved) return;
+    const t = setTimeout(() => setShowSaved(false), 2000);
+    return () => clearTimeout(t);
+  }, [showSaved]);
+
+  let icon: React.ReactNode = null;
+  let title = "";
+  if (userId) {
+    if (status === "saving") {
+      icon = <Loader2 className="size-3.5 animate-spin text-muted-foreground" />;
+      title = "Saving…";
+    } else if (status === "error") {
+      icon = <AlertCircle className="size-3.5 text-destructive" />;
+      title = "Sync error — will retry";
+    } else if (status === "saved" && showSaved) {
+      icon = <Check className="size-3.5 text-muted-foreground" />;
+      title = "Saved";
+    }
+  }
+
+  return (
+    <div
+      className="flex h-5 w-5 items-center justify-center"
+      title={title || undefined}
+      aria-live="polite"
+    >
+      {icon}
+    </div>
+  );
+}
 
 type Theme = "light" | "dark" | "parchment";
 const THEME_CYCLE: Theme[] = ["light", "dark", "parchment"];
