@@ -16,9 +16,10 @@ import { cn } from "@/lib/utils";
 interface Props {
   instance: ElementInstance;
   compact?: boolean;
+  density?: "comfortable" | "compact";
 }
 
-export function InstanceCard({ instance, compact }: Props) {
+export function InstanceCard({ instance, compact, density = "comfortable" }: Props) {
   const updateInstance = usePlanBook((s) => s.updateInstance);
   const removeInstance = usePlanBook((s) => s.removeInstance);
   const [open, setOpen] = useState(false);
