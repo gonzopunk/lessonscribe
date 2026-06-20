@@ -468,6 +468,37 @@ export const usePlanBook = create<Store>()(
         set((s) => ({ instances: [...s.instances, ...copies] }));
       },
 
+      moveAllInstances: (courseId, fromDayKey, toDayKey) => {
+        if (fromDayKey === toDayKey) return;
+        const all = get().instances;
+        const src = all
+          .filter((i) => i.courseId === courseId && i.dayKey === fromDayKey)
+          .sort((a, b) => a.order - b.order);
+        if (src.length === 0) return;
+        const destExisting = all.filter(
+          (i) => i.courseId === courseId && i.dayKey === toDayKey,
+        );
+        const baseOrder =
+          destExisting.length === 0
+            ? 0
+            : Math.max(...destExisting.map((i) => i.order)) + 1;
+        const srcIds = new Set(src.map((i) => i.id));
+        set({
+          instances: all.map((i) => {
+            if (!srcIds.has(i.id)) return i;
+            const idx = src.findIndex((s) => s.id === i.id);
+            return { ...i, dayKey: toDayKey, order: baseOrder + idx };
+          }),
+        });
+      },
+
+      clearDay: (courseId, dKey) =>
+        set((s) => ({
+          instances: s.instances.filter(
+            (i) => !(i.courseId === courseId && i.dayKey === dKey),
+          ),
+        })),
+
       setDayStatus: (courseId, dKey, status) => {
         const k = metaKey(courseId, dKey);
         set((s) => ({
