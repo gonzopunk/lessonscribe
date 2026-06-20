@@ -43,6 +43,8 @@ interface Props {
   onDuplicate: () => void;
   onQuickAdd: () => void;
   onOpenReflection: () => void;
+  isDraggingTemplate?: boolean;
+  dragOverInstanceId?: string | null;
 }
 
 const STATUS_NEXT: Record<DayStatus, DayStatus> = {
@@ -72,6 +74,8 @@ export function DayCell({
   onDuplicate,
   onQuickAdd,
   onOpenReflection,
+  isDraggingTemplate = false,
+  dragOverInstanceId = null,
 }: Props) {
   const dKey = toKey(date);
   const wed = isWednesday(date);
@@ -209,13 +213,20 @@ export function DayCell({
           >
             <div className={cn("flex flex-1 flex-col", density === "compact" ? "gap-1" : "gap-1.5")}>
               {instances.map((inst) => (
-                <InstanceCard
-                  key={inst.id}
-                  instance={inst}
-                  compact={!expanded || compactElements}
-                  density={density}
-                />
+                <div key={inst.id} className="flex flex-col gap-1">
+                  {isDraggingTemplate && dragOverInstanceId === inst.id && (
+                    <div className="h-0.5 rounded-full bg-primary" />
+                  )}
+                  <InstanceCard
+                    instance={inst}
+                    compact={!expanded || compactElements}
+                    density={density}
+                  />
+                </div>
               ))}
+              {isDraggingTemplate && isOver && dragOverInstanceId === null && instances.length > 0 && (
+                <div className="h-0.5 rounded-full bg-primary" />
+              )}
               {instances.length === 0 && (
                 <button
                   type="button"

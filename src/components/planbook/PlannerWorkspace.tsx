@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   DndContext,
@@ -8,6 +8,7 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
+  type DragOverEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
@@ -111,6 +112,8 @@ export function PlannerWorkspace() {
 
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [draggingTemplateId, setDraggingTemplateId] = useState<string | null>(null);
+  const dragOverInstanceRef = useRef<string | null>(null);
+  const [dragOverInstanceId, setDragOverInstanceId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
@@ -150,9 +153,38 @@ export function PlannerWorkspace() {
     if (data?.kind === "template") setDraggingTemplateId(data.templateId ?? null);
   };
 
+  const onDragOver = (e: DragOverEvent) => {
+    const aData = e.active.data.current as { kind?: string } | undefined;
+    if (aData?.kind !== "template") return;
+    const { over } = e;
+    if (!over) {
+      dragOverInstanceRef.current = null;
+      setDragOverInstanceId(null);
+      return;
+    }
+    const oData = over.data.current as { kind?: string } | undefined;
+    if (oData?.kind === "day") {
+      dragOverInstanceRef.current = null;
+      setDragOverInstanceId(null);
+      return;
+    }
+    const overId = String(over.id);
+    const inst = instances.find((i) => i.id === overId);
+    if (inst) {
+      dragOverInstanceRef.current = inst.id;
+      setDragOverInstanceId(inst.id);
+    } else {
+      dragOverInstanceRef.current = null;
+      setDragOverInstanceId(null);
+    }
+  };
+
   const onDragEnd = (e: DragEndEvent) => {
     setActiveDragId(null);
     setDraggingTemplateId(null);
+    const overInstanceId = dragOverInstanceRef.current;
+    dragOverInstanceRef.current = null;
+    setDragOverInstanceId(null);
     const { active, over } = e;
     if (!over) return;
     const aData = active.data.current as { kind?: string; templateId?: string; instanceId?: string; dayKey?: string };
@@ -169,7 +201,14 @@ export function PlannerWorkspace() {
       if (selectedDays.length > 1 && selectedDays.includes(dKey)) {
         addInstanceToMany(aData.templateId, selectedDays);
       } else {
-        addInstanceFromTemplate(aData.templateId, dKey);
+        const target = overInstanceId
+          ? instances.find((i) => i.id === overInstanceId)
+          : null;
+        if (target && target.dayKey === dKey) {
+          addInstanceFromTemplate(aData.templateId, dKey, target.order - 0.5);
+        } else {
+          addInstanceFromTemplate(aData.templateId, dKey);
+        }
       }
       return;
     }
@@ -369,6 +408,7 @@ export function PlannerWorkspace() {
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragStart={onDragStart}
+          onDragOver={onDragOver}
           onDragEnd={onDragEnd}
         >
           <main className="flex min-h-0 flex-1 overflow-hidden">
@@ -487,6 +527,8 @@ export function PlannerWorkspace() {
                               onOpenReflection={() =>
                                 setReflectionModal({ open: true, dayKey: k })
                               }
+                              isDraggingTemplate={!!draggingTemplateId}
+                              dragOverInstanceId={dragOverInstanceId}
                             />
                           );
                         })}
