@@ -540,7 +540,7 @@ export function PlannerWorkspace() {
                                 setReflectionModal({ open: true, dayKey: k })
                               }
                               isDraggingTemplate={!!draggingTemplateId}
-                              dragOverInstanceId={dragOverInstanceId}
+                              dragOverPos={dragOverPos}
                             />
                           );
                         })}

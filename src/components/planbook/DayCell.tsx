@@ -44,7 +44,7 @@ interface Props {
   onQuickAdd: () => void;
   onOpenReflection: () => void;
   isDraggingTemplate?: boolean;
-  dragOverInstanceId?: string | null;
+  dragOverPos?: { id: string; side: "before" | "after" } | null;
 }
 
 const STATUS_NEXT: Record<DayStatus, DayStatus> = {
@@ -75,7 +75,7 @@ export function DayCell({
   onQuickAdd,
   onOpenReflection,
   isDraggingTemplate = false,
-  dragOverInstanceId = null,
+  dragOverPos = null,
 }: Props) {
   const dKey = toKey(date);
   const wed = isWednesday(date);
