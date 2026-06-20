@@ -6,6 +6,7 @@ import {
   Copy,
   CalendarOff,
   FileText,
+  NotebookPen,
   ChevronDown,
   ChevronUp,
   Plus,
