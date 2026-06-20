@@ -238,11 +238,44 @@ export function buildPrintDocument(opts: OpenPrintOptions): string {
 }
 
 export function openPrintWindow(opts: OpenPrintOptions) {
-  const w = window.open("", "_blank", "width=900,height=1000");
-  if (!w) return;
-  w.document.write(buildPrintDocument(opts));
-  w.document.close();
-  setTimeout(() => w.print(), 400);
+  const iframe = document.createElement("iframe");
+  iframe.setAttribute(
+    "style",
+    "position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:none;",
+  );
+  document.body.appendChild(iframe);
+
+  const doc = iframe.contentDocument;
+  const win = iframe.contentWindow;
+  if (!doc || !win) {
+    iframe.remove();
+    return;
+  }
+
+  let removed = false;
+  const cleanup = () => {
+    if (removed) return;
+    removed = true;
+    iframe.remove();
+  };
+
+  iframe.addEventListener("load", () => {
+    setTimeout(() => {
+      try {
+        win.focus();
+        win.print();
+      } catch {
+        cleanup();
+        return;
+      }
+      win.addEventListener("afterprint", cleanup);
+      setTimeout(cleanup, 10000);
+    }, 400);
+  });
+
+  doc.open();
+  doc.write(buildPrintDocument(opts));
+  doc.close();
 }
 
 export function renderCoverPage(opts: {
