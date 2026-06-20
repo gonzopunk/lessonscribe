@@ -41,6 +41,7 @@ export function Header() {
   const viewMode = usePlanBook((s) => s.settings.viewMode);
   const updateSettings = usePlanBook((s) => s.updateSettings);
   const theme = usePlanBook((s) => s.settings.theme);
+  const compactElements = usePlanBook((s) => s.settings.compactElements);
 
   const exportRequest = usePlanBook((s) => s.exportRequest);
   const openExportDialog = usePlanBook((s) => s.openExportDialog);
