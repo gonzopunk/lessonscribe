@@ -1,25 +1,20 @@
-# Prevent duplicate elements when re-running the Weekly Agenda preset
+Make the tiny Weekly Agenda preview thumbnail in Settings clickable so it opens a modal with a large, readable version of the same image.
 
-## Root cause
+**What changes**
 
-In `src/lib/planbook/presets.ts`, `seedWeeklyAgendaPreset` already dedupes tags via `findOrCreateTag`, but the five `addTemplate(...)` calls below run unconditionally. When a user deletes the preset worksheet and uses the "Set up for {course}" button again, the tags are reused (good), but five new element templates are appended next to the previous ones (the duplicates the user sees).
+1. In `src/components/planbook/WorksheetTemplateSettings.tsx`:
+   - Add local state `previewOpen` to control modal visibility.
+   - Wrap the existing `<img>` (lines 160-164) in a button or add `cursor-pointer` so it looks and behaves clickable. Add an `onClick` that opens the modal.
+   - Render a `<Dialog>` (from `@/components/ui/dialog`) when `previewOpen` is true.
+   - The dialog shows the same `/presets/weekly-agenda-preview.png` image at a much larger size (e.g., `max-w-3xl w-full` or similar) so the worksheet text is readable.
+   - Include a close button in the dialog header and support closing via Escape / click outside.
 
-The worksheet template itself is already protected: `WorksheetTemplateSettings.tsx` only shows the "Set up" button for courses in `unseededCourses`, computed by checking for an existing `presetId === "weekly-agenda-word-of-day"` worksheet template on that course. So no change is needed for the worksheet template — only for the element templates.
+**What does not change**
+- The original thumbnail size and layout stay the same.
+- No changes to worksheet generation, presets, store, or other settings.
+- The image asset itself (`/presets/weekly-agenda-preview.png`) is not modified.
 
-## Fix (single file: `src/lib/planbook/presets.ts`)
-
-Add a `findOrCreateTemplate` helper inside `seedWeeklyAgendaPreset`, parallel to `findOrCreateTag`. It reads the current `templates` array from the store and looks for an existing template with the same `courseId` and same `title` (case-insensitive, trimmed comparison to be safe). If found, do nothing. If not, call `addTemplate(...)`.
-
-Replace each of the five direct `addTemplate({...})` calls with `findOrCreateTemplate({...})`. No other behavior changes:
-
-- Tags: unchanged (already deduped).
-- Week-meta labels: unchanged — `updateCourse` is already idempotent.
-- Worksheet template: unchanged — already gated by `unseededCourses` in the UI.
-
-## Why title-based dedup is the right key
-
-Templates have no stable preset-element identifier; the only natural key per course is the title. The preset's five titles are distinct from each other ("Word of the Day", "Exit Ticket", "7-min Quick Write", "Turn in Agenda and Word of the Day", "Weekly Reflection"), so collisions across the preset's own elements aren't possible. If a user manually renamed one of those templates, it won't match and the preset will recreate that one — acceptable, because the renamed one is no longer recognizable as the preset's element. If they kept the title intact, it's correctly skipped.
-
-## Out of scope
-
-No store/schema change. No migration. No changes to PresetOfferDialog, WorksheetTemplateSettings, or any other component.
+**Technical details**
+- Use the existing shadcn `Dialog`, `DialogContent`, `DialogHeader`, `DialogTitle`, and `DialogClose` components already available in the project.
+- Keep the modal header minimal: title like "Weekly Agenda preview" and a close button.
+- Use `object-contain` on the large image so it scales cleanly without cropping.

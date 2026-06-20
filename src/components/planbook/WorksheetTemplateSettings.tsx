@@ -34,6 +34,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 const DAYS: { offset: DayOffset; label: string }[] = [
@@ -105,6 +111,7 @@ export function WorksheetTemplateSettings() {
   );
 
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const startNew = (type: "pdf-fill" | "docx-fill") => {
     if (courses.length === 0) {
@@ -157,11 +164,19 @@ export function WorksheetTemplateSettings() {
                 </p>
               </div>
             </div>
-            <img
-              src="/presets/weekly-agenda-preview.png"
-              alt="Weekly Agenda worksheet preview"
-              className="hidden sm:block w-28 shrink-0 rounded border border-border object-cover object-top"
-            />
+            <button
+              type="button"
+              onClick={() => setPreviewOpen(true)}
+              className="hidden sm:flex shrink-0 flex-col items-center gap-1 focus:outline-none focus:ring-2 focus:ring-primary/50 rounded"
+              aria-label="View larger Weekly Agenda preview"
+            >
+              <img
+                src="/presets/weekly-agenda-preview.png"
+                alt="Weekly Agenda worksheet preview"
+                className="max-h-32 w-auto object-contain rounded border border-border hover:border-primary/60 hover:shadow-md transition"
+              />
+              <span className="text-[11px] text-muted-foreground">Click to preview</span>
+            </button>
           </div>
           <div className="flex flex-wrap gap-2">
             {unseededCourses.map((c) => (
@@ -180,6 +195,21 @@ export function WorksheetTemplateSettings() {
           </div>
         </div>
       )}
+
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-2xl p-0 overflow-hidden">
+          <DialogHeader className="px-4 pt-3 pb-2 border-b border-border">
+            <DialogTitle>Weekly Agenda preview</DialogTitle>
+          </DialogHeader>
+          <div className="bg-muted/30 p-2 max-h-[80vh] overflow-auto">
+            <img
+              src="/presets/weekly-agenda-preview.png"
+              alt="Weekly Agenda worksheet preview"
+              className="w-full h-auto object-contain rounded border border-border bg-white"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">

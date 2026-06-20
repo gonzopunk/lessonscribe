@@ -26,6 +26,27 @@ export const saveSnapshot = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const snapshot = data as Snapshot;
     const { supabase, userId } = context;
+
+    // Guard 1 — Size cap
+    const serialized = JSON.stringify(snapshot);
+    const sizeBytes = new TextEncoder().encode(serialized).length;
+    if (sizeBytes > 5 * 1024 * 1024) {
+      console.error("[saveSnapshot] Snapshot too large:", sizeBytes, "bytes");
+      throw new Error("Snapshot too large to save — please contact support if this persists.");
+    }
+
+    // Guard 2 — Basic shape validation
+    if (
+      typeof snapshot !== "object" ||
+      snapshot === null ||
+      !Array.isArray(snapshot.courses) ||
+      !Array.isArray(snapshot.instances) ||
+      typeof snapshot.settings !== "object" ||
+      snapshot.settings === null
+    ) {
+      throw new Error("Snapshot shape invalid — data may be corrupted.");
+    }
+
     // Read the current row so we can roll the existing `data` into
     // `previous_data` — gives users a one-step cloud undo if a save
     // overwrites their real plan.
