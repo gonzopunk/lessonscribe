@@ -167,14 +167,15 @@ export function WorksheetTemplateSettings() {
             <button
               type="button"
               onClick={() => setPreviewOpen(true)}
-              className="hidden sm:block shrink-0 rounded border border-border overflow-hidden hover:border-primary/60 hover:shadow-md transition focus:outline-none focus:ring-2 focus:ring-primary/50"
+              className="hidden sm:flex shrink-0 flex-col items-center gap-1 focus:outline-none focus:ring-2 focus:ring-primary/50 rounded"
               aria-label="View larger Weekly Agenda preview"
             >
               <img
                 src="/presets/weekly-agenda-preview.png"
                 alt="Weekly Agenda worksheet preview"
-                className="w-28 object-cover object-top"
+                className="max-h-32 w-auto object-contain rounded border border-border hover:border-primary/60 hover:shadow-md transition"
               />
+              <span className="text-[11px] text-muted-foreground">Click to preview</span>
             </button>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -196,11 +197,11 @@ export function WorksheetTemplateSettings() {
       )}
 
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden">
-          <DialogHeader className="px-5 pt-4 pb-3 border-b border-border">
+        <DialogContent className="max-w-2xl p-0 overflow-hidden">
+          <DialogHeader className="px-4 pt-3 pb-2 border-b border-border">
             <DialogTitle>Weekly Agenda preview</DialogTitle>
           </DialogHeader>
-          <div className="bg-muted/30 p-4 max-h-[80vh] overflow-auto">
+          <div className="bg-muted/30 p-2 max-h-[80vh] overflow-auto">
             <img
               src="/presets/weekly-agenda-preview.png"
               alt="Weekly Agenda worksheet preview"
