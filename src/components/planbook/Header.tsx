@@ -218,6 +218,9 @@ export function Header() {
             Export
           </Button>
 
+          <SyncIndicator />
+
+
           <Button
             variant="ghost"
             size="icon"
