@@ -291,6 +291,13 @@ export function DayCell({
           {override?.label || "No school"}
         </div>
       )}
+
+      <MoveDayDialog
+        open={moveOpen}
+        onOpenChange={setMoveOpen}
+        courseId={course.id}
+        sourceDay={dKey}
+      />
     </div>
   );
 }
