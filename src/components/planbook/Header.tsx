@@ -8,6 +8,8 @@ import {
   Printer,
   Undo2,
   Redo2,
+  Rows3,
+  LayoutList,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePlanBook } from "@/lib/planbook/store";
