@@ -27,6 +27,7 @@ import { QuickAddDialog } from "./QuickAddDialog";
 import { WorksheetGenerateDialog } from "./WorksheetGenerateDialog";
 import { WeekNotesDialog } from "./WeekNotesDialog";
 import { usePlanBook } from "@/lib/planbook/store";
+import { toast } from "sonner";
 
 import {
   dayKey as toKey,
