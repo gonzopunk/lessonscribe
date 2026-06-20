@@ -82,8 +82,11 @@ export function DayCell({
   const dayMeta = usePlanBook((s) => getDayMeta(s, course.id, dKey));
   const setStatus = usePlanBook((s) => s.setDayStatus);
   const density = usePlanBook((s) => s.settings.density);
+  const compactElements = usePlanBook((s) => s.settings.compactElements);
+  const clearDay = usePlanBook((s) => s.clearDay);
 
   const [expanded, setExpanded] = useState(true);
+  const [moveOpen, setMoveOpen] = useState(false);
 
   const instances = useMemo(
     () =>
