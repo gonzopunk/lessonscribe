@@ -195,6 +195,21 @@ export function WorksheetTemplateSettings() {
         </div>
       )}
 
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-4xl p-0 overflow-hidden">
+          <DialogHeader className="px-5 pt-4 pb-3 border-b border-border">
+            <DialogTitle>Weekly Agenda preview</DialogTitle>
+          </DialogHeader>
+          <div className="bg-muted/30 p-4 max-h-[80vh] overflow-auto">
+            <img
+              src="/presets/weekly-agenda-preview.png"
+              alt="Weekly Agenda worksheet preview"
+              className="w-full h-auto object-contain rounded border border-border bg-white"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex items-center justify-between gap-3">
         <p className="text-xs text-muted-foreground">
           Add a PDF form template (AcroForm fields) or a Word document template
