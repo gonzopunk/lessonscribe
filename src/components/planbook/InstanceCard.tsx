@@ -94,7 +94,7 @@ export function InstanceCard({ instance, compact, density = "comfortable" }: Pro
 
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
-            <button className="min-w-0 flex-1 px-1.5 py-1.5 pr-5 text-left">
+            <button className={cn("min-w-0 flex-1 pr-5 text-left", density === "compact" ? "px-1.5 py-1" : "px-1.5 py-1.5")}>
               <div className="flex items-center justify-between gap-2">
                 <span className="truncate text-xs font-semibold">{instance.title}</span>
                 <span className="shrink-0 text-[10px] font-bold text-muted-foreground">
