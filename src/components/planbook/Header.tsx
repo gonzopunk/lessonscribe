@@ -40,7 +40,9 @@ export function Header() {
   const updateSettings = usePlanBook((s) => s.updateSettings);
   const theme = usePlanBook((s) => s.settings.theme);
 
-  const [exportOpen, setExportOpen] = useState(false);
+  const exportRequest = usePlanBook((s) => s.exportRequest);
+  const openExportDialog = usePlanBook((s) => s.openExportDialog);
+  const closeExportDialog = usePlanBook((s) => s.closeExportDialog);
   const [, setHistTick] = useState(0);
   useEffect(() => subscribeHistory(() => setHistTick((n) => n + 1)), []);
 
