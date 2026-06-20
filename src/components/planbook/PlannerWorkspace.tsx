@@ -70,6 +70,11 @@ export function PlannerWorkspace() {
     dayKey: string | null;
   }>({ open: false, mode: "lesson", dayKey: null });
 
+  const [reflectionModal, setReflectionModal] = useState<{
+    open: boolean;
+    dayKey: string | null;
+  }>({ open: false, dayKey: null });
+
   const [overrideDialog, setOverrideDialog] = useState<{ open: boolean; key: string | null }>({
     open: false,
     key: null,
