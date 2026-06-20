@@ -44,6 +44,8 @@ import { PrintPreview } from "./PrintPreview";
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  initialFrom?: string;
+  initialTo?: string;
 }
 
 const PRESET_LABELS: Record<Exclude<ExportPresetId, "custom">, string> = {
