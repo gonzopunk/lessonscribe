@@ -105,6 +105,7 @@ export interface AppSettings {
   bodyFontId: string;
   fontSize: "sm" | "md" | "lg" | "xl";
   density: "comfortable" | "compact";
+  compactElements: boolean;
   reduceMotion: boolean;
   schoolYearStart: string | null; // YYYY-MM-DD
   schoolYearEnd: string | null;
