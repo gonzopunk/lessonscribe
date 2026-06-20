@@ -215,6 +215,9 @@ function SettingsPage() {
                   <SelectItem value="compact">Compact</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                Controls spacing and padding around day cells and elements. Does not hide or show any content.
+              </p>
             </div>
             <div className="flex items-center justify-between sm:col-span-2">
               <div>
