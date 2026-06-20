@@ -10,6 +10,8 @@ import {
   ChevronDown,
   ChevronUp,
   Plus,
+  ArrowRightLeft,
+  Trash2,
 } from "lucide-react";
 import {
   DropdownMenu,
