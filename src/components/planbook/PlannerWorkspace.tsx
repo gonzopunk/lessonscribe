@@ -192,10 +192,12 @@ export function PlannerWorkspace() {
           reorderInDay(moving.courseId, destKey, reordered);
         }
       } else {
-        const destCount = instances.filter(
+        const destInsts = instances.filter(
           (i) => i.courseId === moving.courseId && i.dayKey === destKey,
-        ).length;
-        moveInstance(moving.id, destKey, destCount);
+        );
+        const maxOrder =
+          destInsts.length === 0 ? -1 : Math.max(...destInsts.map((i) => i.order));
+        moveInstance(moving.id, destKey, maxOrder + 1);
       }
     }
   };

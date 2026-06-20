@@ -40,7 +40,8 @@ export function MonthView({ monthAnchor, onOpenPlan, onOpenOverride }: Props) {
     return result;
   }, [monthAnchor]);
 
-  const monthIndex = monthAnchor.getMonth();
+  const displayMonth = startOfMonth(monthAnchor);
+  const monthIndex = displayMonth.getMonth();
 
   const countFor = (cid: string, dk: string) =>
     instances.filter((i) => i.courseId === cid && i.dayKey === dk).length;
@@ -68,13 +69,13 @@ export function MonthView({ monthAnchor, onOpenPlan, onOpenOverride }: Props) {
             aria-label="Previous month"
             onClick={() => {
               const next = addMonths(monthAnchor, -1);
-              usePlanBook.getState().setAnchor(toKey(mondayOf(startOfMonth(next))));
+              usePlanBook.getState().setAnchor(toKey(startOfMonth(next)));
             }}
           >
             <ChevronLeft className="size-4" />
           </Button>
           <span className="min-w-[8.5rem] text-center text-xs font-semibold">
-            {format(monthAnchor, "MMMM yyyy")}
+            {format(displayMonth, "MMMM yyyy")}
           </span>
           <Button
             variant="ghost"
@@ -83,7 +84,7 @@ export function MonthView({ monthAnchor, onOpenPlan, onOpenOverride }: Props) {
             aria-label="Next month"
             onClick={() => {
               const next = addMonths(monthAnchor, 1);
-              usePlanBook.getState().setAnchor(toKey(mondayOf(startOfMonth(next))));
+              usePlanBook.getState().setAnchor(toKey(startOfMonth(next)));
             }}
           >
             <ChevronRight className="size-4" />
