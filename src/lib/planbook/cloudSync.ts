@@ -14,6 +14,7 @@ import {
   saveSnapshot,
   getSnapshotMeta,
   restorePreviousSnapshot,
+  saveDailySnapshot,
 } from "./sync";
 import { resetHistory } from "./history";
 import type { PlanBookState } from "./types";
