@@ -1,66 +1,42 @@
-## Change 1 — Global compact/expand toggle
+# Fix: allow inserting at the bottom of a day's list
 
-**`src/lib/planbook/types.ts`** — Add `compactElements: boolean` to `AppSettings`.
+## Problem
 
-**`src/lib/planbook/store.ts`** — Add `compactElements: false` to `defaultSettings`. Settings persist already; no migration needed (undefined → falsy, treated as expanded).
+With `closestCenter` collision detection, dragging a template near the bottom of a populated day still resolves `over` to the last instance card, not the day droppable. The current logic only treats that as "insert before", so there is no way to append to the end of a non-empty day.
 
-**`src/components/planbook/DayCell.tsx`** — Read `compactElements` from settings. Change `compact={!expanded}` → `compact={!expanded || compactElements}`. Per-cell kebab Collapse/Expand toggle is unchanged.
+## Fix — position-aware insertion (before/after the hovered card)
 
-**`src/components/planbook/Header.tsx`** — Add a toolbar `Button variant="ghost" size="icon"` between the theme button and the existing layout (placed just before the `ThemeIcon` button). Icon: `Rows3` when `compactElements===false` (title "Compact view"), `LayoutList` when true (title "Expand all"). Click calls `updateSettings({ compactElements: !compactElements })`.
+All changes stay within the same three files; no new droppables, no collision-strategy change.
 
-## Change 2 — Day kebab: Move to… and Clear all elements
+### `src/components/planbook/PlannerWorkspace.tsx`
 
-**`src/lib/planbook/store.ts`** — Add to `Actions` interface and implementations:
+- Replace `dragOverInstanceId` / `dragOverInstanceRef` with a structured value carrying both id and side:
+  - `type DragOverPos = { id: string; side: "before" | "after" } | null`
+  - `dragOverPosRef = useRef<DragOverPos>(null)`
+  - `const [dragOverPos, setDragOverPos] = useState<DragOverPos>(null)`
+- In `onDragOver` (template drags only), when `over.id` matches an instance, compute side from rects:
+  - `const overRect = over.rect; const activeRect = active.rect.current.translated;`
+  - If `activeRect` exists, compare `activeRect.top + activeRect.height/2` vs `overRect.top + overRect.height/2`. Pointer-center below → `side: "after"`, else `"before"`.
+  - Fallback to `"before"` if rects are unavailable.
+  - When `over.data.current?.kind === "day"`, clear to `null` (handled by the bottom-of-list indicator branch in DayCell when `isOver` is true).
+- In `onDragEnd`, read `dragOverPosRef.current` before clearing. When the hovered instance belongs to the drop target's `dKey`:
+  - `side === "before"` → `addInstanceFromTemplate(templateId, dKey, target.order - 0.5)`
+  - `side === "after"`  → `addInstanceFromTemplate(templateId, dKey, target.order + 0.5)`
+  - No target / mismatched day → existing append call.
+- Update the DayCell prop name accordingly: pass `dragOverPos={dragOverPos}` (replaces `dragOverInstanceId`).
 
-- `moveAllInstances(courseId, fromDayKey, toDayKey)`: collect source instances sorted by order; compute `baseOrder = (max order in target day) + 1` (or 0 if target empty); reassign each moved instance `{ dayKey: toDayKey, order: baseOrder + idx }`; leave non-matching instances untouched.
-- `clearDay(courseId, dayKey)`: filter out matching instances.
+### `src/components/planbook/DayCell.tsx`
 
-**`src/components/planbook/MoveDayDialog.tsx`** (new) — Clone of `DuplicateDayDialog` but single-select picker. Same week grid; clicking a day sets `picked` to that key (radio-style); confirm calls `moveAllInstances(courseId, sourceDay, picked)`. Disable source day and no-school overrides. Title "Move to…", button label "Move".
+- Change the prop to `dragOverPos?: { id: string; side: "before" | "after" } | null` (default `null`).
+- In the instance list render:
+  - Before each card, show the indicator when `isDraggingTemplate && dragOverPos?.id === inst.id && dragOverPos.side === "before"`.
+  - After each card, show the indicator when `isDraggingTemplate && dragOverPos?.id === inst.id && dragOverPos.side === "after"`.
+  - Keep the existing "bottom of list" indicator when `isDraggingTemplate && isOver && dragOverPos === null && instances.length > 0` (handles the case where the day droppable itself wins the hit-test).
 
-**`src/components/planbook/DayCell.tsx`** — Add state `moveOpen`. Add to kebab after "Duplicate to…":
-- `Move to…` (icon `ArrowRightLeft`) → opens MoveDayDialog.
-- `Clear all elements` (icon `Trash2`, destructive styling) shown only when `instances.length > 0`. Click: `if (window.confirm("Remove all elements from this day?")) clearDay(course.id, dKey)`.
+### Store
 
-Render `<MoveDayDialog open={moveOpen} onOpenChange={setMoveOpen} courseId={course.id} sourceDay={dKey} />` alongside existing cell dialogs.
-
-## Change 3 — Tag pills in InstanceCard popover
-
-**`src/components/planbook/InstanceCard.tsx`** — Select `tags` from store: `const allTags = usePlanBook((s) => s.tags)`. In `PopoverContent`, between the title row and the "Today's content" field, render:
-
-```
-{instance.tagIds.length > 0 && (
-  <div className="flex flex-wrap gap-1">
-    {instance.tagIds.map(id => {
-      const t = allTags.find(x => x.id === id);
-      if (!t) return null;
-      return (
-        <span key={id} className="rounded-full border-l-2 bg-secondary px-2 py-0.5 text-[10px] font-medium"
-              style={{ borderLeftColor: colorToken(t.color) }}>
-          {t.name}
-        </span>
-      );
-    })}
-  </div>
-)}
-```
-
-No change when instance has no tags.
-
-## Change 4 — Auto-save toast
-
-Mount Toaster and subscribe to sync status. (Modern TanStack stack has no `use-toast`; sonner is the shadcn toast infrastructure here.)
-
-**`src/routes/__root.tsx`** — Import `Toaster` from `@/components/ui/sonner` and render `<Toaster />` inside the root layout body (alongside `<Outlet />`/`<Scripts />`).
-
-**`src/components/planbook/PlannerWorkspace.tsx`** — Add a `useEffect` that subscribes via `subscribeSync`. Track the last status with a ref to detect transitions. Logic:
-
-- If `userId` is null, skip (no toast).
-- On transition into `saving`: `const id = toast.loading("Saving…", { id: "planbook-sync" })`.
-- On transition into `saved`: `toast.success("Saved", { id: "planbook-sync", duration: 2000 })`.
-- On transition into `error`: `toast.error(state.error ?? "Sync failed", { id: "planbook-sync", duration: Infinity })`.
-
-Reuse a fixed `id: "planbook-sync"` so each new status replaces the prior toast. Cleanup: unsubscribe + `toast.dismiss("planbook-sync")` on unmount.
+No changes — `addInstanceFromTemplate` already accepts the fractional `insertOrder`. `target.order + 0.5` slots correctly between the hovered card and whatever follows (or after the last card when the hovered card is last).
 
 ## Out of scope
 
-ExportDialog, print, worksheets, settings page, density behavior, per-cell collapse toggle, history.ts/cloudSync.ts persistence (settings already cloud-synced; UI changes don't add new top-level state).
+- Instance-to-instance reorder, multi-day batch assign, month view, modals — untouched.
