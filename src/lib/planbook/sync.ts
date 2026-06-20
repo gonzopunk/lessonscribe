@@ -101,3 +101,100 @@ export const restorePreviousSnapshot = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { data: current.previous_data as Snapshot, updatedAt: now };
   });
+
+const DAILY_KEEP = 7;
+
+export const saveDailySnapshot = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({ data: z.record(z.any()), dayKey: z.string().min(1) }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: snapshot, dayKey } = data;
+
+    const { error: insertErr } = await supabase
+      .from("plan_snapshot_dailies")
+      .upsert(
+        { user_id: userId, day_key: dayKey, data: snapshot },
+        { onConflict: "user_id,day_key", ignoreDuplicates: true },
+      );
+    if (insertErr) throw new Error(insertErr.message);
+
+    // Prune beyond the most recent DAILY_KEEP rows.
+    const { data: all, error: listErr } = await supabase
+      .from("plan_snapshot_dailies")
+      .select("id, archived_at")
+      .eq("user_id", userId)
+      .order("archived_at", { ascending: false });
+    if (listErr) throw new Error(listErr.message);
+    if (all && all.length > DAILY_KEEP) {
+      const stale = all.slice(DAILY_KEEP).map((r) => r.id as string);
+      if (stale.length) {
+        const { error: delErr } = await supabase
+          .from("plan_snapshot_dailies")
+          .delete()
+          .in("id", stale);
+        if (delErr) throw new Error(delErr.message);
+      }
+    }
+    return { ok: true };
+  });
+
+export const listDailySnapshots = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<Array<{ dayKey: string; archivedAt: string }>> => {
+    const { supabase, userId } = context;
+    const { data, error } = await supabase
+      .from("plan_snapshot_dailies")
+      .select("day_key, archived_at")
+      .eq("user_id", userId)
+      .order("archived_at", { ascending: false })
+      .limit(DAILY_KEEP);
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((r) => ({
+      dayKey: r.day_key as string,
+      archivedAt: r.archived_at as string,
+    }));
+  });
+
+export const restoreFromDailySnapshot = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ dayKey: z.string().min(1) }).parse(input))
+  .handler(
+    async ({ data, context }): Promise<{ data: Snapshot; updatedAt: string } | null> => {
+      const { supabase, userId } = context;
+      const { dayKey } = data;
+
+      const { data: daily, error: dailyErr } = await supabase
+        .from("plan_snapshot_dailies")
+        .select("data")
+        .eq("user_id", userId)
+        .eq("day_key", dayKey)
+        .maybeSingle();
+      if (dailyErr) throw new Error(dailyErr.message);
+      if (!daily) return null;
+
+      const { data: current, error: readErr } = await supabase
+        .from("plan_snapshots")
+        .select("data, updated_at")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (readErr) throw new Error(readErr.message);
+
+      const now = new Date().toISOString();
+      const row = {
+        user_id: userId,
+        data: daily.data,
+        updated_at: now,
+        ...(current
+          ? { previous_data: current.data, previous_updated_at: current.updated_at }
+          : {}),
+      };
+      const { error } = await supabase
+        .from("plan_snapshots")
+        .upsert(row, { onConflict: "user_id" });
+      if (error) throw new Error(error.message);
+      return { data: daily.data as Snapshot, updatedAt: now };
+    },
+  );
