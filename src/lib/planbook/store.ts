@@ -138,6 +138,10 @@ interface Actions {
   // navigation
   shiftAnchor: (weeks: number) => void;
   setAnchor: (k: string) => void;
+
+  // export dialog (UI-only)
+  openExportDialog: (from?: string, to?: string) => void;
+  closeExportDialog: () => void;
 }
 
 export type Store = PlanBookState & Actions;
