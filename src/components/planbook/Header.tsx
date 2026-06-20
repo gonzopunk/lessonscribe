@@ -181,7 +181,12 @@ export function Header() {
         </div>
       </div>
 
-      <ExportDialog open={exportOpen} onOpenChange={setExportOpen} />
+      <ExportDialog
+        open={exportRequest.open}
+        onOpenChange={(v) => (v ? openExportDialog(exportRequest.from, exportRequest.to) : closeExportDialog())}
+        initialFrom={exportRequest.from}
+        initialTo={exportRequest.to}
+      />
     </header>
   );
 }
