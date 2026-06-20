@@ -478,6 +478,9 @@ export function PlannerWorkspace() {
                               }
                               onDuplicate={() => setDupDialog({ open: true, key: k })}
                               onQuickAdd={() => setQuickAdd({ open: true, key: k })}
+                              onOpenReflection={() =>
+                                setReflectionModal({ open: true, dayKey: k })
+                              }
                             />
                           );
                         })}
