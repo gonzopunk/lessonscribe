@@ -17,6 +17,7 @@ import { ErrorBoundary } from "./ErrorBoundary";
 import { ElementBank } from "./ElementBank";
 import { DayCell } from "./DayCell";
 import { PlanModal } from "./PlanModal";
+import { ReflectionModal } from "./ReflectionModal";
 import { MonthView } from "./MonthView";
 import { CalendarOverrideDialog } from "./CalendarOverrideDialog";
 import { DuplicateDayDialog } from "./DuplicateDayDialog";
