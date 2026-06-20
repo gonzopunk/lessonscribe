@@ -609,6 +609,8 @@ export const usePlanBook = create<Store>()(
       },
       partialize: (state) => ({
         ...state,
+        // UI-only; never persist so a closed-while-open dialog doesn't re-open.
+        exportRequest: { open: false },
         // Never write blob payloads to localStorage — they live in IndexedDB.
         worksheetTemplates: state.worksheetTemplates.map((t) => {
           const { pdfBase64: _p, docxBase64: _d, ...rest } = t as WorksheetTemplate;
