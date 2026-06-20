@@ -169,6 +169,16 @@ export function Header() {
           <Button
             variant="ghost"
             size="icon"
+            aria-label={compactElements ? "Expand all elements" : "Compact view"}
+            title={compactElements ? "Expand all" : "Compact view"}
+            onClick={() => updateSettings({ compactElements: !compactElements })}
+          >
+            {compactElements ? <LayoutList className="size-4" /> : <Rows3 className="size-4" />}
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
             aria-label={NEXT_THEME_LABEL[theme as Theme] ?? "Toggle theme"}
             title={NEXT_THEME_LABEL[theme as Theme] ?? "Toggle theme"}
             onClick={cycleTheme}
