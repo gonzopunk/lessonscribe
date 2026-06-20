@@ -22,6 +22,7 @@ interface Props {
 export function InstanceCard({ instance, compact, density = "comfortable" }: Props) {
   const updateInstance = usePlanBook((s) => s.updateInstance);
   const removeInstance = usePlanBook((s) => s.removeInstance);
+  const allTags = usePlanBook((s) => s.tags);
   const [open, setOpen] = useState(false);
   const [content, setContent] = useState(instance.content);
   const [instanceNotes, setInstanceNotes] = useState(instance.instanceNotes);
