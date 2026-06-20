@@ -168,7 +168,7 @@ export function DayCell({
                 ) : (
                   <ChevronDown className="mr-2 size-3.5" />
                 )}
-                {expanded ? "Compact" : "Expand"}
+                {expanded ? "Collapse details" : "Expand details"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -181,12 +181,13 @@ export function DayCell({
             items={instances.map((i) => i.id)}
             strategy={verticalListSortingStrategy}
           >
-            <div className="flex flex-1 flex-col gap-1.5">
+            <div className={cn("flex flex-1 flex-col", density === "compact" ? "gap-1" : "gap-1.5")}>
               {instances.map((inst) => (
                 <InstanceCard
                   key={inst.id}
                   instance={inst}
-                  compact={!expanded || density === "compact"}
+                  compact={!expanded}
+                  density={density}
                 />
               ))}
               {instances.length === 0 && (
