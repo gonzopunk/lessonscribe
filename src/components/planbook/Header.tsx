@@ -40,7 +40,9 @@ export function Header() {
   const updateSettings = usePlanBook((s) => s.updateSettings);
   const theme = usePlanBook((s) => s.settings.theme);
 
-  const [exportOpen, setExportOpen] = useState(false);
+  const exportRequest = usePlanBook((s) => s.exportRequest);
+  const openExportDialog = usePlanBook((s) => s.openExportDialog);
+  const closeExportDialog = usePlanBook((s) => s.closeExportDialog);
   const [, setHistTick] = useState(0);
   useEffect(() => subscribeHistory(() => setHistTick((n) => n + 1)), []);
 
@@ -154,7 +156,7 @@ export function Header() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setExportOpen(true)}
+            onClick={() => openExportDialog()}
             aria-label="Export range"
           >
             <Printer className="mr-1 size-4" />
@@ -179,7 +181,12 @@ export function Header() {
         </div>
       </div>
 
-      <ExportDialog open={exportOpen} onOpenChange={setExportOpen} />
+      <ExportDialog
+        open={exportRequest.open}
+        onOpenChange={(v) => (v ? openExportDialog(exportRequest.from, exportRequest.to) : closeExportDialog())}
+        initialFrom={exportRequest.from}
+        initialTo={exportRequest.to}
+      />
     </header>
   );
 }

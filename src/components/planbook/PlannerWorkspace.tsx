@@ -17,6 +17,7 @@ import { ErrorBoundary } from "./ErrorBoundary";
 import { ElementBank } from "./ElementBank";
 import { DayCell } from "./DayCell";
 import { PlanModal } from "./PlanModal";
+import { ReflectionModal } from "./ReflectionModal";
 import { MonthView } from "./MonthView";
 import { CalendarOverrideDialog } from "./CalendarOverrideDialog";
 import { DuplicateDayDialog } from "./DuplicateDayDialog";
@@ -68,6 +69,11 @@ export function PlannerWorkspace() {
     mode: "lesson" | "sub";
     dayKey: string | null;
   }>({ open: false, mode: "lesson", dayKey: null });
+
+  const [reflectionModal, setReflectionModal] = useState<{
+    open: boolean;
+    dayKey: string | null;
+  }>({ open: false, dayKey: null });
 
   const [overrideDialog, setOverrideDialog] = useState<{ open: boolean; key: string | null }>({
     open: false,
@@ -472,6 +478,9 @@ export function PlannerWorkspace() {
                               }
                               onDuplicate={() => setDupDialog({ open: true, key: k })}
                               onQuickAdd={() => setQuickAdd({ open: true, key: k })}
+                              onOpenReflection={() =>
+                                setReflectionModal({ open: true, dayKey: k })
+                              }
                             />
                           );
                         })}
@@ -520,6 +529,19 @@ export function PlannerWorkspace() {
           courseId={course.id}
           dayKey={planModal.dayKey}
           mode={planModal.mode}
+          onOpenExport={() => {
+            const dk = planModal.dayKey;
+            setPlanModal((p) => ({ ...p, open: false }));
+            if (dk) usePlanBook.getState().openExportDialog(dk, dk);
+          }}
+        />
+      </ErrorBoundary>
+      <ErrorBoundary label="the reflection modal">
+        <ReflectionModal
+          open={reflectionModal.open}
+          onOpenChange={(v) => setReflectionModal((p) => ({ ...p, open: v }))}
+          courseId={course.id}
+          dayKey={reflectionModal.dayKey}
         />
       </ErrorBoundary>
       <ErrorBoundary label="the calendar override">

@@ -138,6 +138,10 @@ interface Actions {
   // navigation
   shiftAnchor: (weeks: number) => void;
   setAnchor: (k: string) => void;
+
+  // export dialog (UI-only)
+  openExportDialog: (from?: string, to?: string) => void;
+  closeExportDialog: () => void;
 }
 
 export type Store = PlanBookState & Actions;
@@ -158,6 +162,7 @@ const initialState: PlanBookState = {
   anchorDate: dayKey(mondayOf(new Date())),
   worksheetTemplates: [],
   weekMeta: {},
+  exportRequest: { open: false },
 };
 
 
@@ -533,6 +538,11 @@ export const usePlanBook = create<Store>()(
         set({ anchorDate: dayKey(cur) });
       },
       setAnchor: (k) => set({ anchorDate: k }),
+
+      openExportDialog: (from, to) =>
+        set({ exportRequest: { open: true, from, to } }),
+      closeExportDialog: () =>
+        set((s) => ({ exportRequest: { ...s.exportRequest, open: false } })),
     }),
     {
       name: STORAGE_KEY,
@@ -599,6 +609,8 @@ export const usePlanBook = create<Store>()(
       },
       partialize: (state) => ({
         ...state,
+        // UI-only; never persist so a closed-while-open dialog doesn't re-open.
+        exportRequest: { open: false },
         // Never write blob payloads to localStorage — they live in IndexedDB.
         worksheetTemplates: state.worksheetTemplates.map((t) => {
           const { pdfBase64: _p, docxBase64: _d, ...rest } = t as WorksheetTemplate;

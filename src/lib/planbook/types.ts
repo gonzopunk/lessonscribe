@@ -132,6 +132,8 @@ export interface PlanBookState {
   anchorDate: string;                                 // YYYY-MM-DD, monday of leftmost visible week
   worksheetTemplates: WorksheetTemplate[];
   weekMeta: Record<string, WeekMeta>;                 // `week:${courseId}:${weekKey}`
+  // UI-only state; excluded from history snapshots and cloud sync.
+  exportRequest: { open: boolean; from?: string; to?: string };
 }
 
 // ---------- Worksheet Generator ----------

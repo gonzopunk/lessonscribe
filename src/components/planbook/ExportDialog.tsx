@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -44,6 +44,8 @@ import { PrintPreview } from "./PrintPreview";
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
+  initialFrom?: string;
+  initialTo?: string;
 }
 
 const PRESET_LABELS: Record<Exclude<ExportPresetId, "custom">, string> = {
@@ -72,7 +74,7 @@ const SECTION_GROUPS: Array<{ key: keyof ExportSectionFlags; label: string; grou
 
 const PREVIEW_PAGE_CAP = 10;
 
-export function ExportDialog({ open, onOpenChange }: Props) {
+export function ExportDialog({ open, onOpenChange, initialFrom, initialTo }: Props) {
   const state = usePlanBook();
   const courses = state.courses;
   const monthCourseIds = state.settings.monthCourseIds;
@@ -81,12 +83,20 @@ export function ExportDialog({ open, onOpenChange }: Props) {
   const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
   const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-  const [from, setFrom] = useState(format(monthStart, "yyyy-MM-dd"));
-  const [to, setTo] = useState(format(monthEnd, "yyyy-MM-dd"));
+  const [from, setFrom] = useState(initialFrom ?? format(monthStart, "yyyy-MM-dd"));
+  const [to, setTo] = useState(initialTo ?? format(monthEnd, "yyyy-MM-dd"));
   const [pickedCourses, setPickedCourses] = useState<string[]>(
     monthCourseIds.length ? monthCourseIds : courses.map((c) => c.id),
   );
   const [profile, setProfile] = useState<ExportProfile>(() => makeProfile("teacher"));
+
+  // Re-seed from/to when the dialog opens with new initial values.
+  useEffect(() => {
+    if (!open) return;
+    setFrom(initialFrom ?? format(monthStart, "yyyy-MM-dd"));
+    setTo(initialTo ?? format(monthEnd, "yyyy-MM-dd"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initialFrom, initialTo]);
 
   const setPreset = (preset: ExportPresetId) => {
     if (preset === "custom") {

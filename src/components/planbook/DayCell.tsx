@@ -6,6 +6,7 @@ import {
   Copy,
   CalendarOff,
   FileText,
+  NotebookPen,
   ChevronDown,
   ChevronUp,
   Plus,
@@ -38,6 +39,7 @@ interface Props {
   onOpenOverride: () => void;
   onDuplicate: () => void;
   onQuickAdd: () => void;
+  onOpenReflection: () => void;
 }
 
 const STATUS_NEXT: Record<DayStatus, DayStatus> = {
@@ -66,6 +68,7 @@ export function DayCell({
   onOpenOverride,
   onDuplicate,
   onQuickAdd,
+  onOpenReflection,
 }: Props) {
   const dKey = toKey(date);
   const wed = isWednesday(date);
@@ -243,6 +246,18 @@ export function DayCell({
             >
               <FileText className="size-3" />
               Lesson plan
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-7 gap-1 text-xs shadow-md"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenReflection();
+              }}
+            >
+              <NotebookPen className="size-3" />
+              Reflection
             </Button>
           </div>
         </>
