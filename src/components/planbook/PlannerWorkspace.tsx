@@ -529,6 +529,19 @@ export function PlannerWorkspace() {
           courseId={course.id}
           dayKey={planModal.dayKey}
           mode={planModal.mode}
+          onOpenExport={() => {
+            const dk = planModal.dayKey;
+            setPlanModal((p) => ({ ...p, open: false }));
+            if (dk) usePlanBook.getState().openExportDialog(dk, dk);
+          }}
+        />
+      </ErrorBoundary>
+      <ErrorBoundary label="the reflection modal">
+        <ReflectionModal
+          open={reflectionModal.open}
+          onOpenChange={(v) => setReflectionModal((p) => ({ ...p, open: v }))}
+          courseId={course.id}
+          dayKey={reflectionModal.dayKey}
         />
       </ErrorBoundary>
       <ErrorBoundary label="the calendar override">
