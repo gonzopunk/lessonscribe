@@ -14,6 +14,7 @@ import {
   saveSnapshot,
   getSnapshotMeta,
   restorePreviousSnapshot,
+  saveDailySnapshot,
 } from "./sync";
 import { resetHistory } from "./history";
 import type { PlanBookState } from "./types";
@@ -126,12 +127,56 @@ async function refreshMeta() {
   }
 }
 
+const DAILY_SNAP_KEY = "ls:daily-snap-date";
+
+function todayKey(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+async function maybeArchiveDaily() {
+  if (!state.userId) return;
+  if (typeof localStorage === "undefined") return;
+  const today = todayKey();
+  try {
+    if (localStorage.getItem(DAILY_SNAP_KEY) === today) return;
+    const snap = pickCloudShape(usePlanBook.getState());
+    await saveDailySnapshot({ data: { data: snap as Record<string, any>, dayKey: today } });
+    localStorage.setItem(DAILY_SNAP_KEY, today);
+  } catch (e) {
+    console.warn("[cloudSync] daily snapshot failed", e);
+    // Mark as attempted to avoid retry storm; next calendar day resets it.
+    try {
+      localStorage.setItem(DAILY_SNAP_KEY, today);
+    } catch {
+      /* noop */
+    }
+  }
+}
+
+export function applyRestoredSnapshot(data: Partial<PlanBookState>, updatedAt: string) {
+  applyCloudShape(data);
+  hydratedAt = Date.now();
+  remoteHasSnapshot = true;
+  setState({
+    status: "saved",
+    lastSavedAt: new Date(updatedAt).getTime(),
+    error: null,
+  });
+  void refreshMeta();
+}
+
 async function flushSave() {
   if (saving) {
     pendingSave = true;
     return;
   }
   if (!state.userId) return;
+  // Fire-and-forget daily archive — must not block or fail the regular save.
+  void maybeArchiveDaily();
   if (typeof navigator !== "undefined" && navigator.onLine === false) {
     setState({ status: "offline", error: null });
     return;

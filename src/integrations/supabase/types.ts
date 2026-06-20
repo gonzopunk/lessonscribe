@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      plan_snapshot_dailies: {
+        Row: {
+          archived_at: string
+          data: Json
+          day_key: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          archived_at?: string
+          data: Json
+          day_key: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          archived_at?: string
+          data?: Json
+          day_key?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       plan_snapshots: {
         Row: {
           data: Json
