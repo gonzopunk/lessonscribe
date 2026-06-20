@@ -175,7 +175,7 @@ export function WorksheetTemplateSettings() {
                 alt="Weekly Agenda worksheet preview"
                 className="max-h-32 w-auto object-contain rounded border border-border hover:border-primary/60 hover:shadow-md transition"
               />
-              <span className="text-[11px] text-muted-foreground">Click to preview</span>
+              <span className="text-[11px] text-muted-foreground">Click image to preview</span>
             </button>
           </div>
           <div className="flex flex-wrap gap-2">
