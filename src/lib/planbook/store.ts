@@ -158,6 +158,7 @@ const initialState: PlanBookState = {
   anchorDate: dayKey(mondayOf(new Date())),
   worksheetTemplates: [],
   weekMeta: {},
+  exportRequest: { open: false },
 };
 
 
