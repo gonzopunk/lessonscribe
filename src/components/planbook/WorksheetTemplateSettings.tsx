@@ -196,7 +196,7 @@ export function WorksheetTemplateSettings() {
       )}
 
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="max-w-4xl p-0 overflow-hidden">
+        <DialogContent className="max-w-xl p-0 overflow-hidden">
           <DialogHeader className="px-5 pt-4 pb-3 border-b border-border">
             <DialogTitle>Weekly Agenda preview</DialogTitle>
           </DialogHeader>
