@@ -122,11 +122,8 @@ export function InstanceCard({ instance, compact }: Props) {
                   size="icon"
                   variant="ghost"
                   className="size-6"
-                  onClick={() => {
-                    removeInstance(instance.id);
-                    setOpen(false);
-                  }}
-                  aria-label="Remove from day"
+                  onClick={() => setOpen(false)}
+                  aria-label="Close"
                 >
                   <X className="size-3.5" />
                 </Button>

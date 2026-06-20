@@ -60,27 +60,29 @@ export function WeekNotesDialog({ open, onOpenChange, courseId, weekKey }: Props
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
             Week of {format(parseDayKey(weekKey), "MMM d, yyyy")}
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
-          {fields.map((f) => (
-            <div key={f.key} className="space-y-1.5">
-              <Label>{f.label}</Label>
-              <Textarea
-                rows={3}
-                value={localWm[f.key]}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setLocalWm((prev) => ({ ...prev, [f.key]: v }));
-                  debouncedUpdate({ [f.key]: v } as Partial<WeekMeta>);
-                }}
-              />
-            </div>
-          ))}
+        <div className="flex-1 overflow-y-auto">
+          <div className="space-y-4">
+            {fields.map((f) => (
+              <div key={f.key} className="space-y-1.5">
+                <Label>{f.label}</Label>
+                <Textarea
+                  rows={3}
+                  value={localWm[f.key]}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setLocalWm((prev) => ({ ...prev, [f.key]: v }));
+                    debouncedUpdate({ [f.key]: v } as Partial<WeekMeta>);
+                  }}
+                />
+              </div>
+            ))}
+          </div>
         </div>
         <div className="flex justify-end border-t border-border pt-3">
           <Button

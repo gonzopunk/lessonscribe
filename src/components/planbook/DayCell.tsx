@@ -75,6 +75,7 @@ export function DayCell({
   const allInstances = usePlanBook((s) => s.instances);
   const dayMeta = usePlanBook((s) => getDayMeta(s, course.id, dKey));
   const setStatus = usePlanBook((s) => s.setDayStatus);
+  const density = usePlanBook((s) => s.settings.density);
 
   const [expanded, setExpanded] = useState(true);
 
@@ -184,7 +185,7 @@ export function DayCell({
                 <InstanceCard
                   key={inst.id}
                   instance={inst}
-                  compact={!expanded}
+                  compact={!expanded || density === "compact"}
                 />
               ))}
               {instances.length === 0 && (
