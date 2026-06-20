@@ -27,7 +27,7 @@ import { QuickAddDialog } from "./QuickAddDialog";
 import { WorksheetGenerateDialog } from "./WorksheetGenerateDialog";
 import { WeekNotesDialog } from "./WeekNotesDialog";
 import { usePlanBook } from "@/lib/planbook/store";
-import { toast } from "sonner";
+
 
 import {
   dayKey as toKey,
@@ -233,23 +233,11 @@ export function PlannerWorkspace() {
   useEffect(() => {
     initCloudSync();
     initHistory();
-    let lastStatus: SyncStatus = "idle";
     const unsub = subscribeSync((s) => {
       setSyncStatus(s.status);
-      if (s.status === lastStatus) return;
-      lastStatus = s.status;
-      if (!s.userId) return;
-      if (s.status === "saving") {
-        toast.loading("Saving…", { id: "planbook-sync" });
-      } else if (s.status === "saved") {
-        toast.success("Saved", { id: "planbook-sync", duration: 2000 });
-      } else if (s.status === "error") {
-        toast.error(s.error ?? "Sync failed", { id: "planbook-sync", duration: Infinity });
-      }
     });
     return () => {
       unsub();
-      toast.dismiss("planbook-sync");
     };
   }, []);
 
