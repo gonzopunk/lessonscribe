@@ -64,13 +64,13 @@ export function BankCard({ template, onEdit }: Props) {
         </div>
         <div className="flex shrink-0 items-center gap-0.5">
           {!isArchived && (
-            <GripVertical className="size-3.5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+            <GripVertical className="size-3.5 text-muted-foreground opacity-40" />
           )}
           <DropdownMenu>
             <DropdownMenuTrigger
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
-              className="flex size-5 items-center justify-center rounded text-muted-foreground opacity-0 transition-opacity hover:bg-secondary hover:text-foreground group-hover:opacity-100 data-[state=open]:opacity-100"
+              className="flex size-5 items-center justify-center rounded text-muted-foreground opacity-60 transition-opacity hover:bg-secondary hover:text-foreground hover:opacity-100 data-[state=open]:opacity-100"
               aria-label="Element menu"
             >
               <MoreVertical className="size-3.5" />
