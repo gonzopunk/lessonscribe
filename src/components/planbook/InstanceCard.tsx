@@ -88,9 +88,9 @@ export function InstanceCard({ instance, compact, density = "comfortable" }: Pro
           {...attributes}
           {...listeners}
           aria-label="Drag element"
-          className="flex w-5 cursor-grab items-center justify-center text-muted-foreground opacity-50 transition-opacity hover:opacity-100 active:cursor-grabbing"
+          className="flex w-7 shrink-0 cursor-grab items-center justify-center text-muted-foreground opacity-50 transition-opacity hover:opacity-100 active:cursor-grabbing"
         >
-          <GripVertical className="size-3" />
+          <GripVertical className="size-3.5" />
         </button>
 
         <Popover open={open} onOpenChange={setOpen}>

@@ -3,7 +3,8 @@ import { Link } from "@tanstack/react-router";
 import {
   DndContext,
   DragOverlay,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   closestCenter,
   useSensor,
   useSensors,
@@ -115,7 +116,10 @@ export function PlannerWorkspace() {
   const dragOverPosRef = useRef<{ id: string; side: "before" | "after" } | null>(null);
   const [dragOverPos, setDragOverPos] = useState<{ id: string; side: "before" | "after" } | null>(null);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 8 } }),
+  );
 
   const monday = useMemo(() => mondayOf(parseDayKey(anchor)), [anchor]);
   const weeks = useMemo(() => weeksFrom(monday, weeksInView), [monday, weeksInView]);
