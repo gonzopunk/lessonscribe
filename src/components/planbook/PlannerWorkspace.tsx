@@ -5,7 +5,7 @@ import {
   DragOverlay,
   MouseSensor,
   TouchSensor,
-  closestCenter,
+  pointerWithin,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -113,6 +113,7 @@ export function PlannerWorkspace() {
 
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [draggingTemplateId, setDraggingTemplateId] = useState<string | null>(null);
+  const [dragSourceDayKey, setDragSourceDayKey] = useState<string | null>(null);
   const dragOverPosRef = useRef<{ id: string; side: "before" | "after" } | null>(null);
   const [dragOverPos, setDragOverPos] = useState<{ id: string; side: "before" | "after" } | null>(null);
 
@@ -153,13 +154,14 @@ export function PlannerWorkspace() {
 
   const onDragStart = (e: DragStartEvent) => {
     setActiveDragId(String(e.active.id));
-    const data = e.active.data.current as { kind?: string; templateId?: string };
+    const data = e.active.data.current as { kind?: string; templateId?: string; dayKey?: string };
     if (data?.kind === "template") setDraggingTemplateId(data.templateId ?? null);
+    if (data?.kind === "instance") setDragSourceDayKey(data.dayKey ?? null);
   };
 
   const onDragOver = (e: DragOverEvent) => {
-    const aData = e.active.data.current as { kind?: string } | undefined;
-    if (aData?.kind !== "template") return;
+    const aData = e.active.data.current as { kind?: string; dayKey?: string } | undefined;
+    if (aData?.kind !== "template" && aData?.kind !== "instance") return;
     const { over, active } = e;
     if (!over) {
       dragOverPosRef.current = null;
@@ -179,6 +181,12 @@ export function PlannerWorkspace() {
       setDragOverPos(null);
       return;
     }
+    // Same-day instance drags are already previewed by the sortable strategy.
+    if (aData.kind === "instance" && inst.dayKey === aData.dayKey) {
+      dragOverPosRef.current = null;
+      setDragOverPos(null);
+      return;
+    }
     let side: "before" | "after" = "before";
     const overRect = over.rect;
     const activeRect = active.rect.current.translated;
@@ -194,9 +202,18 @@ export function PlannerWorkspace() {
     );
   };
 
+  const onDragCancel = () => {
+    setActiveDragId(null);
+    setDraggingTemplateId(null);
+    setDragSourceDayKey(null);
+    dragOverPosRef.current = null;
+    setDragOverPos(null);
+  };
+
   const onDragEnd = (e: DragEndEvent) => {
     setActiveDragId(null);
     setDraggingTemplateId(null);
+    setDragSourceDayKey(null);
     const overPos = dragOverPosRef.current;
     dragOverPosRef.current = null;
     setDragOverPos(null);
@@ -254,12 +271,18 @@ export function PlannerWorkspace() {
           reorderInDay(moving.courseId, destKey, reordered);
         }
       } else {
-        const destInsts = instances.filter(
-          (i) => i.courseId === moving.courseId && i.dayKey === destKey,
-        );
-        const maxOrder =
-          destInsts.length === 0 ? -1 : Math.max(...destInsts.map((i) => i.order));
-        moveInstance(moving.id, destKey, maxOrder + 1);
+        const target = overPos ? instances.find((i) => i.id === overPos.id) : null;
+        if (target && target.dayKey === destKey && overPos) {
+          const delta = overPos.side === "after" ? 0.5 : -0.5;
+          moveInstance(moving.id, destKey, target.order + delta);
+        } else {
+          const destInsts = instances.filter(
+            (i) => i.courseId === moving.courseId && i.dayKey === destKey,
+          );
+          const maxOrder =
+            destInsts.length === 0 ? -1 : Math.max(...destInsts.map((i) => i.order));
+          moveInstance(moving.id, destKey, maxOrder + 1);
+        }
       }
     }
   };
@@ -422,10 +445,11 @@ export function PlannerWorkspace() {
         <ErrorBoundary label="the planner grid">
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCenter}
+          collisionDetection={pointerWithin}
           onDragStart={onDragStart}
           onDragOver={onDragOver}
           onDragEnd={onDragEnd}
+          onDragCancel={onDragCancel}
         >
           <main className="flex min-h-0 flex-1 overflow-hidden">
             <div
@@ -543,7 +567,8 @@ export function PlannerWorkspace() {
                               onOpenReflection={() =>
                                 setReflectionModal({ open: true, dayKey: k })
                               }
-                              isDraggingTemplate={!!draggingTemplateId}
+                              isDragActive={!!draggingTemplateId || !!dragSourceDayKey}
+                              dragSourceDayKey={dragSourceDayKey}
                               dragOverPos={dragOverPos}
                             />
                           );

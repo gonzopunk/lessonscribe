@@ -43,7 +43,8 @@ interface Props {
   onDuplicate: () => void;
   onQuickAdd: () => void;
   onOpenReflection: () => void;
-  isDraggingTemplate?: boolean;
+  isDragActive?: boolean;
+  dragSourceDayKey?: string | null;
   dragOverPos?: { id: string; side: "before" | "after" } | null;
 }
 
@@ -74,10 +75,12 @@ export function DayCell({
   onDuplicate,
   onQuickAdd,
   onOpenReflection,
-  isDraggingTemplate = false,
+  isDragActive = false,
+  dragSourceDayKey = null,
   dragOverPos = null,
 }: Props) {
   const dKey = toKey(date);
+  const showIndicators = isDragActive && dragSourceDayKey !== dKey;
   const wed = isWednesday(date);
   const periodMins = wed ? course.wednesdayMinutes : course.periodMinutes;
 
@@ -247,7 +250,7 @@ export function DayCell({
             <div className={cn("flex flex-1 flex-col", density === "compact" ? "gap-1" : "gap-1.5")}>
               {instances.map((inst) => (
                 <div key={inst.id} className="flex flex-col gap-1">
-                  {isDraggingTemplate && dragOverPos?.id === inst.id && dragOverPos.side === "before" && (
+                  {showIndicators && dragOverPos?.id === inst.id && dragOverPos.side === "before" && (
                     <div className="h-0.5 rounded-full bg-primary" />
                   )}
                   <InstanceCard
@@ -255,12 +258,12 @@ export function DayCell({
                     compact={!expanded || compactElements}
                     density={density}
                   />
-                  {isDraggingTemplate && dragOverPos?.id === inst.id && dragOverPos.side === "after" && (
+                  {showIndicators && dragOverPos?.id === inst.id && dragOverPos.side === "after" && (
                     <div className="h-0.5 rounded-full bg-primary" />
                   )}
                 </div>
               ))}
-              {isDraggingTemplate && isOver && dragOverPos === null && instances.length > 0 && (
+              {showIndicators && isOver && dragOverPos === null && instances.length > 0 && (
                 <div className="h-0.5 rounded-full bg-primary" />
               )}
               {instances.length === 0 && (
