@@ -111,11 +111,11 @@ export function Header() {
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/80">
       <div className="flex h-14 items-center justify-between px-5">
-        <div className="flex items-center gap-6">
-          <Link to="/" className="text-base font-bold tracking-tight">
+        <div className="flex min-w-0 items-center gap-6">
+          <Link to="/" className="shrink-0 text-base font-bold tracking-tight">
             {APP_NAME}
           </Link>
-          <div className="flex gap-1 rounded-lg bg-secondary p-1">
+          <div className="flex min-w-0 gap-1 overflow-x-auto rounded-lg bg-secondary p-1">
             {courses.map((c) => {
               const active = c.id === activeCourseId;
               return (
@@ -123,7 +123,7 @@ export function Header() {
                   key={c.id}
                   onClick={() => setActiveCourse(c.id)}
                   className={cn(
-                    "flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                    "flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                     active
                       ? "bg-card text-foreground shadow-sm"
                       : "text-muted-foreground hover:text-foreground",
@@ -140,7 +140,7 @@ export function Header() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           <SyncIndicator />
 
           <div className="flex overflow-hidden rounded-md border border-border">
