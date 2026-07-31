@@ -480,14 +480,14 @@ export function PlannerWorkspace() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="size-6 shrink-0"
+                            className="size-7 shrink-0"
                             aria-label="Previous week"
                             onClick={() => usePlanBook.getState().shiftAnchor(-1)}
                           >
-                            <ChevronLeft className="size-4" />
+                            <ChevronLeft className="size-3.5" />
                           </Button>
                         ) : (
-                          <span className="size-6 shrink-0" />
+                          <span className="size-7 shrink-0" />
                         )}
                         <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
                           Week of {formatWeekRange(wkMonday)}
@@ -497,7 +497,7 @@ export function PlannerWorkspace() {
                             variant="ghost"
                             size="icon"
                             className={cn(
-                              "relative size-6 shrink-0 transition-opacity",
+                              "relative size-7 shrink-0 transition-opacity",
                               hasNotes
                                 ? "opacity-100"
                                 : "opacity-60 hover:opacity-100",
@@ -508,7 +508,7 @@ export function PlannerWorkspace() {
                               setWeekNotesDialog({ open: true, weekKey: wKey })
                             }
                           >
-                            <Notebook className="size-4" />
+                            <Notebook className="size-3.5" />
                             {hasNotes && (
                               <span className="absolute -right-0.5 -top-0.5 size-1.5 rounded-full bg-primary" />
                             )}
@@ -517,28 +517,28 @@ export function PlannerWorkspace() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="size-6 shrink-0 opacity-60 transition-opacity hover:opacity-100"
+                              className="size-7 shrink-0 opacity-60 transition-opacity hover:opacity-100"
                               aria-label="Generate worksheet"
                               title="Generate worksheet"
                               onClick={() =>
                                 setWorksheetDialog({ open: true, weekMonday: wkMonday })
                               }
                             >
-                              <FileDown className="size-4" />
+                              <FileDown className="size-3.5" />
                             </Button>
                           )}
                           {isLast ? (
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="size-6 shrink-0"
+                              className="size-7 shrink-0"
                               aria-label="Next week"
                               onClick={() => usePlanBook.getState().shiftAnchor(1)}
                             >
-                              <ChevronRight className="size-4" />
+                              <ChevronRight className="size-3.5" />
                             </Button>
                           ) : (
-                            <span className="size-6 shrink-0" />
+                            <span className="size-7 shrink-0" />
                           )}
                         </div>
                       </div>

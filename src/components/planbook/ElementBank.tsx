@@ -103,7 +103,7 @@ export function ElementBank({ collapsed, onToggle }: Props) {
           <button
             onClick={() => setFilterTags([])}
             className={cn(
-              "rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors",
+              "rounded-full border px-3 py-1.5 text-[11px] font-medium transition-colors",
               selectedFilterTagIds.length === 0
                 ? "border-primary/40 bg-primary/15 text-primary"
                 : "border-border bg-surface text-muted-foreground hover:bg-secondary",
@@ -118,7 +118,7 @@ export function ElementBank({ collapsed, onToggle }: Props) {
                 key={t.id}
                 onClick={() => toggleFilterTag(t.id)}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors",
+                  "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-medium transition-colors",
                   on ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                 )}
                 style={{
