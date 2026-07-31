@@ -70,7 +70,7 @@ export function BankCard({ template, onEdit }: Props) {
             <DropdownMenuTrigger
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
-              className="flex size-5 items-center justify-center rounded text-muted-foreground opacity-60 transition-opacity hover:bg-secondary hover:text-foreground hover:opacity-100 data-[state=open]:opacity-100"
+              className="flex size-7 items-center justify-center rounded text-muted-foreground opacity-60 transition-opacity hover:bg-secondary hover:text-foreground hover:opacity-100 data-[state=open]:opacity-100"
               aria-label="Element menu"
             >
               <MoreVertical className="size-3.5" />

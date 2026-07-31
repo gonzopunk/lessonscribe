@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { X, GripVertical } from "lucide-react";
+import { X, GripVertical, Trash2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -76,9 +76,9 @@ export function InstanceCard({ instance, compact, density = "comfortable" }: Pro
           if (hasData && !window.confirm(`Remove "${instance.title}" from this day?`)) return;
           removeInstance(instance.id);
         }}
-        className="absolute right-0.5 top-0.5 z-10 flex size-4 items-center justify-center rounded-sm text-muted-foreground opacity-50 transition-opacity hover:bg-destructive/15 hover:text-destructive hover:opacity-100"
+        className="absolute right-0.5 top-0.5 z-10 flex size-6 items-center justify-center rounded-sm text-muted-foreground opacity-50 transition-opacity hover:bg-destructive/15 hover:text-destructive hover:opacity-100"
       >
-        <X className="size-3" />
+        <X className="size-3.5" />
       </button>
       <div
         className="flex items-stretch border-l-[3px] rounded-md"
@@ -123,7 +123,7 @@ export function InstanceCard({ instance, compact, density = "comfortable" }: Pro
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="size-6"
+                  className="size-7"
                   onClick={() => setOpen(false)}
                   aria-label="Close"
                 >
@@ -196,6 +196,18 @@ export function InstanceCard({ instance, compact, density = "comfortable" }: Pro
                   }}
                 />
               </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => {
+                  setOpen(false);
+                  removeInstance(instance.id);
+                }}
+              >
+                <Trash2 className="mr-2 size-3.5" />
+                Remove from this day
+              </Button>
             </div>
           </PopoverContent>
         </Popover>

@@ -150,7 +150,7 @@ export function DayCell({
               e.stopPropagation();
               setStatus(course.id, dKey, STATUS_NEXT[dayMeta.status]);
             }}
-            className="rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-tight transition-colors"
+            className="rounded px-2 py-1 text-[10px] font-bold uppercase tracking-tight transition-colors"
             style={statusStyle(dayMeta.status, course.color)}
             title="Click to cycle status"
           >

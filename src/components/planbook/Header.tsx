@@ -147,7 +147,7 @@ export function Header() {
             <button
               onClick={() => updateSettings({ viewMode: "weeks" })}
               className={cn(
-                "px-2.5 py-1.5 text-xs font-semibold transition-colors",
+                "px-3 py-2 text-xs font-semibold transition-colors",
                 viewMode === "weeks"
                   ? "bg-primary text-primary-foreground"
                   : "bg-surface text-muted-foreground hover:bg-secondary",
@@ -158,7 +158,7 @@ export function Header() {
             <button
               onClick={() => updateSettings({ viewMode: "month" })}
               className={cn(
-                "px-2.5 py-1.5 text-xs font-semibold transition-colors",
+                "px-3 py-2 text-xs font-semibold transition-colors",
                 viewMode === "month"
                   ? "bg-primary text-primary-foreground"
                   : "bg-surface text-muted-foreground hover:bg-secondary",
@@ -175,7 +175,7 @@ export function Header() {
                   key={n}
                   onClick={() => updateSettings({ weeksInView: n as 1 | 2 | 3 | 4 })}
                   className={cn(
-                    "px-3 py-1.5 text-xs font-semibold transition-colors",
+                    "px-3 py-2 text-xs font-semibold transition-colors",
                     weeksInView === n
                       ? "bg-primary text-primary-foreground"
                       : "bg-surface text-muted-foreground hover:bg-secondary",
