@@ -129,16 +129,14 @@ export function DayCell({
       )}
       style={{ minHeight: expanded ? (density === "compact" ? 140 : 160) : 80 }}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-baseline gap-2">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-xs font-bold text-foreground">{formatDayShort(date)}</span>
           {wed && (
             <span className="text-[9px] font-bold uppercase tracking-wider text-primary">
               short
             </span>
           )}
-        </div>
-        <div className="flex items-center gap-1">
           {override && (
             <span className="rounded bg-warning/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-warning">
               {override.kind === "no_school" ? "No school" : override.label || override.kind}
@@ -155,9 +153,44 @@ export function DayCell({
           >
             {dayMeta.status}
           </button>
+        </div>
+        <div className="flex items-center gap-0.5">
+          {!isNoSchool && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7 shrink-0"
+                aria-label="Lesson plan"
+                title="Lesson plan"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenLessonPlan();
+                }}
+              >
+                <FileText className="size-3.5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative size-7 shrink-0"
+                aria-label="Reflection"
+                title="Reflection"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenReflection();
+                }}
+              >
+                <NotebookPen className="size-3.5" />
+                {typeof dayMeta.reflection === "string" && dayMeta.reflection.trim() !== "" && (
+                  <span className="absolute -right-0.5 -top-0.5 size-1.5 rounded-full bg-primary" />
+                )}
+              </Button>
+            </>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="icon" className="size-5">
+              <Button variant="ghost" size="icon" className="size-7 shrink-0">
                 <MoreVertical className="size-3" />
               </Button>
             </DropdownMenuTrigger>
@@ -266,37 +299,6 @@ export function DayCell({
             </div>
           </div>
 
-          <div
-            className={cn(
-              "pointer-events-none absolute inset-x-3 bottom-3 flex justify-center gap-1.5 opacity-0 transition-opacity",
-              "group-hover:pointer-events-auto group-hover:opacity-100",
-            )}
-          >
-            <Button
-              size="sm"
-              variant="secondary"
-              className="h-7 gap-1 text-xs shadow-md"
-              onClick={(e) => {
-                e.stopPropagation();
-                onOpenLessonPlan();
-              }}
-            >
-              <FileText className="size-3" />
-              Lesson plan
-            </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              className="h-7 gap-1 text-xs shadow-md"
-              onClick={(e) => {
-                e.stopPropagation();
-                onOpenReflection();
-              }}
-            >
-              <NotebookPen className="size-3" />
-              Reflection
-            </Button>
-          </div>
         </>
       )}
 
