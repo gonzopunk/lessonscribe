@@ -43,7 +43,8 @@ interface Props {
   onDuplicate: () => void;
   onQuickAdd: () => void;
   onOpenReflection: () => void;
-  isDraggingTemplate?: boolean;
+  isDragActive?: boolean;
+  dragSourceDayKey?: string | null;
   dragOverPos?: { id: string; side: "before" | "after" } | null;
 }
 
@@ -74,10 +75,12 @@ export function DayCell({
   onDuplicate,
   onQuickAdd,
   onOpenReflection,
-  isDraggingTemplate = false,
+  isDragActive = false,
+  dragSourceDayKey = null,
   dragOverPos = null,
 }: Props) {
   const dKey = toKey(date);
+  const showIndicators = isDragActive && dragSourceDayKey !== dKey;
   const wed = isWednesday(date);
   const periodMins = wed ? course.wednesdayMinutes : course.periodMinutes;
 
