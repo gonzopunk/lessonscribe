@@ -3,7 +3,8 @@ import { Link } from "@tanstack/react-router";
 import {
   DndContext,
   DragOverlay,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   closestCenter,
   useSensor,
   useSensors,
