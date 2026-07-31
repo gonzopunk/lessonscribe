@@ -5,7 +5,7 @@ import {
   DragOverlay,
   MouseSensor,
   TouchSensor,
-  closestCenter,
+  pointerWithin,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -113,6 +113,7 @@ export function PlannerWorkspace() {
 
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const [draggingTemplateId, setDraggingTemplateId] = useState<string | null>(null);
+  const [dragSourceDayKey, setDragSourceDayKey] = useState<string | null>(null);
   const dragOverPosRef = useRef<{ id: string; side: "before" | "after" } | null>(null);
   const [dragOverPos, setDragOverPos] = useState<{ id: string; side: "before" | "after" } | null>(null);
 
@@ -153,13 +154,14 @@ export function PlannerWorkspace() {
 
   const onDragStart = (e: DragStartEvent) => {
     setActiveDragId(String(e.active.id));
-    const data = e.active.data.current as { kind?: string; templateId?: string };
+    const data = e.active.data.current as { kind?: string; templateId?: string; dayKey?: string };
     if (data?.kind === "template") setDraggingTemplateId(data.templateId ?? null);
+    if (data?.kind === "instance") setDragSourceDayKey(data.dayKey ?? null);
   };
 
   const onDragOver = (e: DragOverEvent) => {
-    const aData = e.active.data.current as { kind?: string } | undefined;
-    if (aData?.kind !== "template") return;
+    const aData = e.active.data.current as { kind?: string; dayKey?: string } | undefined;
+    if (aData?.kind !== "template" && aData?.kind !== "instance") return;
     const { over, active } = e;
     if (!over) {
       dragOverPosRef.current = null;
@@ -175,6 +177,12 @@ export function PlannerWorkspace() {
     const overId = String(over.id);
     const inst = instances.find((i) => i.id === overId);
     if (!inst) {
+      dragOverPosRef.current = null;
+      setDragOverPos(null);
+      return;
+    }
+    // Same-day instance drags are already previewed by the sortable strategy.
+    if (aData.kind === "instance" && inst.dayKey === aData.dayKey) {
       dragOverPosRef.current = null;
       setDragOverPos(null);
       return;
