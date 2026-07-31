@@ -472,7 +472,7 @@ export function PlannerWorkspace() {
                               "relative size-6 shrink-0 transition-opacity",
                               hasNotes
                                 ? "opacity-100"
-                                : "opacity-0 group-hover:opacity-100",
+                                : "opacity-60 hover:opacity-100",
                             )}
                             aria-label="Week notes"
                             title="Weekly notes"
@@ -489,7 +489,7 @@ export function PlannerWorkspace() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="size-6 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+                              className="size-6 shrink-0 opacity-60 transition-opacity hover:opacity-100"
                               aria-label="Generate worksheet"
                               title="Generate worksheet"
                               onClick={() =>

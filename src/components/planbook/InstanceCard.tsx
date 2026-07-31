@@ -76,7 +76,7 @@ export function InstanceCard({ instance, compact, density = "comfortable" }: Pro
           if (hasData && !window.confirm(`Remove "${instance.title}" from this day?`)) return;
           removeInstance(instance.id);
         }}
-        className="absolute right-0.5 top-0.5 z-10 flex size-4 items-center justify-center rounded-sm text-muted-foreground opacity-0 transition-opacity hover:bg-destructive/15 hover:text-destructive group-hover:opacity-100"
+        className="absolute right-0.5 top-0.5 z-10 flex size-4 items-center justify-center rounded-sm text-muted-foreground opacity-50 transition-opacity hover:bg-destructive/15 hover:text-destructive hover:opacity-100"
       >
         <X className="size-3" />
       </button>
@@ -88,7 +88,7 @@ export function InstanceCard({ instance, compact, density = "comfortable" }: Pro
           {...attributes}
           {...listeners}
           aria-label="Drag element"
-          className="flex w-5 cursor-grab items-center justify-center text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 active:cursor-grabbing"
+          className="flex w-5 cursor-grab items-center justify-center text-muted-foreground opacity-50 transition-opacity hover:opacity-100 active:cursor-grabbing"
         >
           <GripVertical className="size-3" />
         </button>
