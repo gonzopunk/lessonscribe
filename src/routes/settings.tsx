@@ -347,11 +347,8 @@ function SettingsPage() {
                 addCourse({
                   name: "New course",
                   color: "teal",
-                  sections: [
-                    { id: nanoid(8), name: "Period 1" },
-                    { id: nanoid(8), name: "Period 2" },
-                    { id: nanoid(8), name: "Period 3" },
-                  ],
+                  sections: [{ id: nanoid(8), name: "Period 1" }],
+
                   dayMinutes: { mon: 50, tue: 50, wed: 50, thu: 50, fri: 50 },
                   subDefaults: "",
                 })
@@ -417,22 +414,64 @@ function SettingsPage() {
                     ))}
                   </div>
                 </div>
+                <div className="flex items-center justify-between">
+                  <Label>Sections</Label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      updateCourse(c.id, {
+                        sections: [
+                          ...c.sections,
+                          { id: nanoid(8), name: `Period ${c.sections.length + 1}` },
+                        ],
+                      })
+                    }
+                  >
+                    <Plus className="mr-1 size-4" />
+                    Add section
+                  </Button>
+                </div>
                 <div className="grid gap-3 sm:grid-cols-3">
                   {c.sections.map((s, idx) => (
                     <div key={s.id} className="space-y-1.5">
                       <Label>Section {idx + 1}</Label>
-                      <Input
-                        value={s.name}
-                        onChange={(e) => {
-                          const next = c.sections.map((x) =>
-                            x.id === s.id ? { ...x, name: e.target.value } : x,
-                          );
-                          updateCourse(c.id, { sections: next });
-                        }}
-                      />
+                      <div className="flex items-center gap-1.5">
+                        <Input
+                          value={s.name}
+                          onChange={(e) => {
+                            const next = c.sections.map((x) =>
+                              x.id === s.id ? { ...x, name: e.target.value } : x,
+                            );
+                            updateCourse(c.id, { sections: next });
+                          }}
+                        />
+                        {c.sections.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-7 shrink-0 text-destructive hover:text-destructive"
+                            aria-label={`Remove section ${idx + 1}`}
+                            onClick={() => {
+                              if (
+                                window.confirm(
+                                  "Remove this section? Any notes written for it in lesson plans will be lost.",
+                                )
+                              ) {
+                                updateCourse(c.id, {
+                                  sections: c.sections.filter((x) => x.id !== s.id),
+                                });
+                              }
+                            }}
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
+
                 <div className="space-y-1.5">
                   <Label>Sub plan defaults</Label>
                   <Textarea
