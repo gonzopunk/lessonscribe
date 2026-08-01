@@ -97,7 +97,7 @@ export function PlanModal({ open, onOpenChange, courseId, dayKey, mode, onOpenEx
 
   if (!course || !dayKey || !meta) return null;
   const date = parseDayKey(dayKey);
-  const periodMins = isWednesday(date) ? course.wednesdayMinutes : course.periodMinutes;
+  const periodMins = minutesForDay(course, date);
   const totalUsed = instances.reduce(
     (s, i) => s + (i.durationOverride ?? i.defaultMinutes),
     0,
