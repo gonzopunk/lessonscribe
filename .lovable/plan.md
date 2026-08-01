@@ -27,7 +27,7 @@ Replace the hardcoded "Wednesday is the short day" assumption with a per-weekday
    - `src/components/planbook/PlanModal.tsx`
    - `src/lib/planbook/printPlan.ts`
 
-6. `src/routes/settings.tsx` — five Mon–Fri number inputs writing `dayMinutes.<key>` via `updateCourse`, same styling/min/parseInt handling; helper line above. The new-course default (currently `periodMinutes: 50, wednesdayMinutes: 40`) becomes a `dayMinutes` object with the same values.
+6. `src/routes/settings.tsx` — five Mon–Fri number inputs writing `dayMinutes.<key>` via `updateCourse`, same styling/min/parseInt handling; helper line above. A newly created course defaults to 50 minutes on all five days (dropping the old 40-minute Wednesday, which was specific to one school). Existing courses keep their real values via `normalizeCourse`.
 
 7. `src/components/planbook/OnboardingDialog.tsx` — single minutes input replacing `reg`/`wed`, expanded into all five keys on submit; helper line below. No other changes to the dialog.
 
