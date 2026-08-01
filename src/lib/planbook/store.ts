@@ -64,7 +64,7 @@ interface Actions {
     schoolYearStart: string;
     schoolYearEnd: string;
     icalUrl: string;
-    course: Omit<Course, "id" | "createdAt">;
+    courses: Omit<Course, "id" | "createdAt">[];
   }) => void;
   resetAll: () => void;
   dismissPresetOffer: () => void;
