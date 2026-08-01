@@ -151,8 +151,7 @@ export function OnboardingDialog({
                     { id: crypto.randomUUID(), name: s2 },
                     { id: crypto.randomUUID(), name: s3 },
                   ],
-                  periodMinutes: reg,
-                  wednesdayMinutes: wed,
+                  dayMinutes: { mon: reg, tue: reg, wed: reg, thu: reg, fri: reg },
                   subDefaults: subs,
                 },
               });

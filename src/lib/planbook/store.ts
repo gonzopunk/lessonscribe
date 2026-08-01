@@ -626,6 +626,7 @@ export const usePlanBook = create<Store>()(
         return {
           ...current,
           ...p,
+          courses: (p.courses ?? []).map(normalizeCourse),
           worksheetTemplates: migratedTemplates,
           weekMeta: p.weekMeta ?? {},
           settings: {
