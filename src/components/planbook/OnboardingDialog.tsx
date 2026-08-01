@@ -33,7 +33,6 @@ export function OnboardingDialog({
   const [s2, setS2] = useState("Period 2");
   const [s3, setS3] = useState("Period 3");
   const [reg, setReg] = useState(50);
-  const [wed, setWed] = useState(40);
   const [subs, setSubs] = useState(
     "Seating chart in red folder on desk. Bathroom: one student at a time, sign out on whiteboard. Class roster + emergency procedures in blue binder.",
   );
@@ -112,25 +111,18 @@ export function OnboardingDialog({
                 </div>
               ))}
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Period length (M/T/R/F) — minutes</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={reg}
-                  onChange={(e) => setReg(parseInt(e.target.value) || 0)}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Wednesday length — minutes</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={wed}
-                  onChange={(e) => setWed(parseInt(e.target.value) || 0)}
-                />
-              </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="ob-mins">Class period length (minutes)</Label>
+              <Input
+                id="ob-mins"
+                type="number"
+                min={1}
+                value={reg}
+                onChange={(e) => setReg(parseInt(e.target.value) || 0)}
+              />
+              <p className="text-xs text-muted-foreground">
+                If some days are shorter, you can set each day individually in Settings.
+              </p>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="ob-subs">Sub plan defaults (class management context)</Label>
