@@ -1,5 +1,6 @@
 import type { Course, DayMeta, ElementInstance, CategoryTag } from "./types";
-import { formatDayLong, isWednesday, parseDayKey } from "./dates";
+import { formatDayLong, parseDayKey } from "./dates";
+import { minutesForDay } from "./courseSchedule";
 import { colorToHex, hexMix } from "./constants";
 import type {
   ExportSectionFlags,
@@ -99,7 +100,7 @@ export function renderPlanHTML(args: RenderPlanArgs): string {
   } = args;
   const isSub = mode === "sub";
   const date = parseDayKey(dayKey);
-  const periodMins = isWednesday(date) ? course.wednesdayMinutes : course.periodMinutes;
+  const periodMins = minutesForDay(course, date);
   const totalUsed = instances.reduce(
     (s, i) => s + (i.durationOverride ?? i.defaultMinutes),
     0,

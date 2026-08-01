@@ -352,8 +352,7 @@ function SettingsPage() {
                     { id: nanoid(8), name: "Period 2" },
                     { id: nanoid(8), name: "Period 3" },
                   ],
-                  periodMinutes: 50,
-                  wednesdayMinutes: 40,
+                  dayMinutes: { mon: 50, tue: 50, wed: 50, thu: 50, fri: 50 },
                   subDefaults: "",
                 })
               }
@@ -381,28 +380,41 @@ function SettingsPage() {
                     />
                   </div>
                 </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <Label>Period length M/T/R/F (min)</Label>
-                    <Input
-                      type="number"
-                      min={1}
-                      value={c.periodMinutes}
-                      onChange={(e) =>
-                        updateCourse(c.id, { periodMinutes: parseInt(e.target.value) || 0 })
-                      }
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Wednesday length (min)</Label>
-                    <Input
-                      type="number"
-                      min={1}
-                      value={c.wednesdayMinutes}
-                      onChange={(e) =>
-                        updateCourse(c.id, { wednesdayMinutes: parseInt(e.target.value) || 0 })
-                      }
-                    />
+                <div className="space-y-1.5">
+                  <p className="text-xs text-muted-foreground">
+                    Class length in minutes for each day.
+                  </p>
+                  <div className="grid grid-cols-5 gap-3">
+                    {([
+                      ["mon", "Mon"],
+                      ["tue", "Tue"],
+                      ["wed", "Wed"],
+                      ["thu", "Thu"],
+                      ["fri", "Fri"],
+                    ] as const).map(([key, label]) => (
+                      <div key={key} className="space-y-1.5">
+                        <Label>{label}</Label>
+                        <Input
+                          type="number"
+                          min={1}
+                          value={c.dayMinutes?.[key] ?? 50}
+                          onChange={(e) =>
+                            updateCourse(c.id, {
+                              dayMinutes: {
+                                ...(c.dayMinutes ?? {
+                                  mon: 50,
+                                  tue: 50,
+                                  wed: 50,
+                                  thu: 50,
+                                  fri: 50,
+                                }),
+                                [key]: parseInt(e.target.value) || 0,
+                              },
+                            })
+                          }
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-3">

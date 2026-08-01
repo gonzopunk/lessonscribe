@@ -27,8 +27,8 @@ import { cn } from "@/lib/utils";
 import {
   dayKey as toKey,
   formatDayShort,
-  isWednesday,
 } from "@/lib/planbook/dates";
+import { minutesForDay, isShortDay } from "@/lib/planbook/courseSchedule";
 import { colorToken, colorTokenSoft } from "@/lib/planbook/constants";
 import type { Course, DayStatus } from "@/lib/planbook/types";
 
@@ -81,8 +81,8 @@ export function DayCell({
 }: Props) {
   const dKey = toKey(date);
   const showIndicators = isDragActive && dragSourceDayKey !== dKey;
-  const wed = isWednesday(date);
-  const periodMins = wed ? course.wednesdayMinutes : course.periodMinutes;
+  const shortDay = isShortDay(course, date);
+  const periodMins = minutesForDay(course, date);
 
   const override = usePlanBook((s) => s.overrides[dKey]);
   const allInstances = usePlanBook((s) => s.instances);
@@ -124,7 +124,7 @@ export function DayCell({
       className={cn(
         "group relative flex flex-col rounded-xl border bg-card shadow-sm transition-all",
         density === "compact" ? "gap-1 p-2" : "gap-2 p-3",
-        wed ? "bg-surface-2" : "bg-card",
+        shortDay ? "bg-surface-2" : "bg-card",
         isOver && "border-primary ring-2 ring-primary/30",
         selected && "ring-2 ring-primary",
         isNoSchool && "opacity-50",
@@ -135,7 +135,7 @@ export function DayCell({
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-xs font-bold text-foreground">{formatDayShort(date)}</span>
-          {wed && (
+          {shortDay && (
             <span className="text-[9px] font-bold uppercase tracking-wider text-primary">
               short
             </span>

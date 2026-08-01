@@ -17,6 +17,7 @@ import {
   saveDailySnapshot,
 } from "./sync";
 import { resetHistory } from "./history";
+import { normalizeCourse } from "./courseSchedule";
 import type { PlanBookState } from "./types";
 
 export type SyncStatus = "idle" | "loading" | "saving" | "saved" | "error" | "offline";
@@ -105,9 +106,13 @@ function snapshotSize(s: Partial<PlanBookState>): number {
 
 function applyCloudShape(snapshot: Partial<PlanBookState>) {
   suppressNextChange = true;
+  const migrated: Partial<PlanBookState> = {
+    ...snapshot,
+    ...(snapshot.courses ? { courses: snapshot.courses.map(normalizeCourse) } : {}),
+  };
   usePlanBook.setState((cur) => ({
     ...cur,
-    ...snapshot,
+    ...migrated,
     anchorDate: cur.anchorDate,
     selectedFilterTagIds: cur.selectedFilterTagIds,
   }));

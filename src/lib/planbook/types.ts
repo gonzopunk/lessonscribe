@@ -6,13 +6,24 @@ export interface Section {
   name: string;
 }
 
+export interface DayMinutes {
+  mon: number;
+  tue: number;
+  wed: number;
+  thu: number;
+  fri: number;
+}
+
 export interface Course {
   id: string;
   name: string;
   color: string; // ColorId
   sections: Section[];
-  periodMinutes: number;       // Mon/Tue/Thu/Fri
-  wednesdayMinutes: number;
+  dayMinutes: DayMinutes;      // class length in minutes, per weekday
+  /** @deprecated legacy field retained only so pre-migration persisted data still parses; use dayMinutes */
+  periodMinutes?: number;
+  /** @deprecated legacy field retained only so pre-migration persisted data still parses; use dayMinutes */
+  wednesdayMinutes?: number;
   subDefaults: string;          // free-text class management context
   weekMetaLabel1?: string;      // defaults to "Custom note 1" when absent
   weekMetaLabel2?: string;      // defaults to "Custom note 2" when absent
