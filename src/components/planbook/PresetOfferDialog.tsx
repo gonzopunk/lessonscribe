@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -7,8 +8,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { usePlanBook } from "@/lib/planbook/store";
 import { seedWeeklyAgendaPreset } from "@/lib/planbook/presets";
+import { colorToken } from "@/lib/planbook/constants";
 
 export function PresetOfferDialog({
   open,
@@ -17,6 +21,19 @@ export function PresetOfferDialog({
   open: boolean;
   onClose: () => void;
 }) {
+  const courses = usePlanBook((s) => s.courses);
+  const [selected, setSelected] = useState<string[]>(() =>
+    usePlanBook.getState().courses.map((c) => c.id),
+  );
+  const toggle = (id: string) =>
+    setSelected((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  const confirmLabel =
+    courses.length === 1
+      ? `Set up for ${courses[0].name}`
+      : `Set up for ${selected.length} course${selected.length === 1 ? "" : "s"}`;
+
   return (
     <Dialog open={open} onOpenChange={(v) => { if (v) return; /* block close */ }}>
       <DialogContent
