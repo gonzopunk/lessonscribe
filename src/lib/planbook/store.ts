@@ -20,6 +20,7 @@ import { blankWeekMeta } from "./types";
 
 import { dayKey, metaKey, mondayOf, parseDayKey, weekMetaKey } from "./dates";
 import { saveWorksheetBlob, deleteWorksheetBlob } from "./worksheetBlobs";
+import { normalizeCourse } from "./courseSchedule";
 
 const STORAGE_KEY = "planbook:v1";
 const SCHEMA_VERSION = 2;
