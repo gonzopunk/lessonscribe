@@ -175,16 +175,20 @@ export const usePlanBook = create<Store>()(
     (set, get) => ({
       ...initialState,
 
-      completeOnboarding: ({ schoolYearStart, schoolYearEnd, icalUrl, course }) => {
-        console.log("[store.completeOnboarding] called", { schoolYearStart, schoolYearEnd, hasIcalUrl: !!icalUrl, courseName: course?.name });
-        const courseId = nanoid(8);
-        const newCourse: Course = { ...course, id: courseId, createdAt: Date.now() };
-        const defaultTags: CategoryTag[] = [
-          { id: nanoid(8), courseId, name: "Bellringer", color: "amber" },
-          { id: nanoid(8), courseId, name: "Direct Instruction", color: "indigo" },
-          { id: nanoid(8), courseId, name: "Discussion", color: "teal" },
-          { id: nanoid(8), courseId, name: "Assessment", color: "rose" },
-        ];
+      completeOnboarding: ({ schoolYearStart, schoolYearEnd, icalUrl, courses }) => {
+        if (!courses || courses.length === 0) return;
+        const now = Date.now();
+        const newCourses: Course[] = courses.map((c) => ({
+          ...c,
+          id: nanoid(8),
+          createdAt: now,
+        }));
+        const defaultTags: CategoryTag[] = newCourses.flatMap((c) => [
+          { id: nanoid(8), courseId: c.id, name: "Bellringer", color: "amber" },
+          { id: nanoid(8), courseId: c.id, name: "Direct Instruction", color: "indigo" },
+          { id: nanoid(8), courseId: c.id, name: "Discussion", color: "teal" },
+          { id: nanoid(8), courseId: c.id, name: "Assessment", color: "rose" },
+        ]);
         const initialFeeds = icalUrl
           ? [{
               id: nanoid(8),
@@ -198,8 +202,8 @@ export const usePlanBook = create<Store>()(
         set({
           onboarded: true,
           presetOfferPending: true,
-          courses: [newCourse],
-          activeCourseId: courseId,
+          courses: newCourses,
+          activeCourseId: newCourses[0].id,
           tags: defaultTags,
           settings: {
             ...get().settings,
@@ -209,6 +213,7 @@ export const usePlanBook = create<Store>()(
           },
         });
       },
+
 
       dismissPresetOffer: () => set({ presetOfferPending: false }),
 
