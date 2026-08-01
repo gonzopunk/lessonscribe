@@ -1,5 +1,6 @@
 import type { Course, DayMeta, ElementInstance, CategoryTag } from "./types";
-import { formatDayLong, isWednesday, parseDayKey } from "./dates";
+import { formatDayLong, parseDayKey } from "./dates";
+import { minutesForDay } from "./courseSchedule";
 import { colorToHex, hexMix } from "./constants";
 import type {
   ExportSectionFlags,

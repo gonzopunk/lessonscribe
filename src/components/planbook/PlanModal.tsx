@@ -23,9 +23,9 @@ import { useDebouncedCallback } from "@/lib/planbook/hooks";
 import type { DayMeta } from "@/lib/planbook/types";
 import {
   formatDayLong,
-  isWednesday,
   parseDayKey,
 } from "@/lib/planbook/dates";
+import { minutesForDay } from "@/lib/planbook/courseSchedule";
 import {
   FileDown,
   X,

@@ -27,8 +27,8 @@ import { cn } from "@/lib/utils";
 import {
   dayKey as toKey,
   formatDayShort,
-  isWednesday,
 } from "@/lib/planbook/dates";
+import { minutesForDay, isShortDay } from "@/lib/planbook/courseSchedule";
 import { colorToken, colorTokenSoft } from "@/lib/planbook/constants";
 import type { Course, DayStatus } from "@/lib/planbook/types";
 
