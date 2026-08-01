@@ -352,8 +352,7 @@ function SettingsPage() {
                     { id: nanoid(8), name: "Period 2" },
                     { id: nanoid(8), name: "Period 3" },
                   ],
-                  periodMinutes: 50,
-                  wednesdayMinutes: 40,
+                  dayMinutes: { mon: 50, tue: 50, wed: 50, thu: 50, fri: 50 },
                   subDefaults: "",
                 })
               }
