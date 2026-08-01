@@ -76,7 +76,7 @@ export function InstanceCard({ instance, compact, density = "comfortable" }: Pro
           if (hasData && !window.confirm(`Remove "${instance.title}" from this day?`)) return;
           removeInstance(instance.id);
         }}
-        className="absolute right-0.5 top-0.5 z-10 flex size-6 items-center justify-center rounded-sm text-muted-foreground opacity-50 transition-opacity hover:bg-destructive/15 hover:text-destructive hover:opacity-100"
+        className="absolute -right-px -top-px z-10 flex size-6 items-center justify-center rounded-sm text-muted-foreground opacity-50 transition-opacity hover:bg-destructive/15 hover:text-destructive hover:opacity-100"
       >
         <X className="size-3.5" />
       </button>
