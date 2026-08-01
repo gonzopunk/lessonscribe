@@ -347,11 +347,8 @@ function SettingsPage() {
                 addCourse({
                   name: "New course",
                   color: "teal",
-                  sections: [
-                    { id: nanoid(8), name: "Period 1" },
-                    { id: nanoid(8), name: "Period 2" },
-                    { id: nanoid(8), name: "Period 3" },
-                  ],
+                  sections: [{ id: nanoid(8), name: "Period 1" }],
+
                   dayMinutes: { mon: 50, tue: 50, wed: 50, thu: 50, fri: 50 },
                   subDefaults: "",
                 })
